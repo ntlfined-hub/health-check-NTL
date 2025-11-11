@@ -1,181 +1,202 @@
 <!doctype html>
 <html lang="th">
- <head>
+<head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ตรวจสุขภาพการเงิน</title>
-  <script src="/_sdk/element_sdk.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ตรวจสุขภาพการเงิน • FIN-JOD Style</title>
+
+  <!-- Tailwind + Font -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+  <!-- (ถ้าคุณใช้ Element SDK/ Data SDK ในระบบเดิม สามารถคงไว้ได้)
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  -->
+
   <style>
-    body {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: 'Inter', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
+    :root{
+      --from:#0f0c29; --mid:#302b63; --to:#24243e;
+      --primary:#667eea; --secondary:#764ba2; --success:#10b981; --warn:#f59e0b; --danger:#ef4444;
     }
-    html {
-      height: 100%;
-    }
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    
-    .progress-bar {
-      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .fade-in {
-      animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .result-card {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      backdrop-filter: blur(10px);
-    }
-    
-    .result-card:hover {
-      transform: translateY(-4px) scale(1.01);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    html,body{height:100%}
+    body{
+      margin:0; padding:0; box-sizing:border-box;
+      font-family:'Inter','Noto Sans Thai',system-ui,-apple-system,'Segoe UI',sans-serif;
+      background: linear-gradient(135deg, var(--from) 0%, var(--mid) 50%, var(--to) 100%);
     }
 
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
+    /* effects */
+    .fade-in{animation:fadeIn .5s ease both}
+    @keyframes fadeIn{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none}}
+    .animate-pulse-slow{animation: pulse 3s cubic-bezier(.4,0,.6,1) infinite}
+    @keyframes pulse{0%,100%{opacity:1} 50%{opacity:.8}}
+    .gradient-text{
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
     }
-    
-    input[type="number"] {
-      -moz-appearance: textfield;
+    .glass{
+      background: rgba(255,255,255,.95);
+      backdrop-filter: blur(16px);
+      border:1px solid rgba(255,255,255,.35);
     }
+    .btn{
+      position:relative; overflow:hidden; transition:transform .2s ease, box-shadow .2s ease;
+    }
+    .btn:hover{ transform: translateY(-1px); box-shadow: 0 10px 24px rgba(99,102,241,.35) }
+    .btn:active{ transform:none }
+    .status-badge{ backdrop-filter: blur(8px) }
+    .progress-bar{ transition: width .35s cubic-bezier(.4,0,.2,1) }
 
-    .glass-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-    }
+    /* view transitions */
+    @view-transition { navigation: auto; }
 
-    .btn-modern {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
+    /* accessibility helpers */
+    .sr-live{ position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
 
-    .btn-modern:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
+    /* number-like input style */
+    input[data-money]{
+      transition: all .2s ease;
+      background: rgba(249,250,251,.85);
     }
-
-    .btn-modern:active {
-      transform: translateY(0);
-    }
-
-    .input-modern {
-      transition: all 0.3s ease;
-      background: rgba(249, 250, 251, 0.8);
-    }
-
-    .input-modern:focus {
-      background: white;
-      transform: translateY(-1px);
-      box-shadow: 0 8px 16px rgba(102, 126, 234, 0.15);
-    }
-
-    .status-badge {
-      backdrop-filter: blur(10px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.8; }
-    }
-
-    .animate-pulse-slow {
-      animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-
-    .gradient-text {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    input[data-money]:focus{
+      background:#fff; box-shadow: 0 8px 18px rgba(99,102,241,.15); transform: translateY(-1px);
+      outline: none;
     }
   </style>
-  <style>@view-transition { navigation: auto; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
- </head>
- <body class="min-h-full">
-  <main class="min-h-full relative overflow-hidden" style="background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);"><!-- Animated Background Elements -->
-   <div class="absolute inset-0 overflow-hidden pointer-events-none">
-    <div class="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse-slow"></div>
-    <div class="absolute top-40 right-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse-slow" style="animation-delay: 1s;"></div>
-    <div class="absolute -bottom-20 left-1/2 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse-slow" style="animation-delay: 2s;"></div>
-   </div>
-   <div class="min-h-full flex items-center justify-center p-4 relative z-10">
-    <div class="w-full max-w-2xl"><!-- Progress Bar -->
-     <div id="progressContainer" class="mb-8 hidden">
-      <div class="flex justify-between items-center mb-2"><span class="text-white text-sm font-medium opacity-80">ความคืบหน้า</span> <span id="progressText" class="text-white text-sm font-bold">0%</span>
-      </div>
-      <div class="bg-white bg-opacity-10 rounded-full h-2 overflow-hidden backdrop-blur-sm">
-       <div id="progressBar" class="progress-bar h-2 rounded-full" style="width: 0%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);"></div>
-      </div>
-     </div><!-- Content Container -->
-     <div id="contentContainer" class="glass-card rounded-3xl shadow-2xl p-10 fade-in"><!-- Welcome Screen -->
-      <div id="welcomeScreen">
-       <div class="text-center">
-        <div class="inline-block p-6 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl mb-6 shadow-2xl">
-         <div class="text-6xl">
-          💰
-         </div>
+</head>
+<body class="min-h-full">
+  <!-- Animated blobs -->
+  <div class="pointer-events-none select-none">
+    <div class="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply blur-3xl opacity-20 animate-pulse-slow"></div>
+    <div class="absolute top-40 right-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply blur-3xl opacity-20 animate-pulse-slow" style="animation-delay:1s"></div>
+    <div class="absolute -bottom-20 left-1/2 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply blur-3xl opacity-20 animate-pulse-slow" style="animation-delay:2s"></div>
+  </div>
+
+  <!-- Live region for a11y -->
+  <div id="ariaLive" class="sr-live" aria-live="polite"></div>
+
+  <main class="relative z-10 min-h-full flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl">
+      <!-- Progress -->
+      <div id="progressContainer" class="mb-6 hidden">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-white/80 text-sm font-medium">ความคืบหน้า</span>
+          <span id="progressText" class="text-white text-sm font-bold">0%</span>
         </div>
-        <h1 id="mainTitle" class="text-5xl font-extrabold mb-4 gradient-text leading-tight">ตรวจสุขภาพการเงิน</h1>
-        <p id="subtitle" class="text-gray-500 mb-10 text-lg font-medium max-w-md mx-auto">วิเคราะห์สุขภาพการเงินของคุณและรับคำแนะนำที่เหมาะสม</p><button onclick="startAssessment()" class="btn-modern px-10 py-5 text-white font-bold rounded-2xl text-lg shadow-xl" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"> <span class="flex items-center justify-center gap-2"> <span>เริ่มต้นตรวจสุขภาพการเงิน</span> <span class="text-xl">→</span> </span> </button>
-       </div>
-      </div><!-- Question Screens -->
-      <div id="questionScreen" class="hidden">
-       <div id="questionContent"></div>
-      </div><!-- Results Screen -->
-      <div id="resultsScreen" class="hidden">
-       <div class="text-center mb-8">
-        <div class="text-5xl mb-4">
-         📊
+        <div class="bg-white/15 rounded-full h-2 overflow-hidden backdrop-blur">
+          <div id="progressBar" class="progress-bar h-2 rounded-full" style="width:0%; background:linear-gradient(90deg,var(--primary),var(--secondary))"></div>
         </div>
-        <h2 class="text-3xl font-bold mb-2" style="color: #667eea;">ผลการวิเคราะห์สุขภาพการเงิน</h2>
-       </div>
-       <div id="resultsContent"></div>
-      </div><!-- Attitude Test Screen -->
-      <div id="attitudeScreen" class="hidden">
-       <div id="attitudeContent"></div>
-      </div><!-- Final Results Screen -->
-      <div id="finalScreen" class="hidden">
-       <div class="text-center mb-8">
-        <div class="text-5xl mb-4">
-         🎯
-        </div>
-        <h2 class="text-3xl font-bold mb-2" style="color: #667eea;">สรุปผลการประเมิน</h2>
-       </div>
-       <div id="finalContent"></div>
       </div>
-     </div>
+
+      <!-- Card -->
+      <div id="contentContainer" class="glass rounded-3xl shadow-2xl p-8 sm:p-10 fade-in">
+        <!-- Welcome -->
+        <section id="welcomeScreen">
+          <div class="text-center">
+            <div class="inline-block p-6 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl mb-6 shadow-2xl">
+              <div class="text-6xl">💰</div>
+            </div>
+            <h1 id="mainTitle" class="text-4xl sm:text-5xl font-extrabold mb-3 gradient-text">ตรวจสุขภาพการเงิน</h1>
+            <p id="subtitle" class="text-gray-500 mb-8 sm:mb-10 text-base sm:text-lg font-medium max-w-md mx-auto">
+              วิเคราะห์สุขภาพการเงินของคุณและรับคำแนะนำที่เหมาะสม
+            </p>
+
+            <div class="grid gap-3 sm:gap-4">
+              <button id="btnStart" class="btn px-6 py-4 sm:px-10 sm:py-5 rounded-2xl text-white font-bold text-base sm:text-lg shadow-xl"
+                style="background:linear-gradient(135deg,var(--primary),var(--secondary))">
+                เริ่มต้นตรวจสุขภาพการเงิน →
+              </button>
+
+              <button id="btnResume" class="btn px-6 py-4 rounded-2xl font-semibold text-gray-800 bg-white border border-gray-200 hidden">
+                ▶️ ต่อจากครั้งก่อน
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Questions -->
+        <section id="questionScreen" class="hidden">
+          <div id="questionContent"></div>
+        </section>
+
+        <!-- Attitude -->
+        <section id="attitudeScreen" class="hidden">
+          <div id="attitudeContent"></div>
+        </section>
+
+        <!-- Final -->
+        <section id="finalScreen" class="hidden">
+          <div class="text-center mb-8">
+            <div class="text-5xl mb-3">🎯</div>
+            <h2 class="text-2xl sm:text-3xl font-bold mb-2" style="color:var(--primary)">สรุปผลการประเมิน</h2>
+          </div>
+          <div id="finalContent"></div>
+        </section>
+      </div>
     </div>
-   </div>
   </main>
+
+  <!-- Toast -->
+  <div id="toastRoot" class="fixed left-1/2 -translate-x-1/2 bottom-6 z-[9999]"></div>
+
   <script>
+    /* ===========================
+       Helpers: money, toast, haptic, a11y
+       =========================== */
+    const fmt = new Intl.NumberFormat('th-TH', { maximumFractionDigits: 0 });
+    const toBaht = n => fmt.format(Math.round(n||0));
+    const ariaLive = (t)=>{ const el=document.getElementById('ariaLive'); el.textContent=t };
+
+    function toast(msg, type='info'){
+      const root = document.getElementById('toastRoot');
+      const box = document.createElement('div');
+      box.className = `px-4 py-3 rounded-xl text-white shadow-lg mb-2`;
+      box.style.background = type==='success' ? '#10b981' :
+                             type==='warn' ? '#f59e0b' :
+                             type==='error'? '#ef4444' : '#6366f1';
+      box.textContent = msg;
+      root.appendChild(box);
+      setTimeout(()=>{ box.style.opacity=.0; box.style.transform='translateY(6px)'; }, 1600);
+      setTimeout(()=> box.remove(), 2200);
+      ariaLive(msg);
+    }
+    const buzz = (ms=12)=> (navigator.vibrate && navigator.vibrate(ms));
+
+    // Money input formatting
+    function parseMoneyInput(el){
+      // อ่านจาก data-raw ถ้ามี (ค่าจริงไม่ใส่คอมม่า)
+      const raw = el.dataset.raw;
+      const v = raw!==undefined ? raw : el.value.replace(/,/g,'').trim();
+      const num = parseFloat(v);
+      return isNaN(num) ? 0 : num;
+    }
+    document.addEventListener('input', (e)=>{
+      if(e.target.matches('input[data-money]')){
+        const cleaned = e.target.value.replace(/[^\d.]/g,'').replace(/(\..*?)\..*/,'$1'); // ตัวเลข+จุดเดียว
+        const num = cleaned===''? '' : cleaned;
+        e.target.dataset.raw = num; // เก็บค่าแท้
+        if(num===''){ e.target.value=''; return; }
+        // แสดงคอมม่าสำหรับส่วนหน้าจุดเท่านั้น
+        const parts = String(num).split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        e.target.value = parts.join('.');
+      }
+    });
+
+    /* ===========================
+       Data & Config
+       =========================== */
     const defaultConfig = {
       main_title: "ตรวจสุขภาพการเงิน",
       subtitle: "วิเคราะห์สุขภาพการเงินของคุณและรับคำแนะนำที่เหมาะสม",
       primary_color: "#667eea",
       secondary_color: "#764ba2",
-      background_color: "#ffffff",
-      text_color: "#333333",
-      success_color: "#10b981"
+      text_color: "#333333"
     };
 
     let currentStep = 0;
+    let currentAttitudeQuestion = 0;
     let userData = {
       income: 0,
       debtExpense: 0,
@@ -201,550 +222,497 @@
         options: [
           { text: 'แบ่งเงินออมก่อนทุกอย่าง', correct: true },
           { text: 'จ่ายหนี้ก่อน', correct: false },
-          { text: 'ใช้จ่ายตามความต้องการก่อน แล้วค่อยออมที่เหลือ', correct: false }
+          { text: 'ใช้จ่ายก่อน แล้วค่อยออม', correct: false }
         ],
-        explanation: 'คำตอบที่ถูกต้องคือ "แบ่งเงินออมก่อนทุกอย่าง" เพราะหากออมก่อนจะทำให้มั่นใจได้ว่าจะมีเงินออมแน่นอน ตามหลักการ "จ่ายตัวเองก่อน" (Pay Yourself First) ส่วนการจ่ายหนี้ควรทำหลังจากออมแล้ว และไม่ควรใช้จ่ายก่อนแล้วค่อยออมที่เหลือ เพราะอาจไม่มีเงินเหลือออมเลย'
+        explanation: 'ออมก่อน (Pay Yourself First) ช่วยล็อกเงินออมให้เกิดขึ้นจริง'
       },
       {
         question: 'คุณมีการวางแผนการเงินระยะยาวหรือไม่?',
         options: [
-          { text: 'มีแผนชัดเจนและทบทวนเป็นประจำ', correct: true },
-          { text: 'มีแผนคร่าวๆ แต่ไม่ได้ติดตามจริงจัง', correct: false },
-          { text: 'ไม่มีแผน ใช้ชีวิตไปวันต่อวัน', correct: false }
+          { text: 'มีแผนชัดเจนและทบทวนสม่ำเสมอ', correct: true },
+          { text: 'มีแผนคร่าว ๆ', correct: false },
+          { text: 'ไม่มีแผน', correct: false }
         ],
-        explanation: 'คำตอบที่ถูกต้องคือ "มีแผนชัดเจนและทบทวนเป็นประจำ" เพราะการวางแผนการเงินที่ดีต้องมีเป้าหมายชัดเจนและติดตามผลอย่างสม่ำเสมอ จะช่วยให้บรรลุเป้าหมายทางการเงินได้ง่ายขึ้น และสามารถปรับแผนได้ทันท่วงทีเมื่อสถานการณ์เปลี่ยนแปลง'
+        explanation: 'เป้าหมายชัด + ติดตามสม่ำเสมอ = โอกาสสำเร็จสูง'
       },
       {
-        question: 'เมื่อมีเงินก้อนพิเศษ (โบนัส/ของขวัญ) คุณจะทำอย่างไร?',
+        question: 'เงินก้อนพิเศษ (โบนัส) คุณทำอย่างไร?',
         options: [
-          { text: 'นำไปออมและลงทุนส่วนใหญ่', correct: true },
-          { text: 'ใช้จ่ายซื้อของที่อยากได้มานาน', correct: false },
-          { text: 'แบ่งครึ่งหนึ่งใช้จ่าย ครึ่งหนึ่งออม', correct: false }
+          { text: 'ออม/ลงทุนเป็นหลัก', correct: true },
+          { text: 'ใช้ซื้อของที่อยากได้', correct: false },
+          { text: 'ครึ่งหนึ่งใช้ ครึ่งหนึ่งออม', correct: false }
         ],
-        explanation: 'คำตอบที่ถูกต้องคือ "นำไปออมและลงทุนส่วนใหญ่" เพราะเงินก้อนพิเศษเป็นโอกาสดีในการเพิ่มเงินออมและสร้างความมั่นคงทางการเงิน ควรนำไปออมอย่างน้อย 70-80% และอาจใช้จ่ายเล็กน้อยเพื่อให้รางวัลตัวเอง แต่ไม่ควรใช้จ่ายทั้งหมดหรือครึ่งหนึ่ง'
+        explanation: 'กันส่วนใหญ่ไว้เพิ่มความมั่นคง ส่วนเล็ก ๆ ให้รางวัลตัวเอง'
       },
       {
-        question: 'คุณมีการติดตามรายรับ-รายจ่ายของตัวเองหรือไม่?',
+        question: 'คุณติดตามรายรับ-รายจ่ายหรือไม่?',
         options: [
-          { text: 'บันทึกทุกรายการและวิเคราะห์เป็นประจำ', correct: true },
-          { text: 'บันทึกบ้างเป็นครั้งคราว', correct: false },
-          { text: 'ไม่ได้บันทึก จำคร่าวๆ ในใจ', correct: false }
+          { text: 'บันทึกสม่ำเสมอและวิเคราะห์', correct: true },
+          { text: 'บันทึกบ้าง', correct: false },
+          { text: 'ไม่บันทึก', correct: false }
         ],
-        explanation: 'คำตอบที่ถูกต้องคือ "บันทึกทุกรายการและวิเคราะห์เป็นประจำ" เพราะการรู้ว่าเงินไปไหนบ้างเป็นพื้นฐานสำคัญของการบริหารการเงิน จะช่วยให้เห็นพฤติกรรมการใช้จ่าย หาจุดที่ควรปรับปรุง และวางแผนการเงินได้อย่างมีประสิทธิภาพ'
+        explanation: '“รู้ว่าเงินไปไหน” คือฐานการปรับพฤติกรรมที่ได้ผล'
       },
       {
-        question: 'เมื่อเจอสินค้าลดราคา/โปรโมชั่น คุณจะตัดสินใจอย่างไร?',
+        question: 'เจอโปรลดราคา คุณตัดสินใจอย่างไร?',
         options: [
-          { text: 'พิจารณาว่าจำเป็นจริงหรือไม่ก่อนซื้อ', correct: true },
-          { text: 'ซื้อทันทีเพราะราคาถูก', correct: false },
-          { text: 'ซื้อเก็บไว้ก่อน อาจใช้ในอนาคต', correct: false }
+          { text: 'พิจารณาความจำเป็นก่อน', correct: true },
+          { text: 'รีบซื้อเพราะคุ้ม', correct: false },
+          { text: 'ซื้อเก็บไว้ก่อน', correct: false }
         ],
-        explanation: 'คำตอบที่ถูกต้องคือ "พิจารณาว่าจำเป็นจริงหรือไม่ก่อนซื้อ" เพราะการลดราคาไม่ได้หมายความว่าคุ้มค่าเสมอไป หากซื้อสิ่งที่ไม่จำเป็นแม้จะถูกก็ยังเป็นการสูญเสียเงิน ควรซื้อเฉพาะสิ่งที่ต้องการจริงๆ และอยู่ในงบประมาณที่วางไว้'
+        explanation: 'ถูกแต่ไม่จำเป็น = ยังแพงสำหรับกระเป๋าเงินเรา'
       }
     ];
 
     const questions = [
-      {
-        id: 'income',
-        title: 'รายได้รวมต่อเดือน',
-        icon: '💵',
-        description: 'กรุณากรอกรายได้รวมทั้งหมดที่คุณได้รับต่อเดือน',
-        type: 'single',
-        field: 'income'
-      },
-      {
-        id: 'debt',
-        title: 'รายจ่ายหนี้รวมต่อเดือน',
-        icon: '💳',
-        description: 'กรุณากรอกยอดเงินที่ต้องจ่ายชำระหนี้ทั้งหมดต่อเดือน',
-        type: 'single',
-        field: 'debtExpense'
-      },
-      {
-        id: 'expenses',
-        title: 'รายจ่ายทั่วไปในชีวิตประจำวัน',
-        icon: '🛒',
-        description: 'กรุณากรอกค่าใช้จ่ายในแต่ละหมวดต่อเดือน',
-        type: 'multiple',
-        field: 'expenses'
-      },
-      {
-        id: 'savings',
-        title: 'เงินออมรวมในปัจจุบัน',
-        icon: '🏦',
-        description: 'กรุณากรอกจำนวนเงินออมทั้งหมดที่คุณมีในปัจจุบัน',
-        type: 'single',
-        field: 'savings'
-      }
+      { id:'income', title:'รายได้รวมต่อเดือน', icon:'💵', description:'กรอกรายได้รวมต่อเดือน', type:'single', field:'income' },
+      { id:'debt', title:'รายจ่ายหนี้รวมต่อเดือน', icon:'💳', description:'กรอกยอดผ่อน/ชำระหนี้ต่อเดือน', type:'single', field:'debtExpense' },
+      { id:'expenses', title:'รายจ่ายชีวิตประจำวัน', icon:'🛒', description:'กรอกค่าใช้จ่ายแต่ละหมวดต่อเดือน', type:'multiple', field:'expenses' },
+      { id:'savings', title:'เงินออมรวมปัจจุบัน', icon:'🏦', description:'กรอกจำนวนเงินออมที่มี', type:'single', field:'savings' }
     ];
 
-    function startAssessment() {
-      document.getElementById('welcomeScreen').classList.add('hidden');
-      document.getElementById('progressContainer').classList.remove('hidden');
-      currentStep = 0;
-      showQuestion();
+    /* ===========================
+       Autosave & Deep Link
+       =========================== */
+    const SAVE_KEY = 'finhealth:v1';
+    const qs = new URLSearchParams(location.search);
+
+    function loadState(){
+      try{
+        if(qs.get('s')){
+          userData = JSON.parse(decodeURIComponent(atob(qs.get('s'))));
+          return true;
+        }
+        const raw = localStorage.getItem(SAVE_KEY);
+        if(raw){ userData = JSON.parse(raw); return true; }
+      }catch(e){}
+      return false;
+    }
+    function saveState(){
+      const minimal = {
+        income: userData.income,
+        debtExpense: userData.debtExpense,
+        expenses: userData.expenses,
+        savings: userData.savings,
+        attitudeAnswers: userData.attitudeAnswers||[],
+        results: userData.results||null
+      };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(minimal));
+    }
+    const saveDebounce = (fn=>{ let t; return ()=>{ clearTimeout(t); t=setTimeout(fn,350);} })(saveState);
+
+    function shareResult(){
+      if(!userData.results){ toast('ยังไม่มีผลลัพธ์','warn'); return; }
+      const s = btoa(encodeURIComponent(JSON.stringify(userData)));
+      const url = `${location.origin}${location.pathname}?s=${s}`;
+      navigator.clipboard?.writeText(url).then(()=> {
+        toast('คัดลอกลิงก์ผลแล้ว','success'); buzz();
+      });
     }
 
-    function showQuestion() {
-      const questionScreen = document.getElementById('questionScreen');
-      const questionContent = document.getElementById('questionContent');
-      questionScreen.classList.remove('hidden');
-      
-      const question = questions[currentStep];
-      const progress = ((currentStep + 1) / questions.length) * 100;
-      document.getElementById('progressBar').style.width = progress + '%';
-      document.getElementById('progressText').textContent = Math.round(progress) + '%';
+    /* ===========================
+       UI Flow
+       =========================== */
+    const byId = id => document.getElementById(id);
 
-      if (question.type === 'single') {
-        questionContent.innerHTML = `
-          <div class="text-center mb-8">
-            <div class="inline-block p-5 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-2xl mb-5">
-              <div class="text-5xl">${question.icon}</div>
+    function startAssessment(){
+      byId('welcomeScreen').classList.add('hidden');
+      byId('progressContainer').classList.remove('hidden');
+      currentStep = 0;
+      showQuestion();
+      buzz();
+    }
+
+    function previousQuestion(){
+      if(currentStep>0){ currentStep--; showQuestion(); saveDebounce(); }
+    }
+
+    function updateProgress(now, total){
+      const pct = Math.round(((now)/total)*100);
+      byId('progressBar').style.width = pct+'%';
+      byId('progressText').textContent = pct+'%';
+    }
+
+    function moneyInputHTML(id, placeholder='0'){
+      return `<input type="text" id="${id}" data-money class="w-full px-6 py-4 border-0 rounded-2xl text-xl font-semibold text-gray-800" placeholder="${placeholder}" inputmode="decimal" aria-label="จำนวนเงิน (บาท)">`;
+    }
+
+    function showQuestion(){
+      const qWrap = byId('questionScreen'); qWrap.classList.remove('hidden');
+      const host = byId('questionContent');
+      const q = questions[currentStep];
+      updateProgress(currentStep+1, questions.length + attitudeQuestions.length);
+
+      if(q.type==='single'){
+        host.innerHTML = `
+          <div class="text-center mb-7">
+            <div class="inline-block p-5 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-2xl mb-4">
+              <div class="text-5xl">${q.icon}</div>
             </div>
-            <h2 class="text-3xl font-bold mb-3 text-gray-800">${question.title}</h2>
-            <p class="text-gray-500 font-medium">${question.description}</p>
+            <h2 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-800">${q.title}</h2>
+            <p class="text-gray-500 font-medium">${q.description}</p>
           </div>
-          <div class="mb-8">
-            <label for="inputField" class="block text-sm font-bold mb-3 text-gray-700 uppercase tracking-wide">จำนวนเงิน (บาท)</label>
-            <input type="number" id="inputField" class="input-modern w-full px-6 py-4 border-0 rounded-2xl focus:outline-none text-xl font-semibold text-gray-800" placeholder="0" min="0" step="0.01">
+          <div class="mb-7">
+            <label class="block text-sm font-bold mb-2 text-gray-700 uppercase tracking-wide">จำนวนเงิน (บาท)</label>
+            ${moneyInputHTML('money_single')}
           </div>
           <div class="flex gap-3">
-            ${currentStep > 0 ? '<button onclick="previousQuestion()" class="flex-1 px-6 py-4 bg-gray-100 text-gray-700 font-bold rounded-2xl hover:bg-gray-200 transition-all">← ย้อนกลับ</button>' : ''}
-            <button onclick="nextQuestion()" class="btn-modern flex-1 px-6 py-4 text-white font-bold rounded-2xl shadow-lg" style="background: linear-gradient(135deg, ${defaultConfig.primary_color} 0%, ${defaultConfig.secondary_color} 100%);">ถัดไป →</button>
+            ${currentStep>0?'<button id="btnPrev" class="flex-1 px-6 py-4 bg-gray-100 text-gray-700 font-bold rounded-2xl hover:bg-gray-200">← ย้อนกลับ</button>':''}
+            <button id="btnNext" class="btn flex-1 px-6 py-4 text-white font-bold rounded-2xl shadow-lg"
+              style="background:linear-gradient(135deg,var(--primary),var(--secondary))">ถัดไป →</button>
           </div>
         `;
-      } else if (question.type === 'multiple') {
-        let expenseInputs = expenseCategories.map(cat => `
+        const el = byId('money_single');
+        // preload value from userData
+        el.value = userData[q.field] ? toBaht(userData[q.field]) : '';
+        el.dataset.raw = userData[q.field] || '';
+      } else {
+        const fields = expenseCategories.map(cat=>`
           <div class="mb-3">
-            <label for="expense_${cat.key}" class="block text-sm font-bold mb-2 text-gray-700 flex items-center gap-2">
-              <span class="text-2xl">${cat.icon}</span>
-              <span>${cat.label}</span>
+            <label for="ex_${cat.key}" class="block text-sm font-bold mb-2 text-gray-700 flex items-center gap-2">
+              <span class="text-2xl">${cat.icon}</span> <span>${cat.label}</span>
             </label>
-            <input type="number" id="expense_${cat.key}" class="input-modern w-full px-5 py-3 border-0 rounded-xl focus:outline-none text-lg font-semibold text-gray-800" placeholder="0" min="0" step="0.01" value="${userData.expenses[cat.key] || ''}">
+            ${moneyInputHTML(`ex_${cat.key}`)}
           </div>
         `).join('');
 
-        questionContent.innerHTML = `
-          <div class="text-center mb-8">
-            <div class="inline-block p-5 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-2xl mb-5">
-              <div class="text-5xl">${question.icon}</div>
-            </div>
-            <h2 class="text-3xl font-bold mb-3 text-gray-800">${question.title}</h2>
-            <p class="text-gray-500 font-medium">${question.description}</p>
+        host.innerHTML = `
+          <div class="text-center mb-6">
+            <div class="inline-block p-5 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-2xl mb-4"><div class="text-5xl">${q.icon}</div></div>
+            <h2 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-800">${q.title}</h2>
+            <p class="text-gray-500 font-medium">${q.description}</p>
           </div>
-          <div class="max-h-96 overflow-y-auto mb-8 pr-2 space-y-1">
-            ${expenseInputs}
-          </div>
+          <div class="max-h-96 overflow-y-auto mb-6 pr-1 space-y-1">${fields}</div>
           <div class="flex gap-3">
-            <button onclick="previousQuestion()" class="flex-1 px-6 py-4 bg-gray-100 text-gray-700 font-bold rounded-2xl hover:bg-gray-200 transition-all">← ย้อนกลับ</button>
-            <button onclick="nextQuestion()" class="btn-modern flex-1 px-6 py-4 text-white font-bold rounded-2xl shadow-lg" style="background: linear-gradient(135deg, ${defaultConfig.primary_color} 0%, ${defaultConfig.secondary_color} 100%);">ถัดไป →</button>
+            <button id="btnPrev" class="flex-1 px-6 py-4 bg-gray-100 text-gray-700 font-bold rounded-2xl hover:bg-gray-200">← ย้อนกลับ</button>
+            <button id="btnNext" class="btn flex-1 px-6 py-4 text-white font-bold rounded-2xl shadow-lg"
+              style="background:linear-gradient(135deg,var(--primary),var(--secondary))">ถัดไป →</button>
           </div>
         `;
+        // preload values
+        expenseCategories.forEach(cat=>{
+          const el = byId(`ex_${cat.key}`);
+          const v = userData.expenses[cat.key] || 0;
+          if(v){ el.value = toBaht(v); el.dataset.raw = v; }
+        });
       }
+
+      // bind
+      const prev = byId('btnPrev'); if(prev) prev.onclick = previousQuestion;
+      byId('btnNext').onclick = nextQuestion;
     }
 
-    function nextQuestion() {
-      const question = questions[currentStep];
-      
-      if (question.type === 'single') {
-        const value = parseFloat(document.getElementById('inputField').value) || 0;
-        if (value < 0) {
-          showInlineMessage('กรุณากรอกจำนวนเงินที่ถูกต้อง');
-          return;
-        }
-        userData[question.field] = value;
-      } else if (question.type === 'multiple') {
-        expenseCategories.forEach(cat => {
-          const value = parseFloat(document.getElementById(`expense_${cat.key}`).value) || 0;
-          userData.expenses[cat.key] = value;
+    function nextQuestion(){
+      const q = questions[currentStep];
+
+      if(q.type==='single'){
+        const val = parseMoneyInput(byId('money_single'));
+        if(val<0 || isNaN(val)){ toast('กรุณากรอกจำนวนเงินที่ถูกต้อง','warn'); return; }
+        userData[q.field] = val;
+      }else{
+        expenseCategories.forEach(cat=>{
+          const el = byId(`ex_${cat.key}`);
+          const v = el ? parseMoneyInput(el) : 0;
+          userData.expenses[cat.key] = v;
         });
       }
 
       currentStep++;
-      
-      if (currentStep < questions.length) {
+      saveDebounce();
+
+      if(currentStep < questions.length) {
         showQuestion();
       } else {
         showResults();
       }
+      buzz();
     }
 
-    function previousQuestion() {
-      if (currentStep > 0) {
-        currentStep--;
-        showQuestion();
-      }
-    }
-
-    function showInlineMessage(message) {
-      const existingMsg = document.querySelector('.inline-message');
-      if (existingMsg) existingMsg.remove();
-      
-      const msgDiv = document.createElement('div');
-      msgDiv.className = 'inline-message bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4';
-      msgDiv.textContent = message;
-      
-      const questionContent = document.getElementById('questionContent');
-      questionContent.insertBefore(msgDiv, questionContent.firstChild);
-      
-      setTimeout(() => msgDiv.remove(), 3000);
-    }
-
-    function showResults() {
-      // Calculate and store results but don't show yet
-      // Calculate DTI
-      const dti = userData.income > 0 ? (userData.debtExpense / userData.income) * 100 : 0;
+    function showResults(){
+      // DTI
+      const dti = userData.income>0 ? (userData.debtExpense/userData.income)*100 : 0;
       let dtiStatus, dtiColor, dtiAdvice;
-      
-      if (dti <= 35) {
-        dtiStatus = 'ดีมาก';
-        dtiColor = '#10b981';
-        dtiAdvice = 'อัตราส่วนหนี้ของคุณอยู่ในเกณฑ์ที่ดีมาก คุณมีการบริหารหนี้ที่ดีและมีเงินเหลือเพียงพอสำหรับการออมและลงทุน';
-      } else if (dti <= 45) {
-        dtiStatus = 'ระมัดระวัง';
-        dtiColor = '#f59e0b';
-        dtiAdvice = 'อัตราส่วนหนี้ของคุณอยู่ในระดับที่ต้องระมัดระวัง ไม่ควรสร้างหนี้เพิ่มและควรเร่งเคลียร์หนี้ให้หมดโดยเร็ว';
-      } else {
-        dtiStatus = 'อันตราย';
-        dtiColor = '#ef4444';
-        dtiAdvice = 'อัตราส่วนหนี้ของคุณสูงเกินไป ควรหยุดสร้างหนี้เพิ่มทันที เร่งเคลียร์หนี้ให้หมด และหากจ่ายไม่ไหวควรเจรจาปรับโครงสร้างหนี้';
-      }
+      if(dti<=35){ dtiStatus='ดีมาก'; dtiColor= '#10b981'; dtiAdvice='หนี้อยู่ในเกณฑ์ดีมาก พร้อมสร้างออม/ลงทุน'; }
+      else if(dti<=45){ dtiStatus='ระมัดระวัง'; dtiColor='#f59e0b'; dtiAdvice='ควรเร่งลดหนี้และหลีกเลี่ยงหนี้ใหม่'; }
+      else{ dtiStatus='อันตราย'; dtiColor='#ef4444'; dtiAdvice='ภาระหนี้สูง ควรหยุดก่อหนี้ เจรจาปรับโครงสร้างหนี้'; }
 
-      // Calculate Emergency Fund
-      const totalMonthlyExpense = userData.debtExpense + Object.values(userData.expenses).reduce((a, b) => a + b, 0);
-      const emergencyMonths = totalMonthlyExpense > 0 ? userData.savings / totalMonthlyExpense : 0;
+      // Emergency fund
+      const totalMonthlyExpense = (userData.debtExpense||0) + Object.values(userData.expenses||{}).reduce((a,b)=>a+(b||0),0);
+      const emergencyMonths = totalMonthlyExpense>0 ? (userData.savings||0)/totalMonthlyExpense : 0;
       let efStatus, efColor, efAdvice;
-      
-      if (emergencyMonths < 3) {
-        efStatus = 'ไม่เพียงพอ';
-        efColor = '#ef4444';
-        const needed = (3 * totalMonthlyExpense) - userData.savings;
-        efAdvice = `เงินสำรองฉุกเฉินของคุณยังไม่เพียงพอ ควรมีอย่างน้อย 3-6 เดือน คุณควรเก็บเงินเพิ่มอีกประมาณ ${needed.toLocaleString('th-TH', {maximumFractionDigits: 0})} บาท เพื่อให้ถึงเป้าหมายขั้นต่ำ`;
-      } else if (emergencyMonths <= 6) {
-        efStatus = 'เพียงพอ';
-        efColor = '#10b981';
-        efAdvice = 'เงินสำรองฉุกเฉินของคุณอยู่ในเกณฑ์ที่เหมาะสม สามารถรองรับเหตุฉุกเฉินได้ดี';
-      } else {
-        efStatus = 'เกินเป้า';
-        efColor = '#3b82f6';
-        const excess = userData.savings - (6 * totalMonthlyExpense);
-        efAdvice = `เงินสำรองฉุกเฉินของคุณเกินเป้าหมาย คุณสามารถนำเงินส่วนที่เกิน (ประมาณ ${excess.toLocaleString('th-TH', {maximumFractionDigits: 0})} บาท) ไปลงทุนเพื่อให้เงินงอกเงยได้`;
-      }
+      if(emergencyMonths<3){ efStatus='ไม่เพียงพอ'; efColor='#ef4444'; const need=(3*totalMonthlyExpense)-(userData.savings||0); efAdvice=`ควรเพิ่มเงินสำรองอีกประมาณ ${toBaht(need)} บาท เพื่อให้ถึง 3 เดือน`; }
+      else if(emergencyMonths<=6){ efStatus='เพียงพอ'; efColor='#10b981'; efAdvice='อยู่ในเกณฑ์เหมาะสม รองรับเหตุฉุกเฉินได้ดี'; }
+      else{ efStatus='เกินเป้า'; efColor='#3b82f6'; const excess=(userData.savings||0)-(6*totalMonthlyExpense); efAdvice=`เกิน 6 เดือนแล้ว อาจนำส่วนเกิน ~${toBaht(excess)} ไปลงทุนได้`; }
 
-      // Calculate Liquidity
-      const totalExpense = totalMonthlyExpense;
-      const liquidity = userData.income - totalExpense;
+      // Liquidity
+      const liquidity = (userData.income||0) - totalMonthlyExpense;
       let liqStatus, liqColor, liqAdvice;
-      
-      if (liquidity < 0) {
-        liqStatus = 'ติดลบ';
-        liqColor = '#ef4444';
-        
-        // Analyze expenses
-        const expenseArray = Object.entries(userData.expenses).map(([key, value]) => ({
-          key,
-          value,
-          label: expenseCategories.find(c => c.key === key)?.label || key
-        })).sort((a, b) => b.value - a.value);
-        
-        const top3 = expenseArray.slice(0, 3).filter(e => e.value > 0);
-        
-        if (dti > 45) {
-          liqAdvice = `สภาพคล่องของคุณติดลบ ${Math.abs(liquidity).toLocaleString('th-TH', {maximumFractionDigits: 0})} บาท เนื่องจากภาระหนี้สูง (${dti.toFixed(1)}% ของรายได้) ควรลดภาระหนี้เป็นอันดับแรก`;
-        } else {
-          liqAdvice = `สภาพคล่องของคุณติดลบ ${Math.abs(liquidity).toLocaleString('th-TH', {maximumFractionDigits: 0})} บาท ควรลดค่าใช้จ่าย โดยเฉพาะ 3 หมวดที่ใช้จ่ายมากที่สุด: `;
-          if (top3.length > 0) {
-            liqAdvice += top3.map((e, i) => `${i + 1}. ${e.label} (${e.value.toLocaleString('th-TH', {maximumFractionDigits: 0})} บาท)`).join(' ');
-          }
+      if(liquidity<0){
+        liqStatus='ติดลบ'; liqColor='#ef4444';
+        const dtiTxt = dti.toFixed(1);
+        if(dti>45){ liqAdvice=`สภาพคล่องติดลบ ${toBaht(Math.abs(liquidity))} บาท (DTI ${dtiTxt}%) ควรลดหนี้เป็นอันดับแรก`; }
+        else{
+          const top3 = Object.entries(userData.expenses||{})
+            .map(([k,v])=>({k,v, label:(expenseCategories.find(c=>c.key===k)||{}).label||k}))
+            .sort((a,b)=>b.v-a.v).slice(0,3).filter(x=>x.v>0);
+          liqAdvice = `สภาพคล่องติดลบ ${toBaht(Math.abs(liquidity))} บาท ควรลดค่าใช้จ่ายหมวดสูงสุด: ` +
+            (top3.map((e,i)=>`${i+1}. ${e.label} (${toBaht(e.v)}฿)`).join(' '));
         }
-      } else {
-        liqStatus = 'ดี';
-        liqColor = '#10b981';
-        liqAdvice = `สภาพคล่องของคุณดี มีเงินเหลือ ${liquidity.toLocaleString('th-TH', {maximumFractionDigits: 0})} บาท ต่อเดือน ควรนำไปออมและลงทุนเพื่ออนาคต`;
+      }else{
+        liqStatus='ดี'; liqColor='#10b981'; liqAdvice=`มีเงินเหลือ ${toBaht(liquidity)} บาท/เดือน ควรนำไปออม/ลงทุนสม่ำเสมอ`;
       }
 
-      // Store results for final summary
       userData.results = {
-        dti: { value: dti, status: dtiStatus, color: dtiColor, advice: dtiAdvice },
-        emergencyFund: { value: emergencyMonths, status: efStatus, color: efColor, advice: efAdvice },
-        liquidity: { value: liquidity, status: liqStatus, color: liqColor, advice: liqAdvice }
+        dti:{ value:dti, status:dtiStatus, color:dtiColor, advice:dtiAdvice },
+        emergencyFund:{ value:emergencyMonths, status:efStatus, color:efColor, advice:efAdvice },
+        liquidity:{ value:liquidity, status:liqStatus, color:liqColor, advice:liqAdvice }
       };
 
-      // Go directly to attitude test
+      saveDebounce();
       startAttitudeTest();
     }
 
-    let currentAttitudeQuestion = 0;
-
-    function startAttitudeTest() {
-      document.getElementById('questionScreen').classList.add('hidden');
-      document.getElementById('attitudeScreen').classList.remove('hidden');
-      document.getElementById('progressContainer').classList.remove('hidden');
+    /* ===========================
+       Attitude Test
+       =========================== */
+    function startAttitudeTest(){
+      byId('questionScreen').classList.add('hidden');
+      byId('attitudeScreen').classList.remove('hidden');
       currentAttitudeQuestion = 0;
       userData.attitudeAnswers = [];
       showAttitudeQuestion();
     }
 
-    function showAttitudeQuestion() {
-      const attitudeContent = document.getElementById('attitudeContent');
-      const question = attitudeQuestions[currentAttitudeQuestion];
-      const progress = ((currentAttitudeQuestion + 1) / attitudeQuestions.length) * 100;
-      document.getElementById('progressBar').style.width = progress + '%';
-      document.getElementById('progressText').textContent = Math.round(progress) + '%';
+    function showAttitudeQuestion(){
+      const host = byId('attitudeContent');
+      const q = attitudeQuestions[currentAttitudeQuestion];
+      updateProgress(questions.length + currentAttitudeQuestion + 1, questions.length + attitudeQuestions.length);
 
-      // Shuffle options randomly
-      const shuffledOptions = question.options
-        .map((option, index) => ({ option, originalIndex: index }))
-        .sort(() => Math.random() - 0.5);
+      // shuffle
+      const shuffled = q.options.map((o,i)=>({o,i})).sort(()=>Math.random()-0.5);
 
-      const optionsHtml = shuffledOptions.map(({ option, originalIndex }) => `
-        <button onclick="selectAttitudeAnswer(${originalIndex})" class="btn-modern w-full text-left px-6 py-5 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl hover:from-purple-50 hover:to-indigo-50 border-2 border-gray-200 hover:border-purple-400 transition-all mb-3 font-semibold text-gray-800 shadow-sm hover:shadow-md">
-          <span class="flex items-center gap-3">
-            <span class="text-2xl">•</span>
-            <span>${option.text}</span>
-          </span>
-        </button>
-      `).join('');
-
-      attitudeContent.innerHTML = `
-        <div class="text-center mb-8">
-          <div class="inline-block p-5 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-2xl mb-5">
-            <div class="text-5xl">🤔</div>
+      host.innerHTML = `
+        <div class="text-center mb-7">
+          <div class="inline-block p-5 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-2xl mb-4"><div class="text-5xl">🤔</div></div>
+          <div class="inline-block px-3 py-1 bg-purple-100 rounded-full mb-3 text-purple-700 text-sm font-bold">
+            คำถามที่ ${currentAttitudeQuestion+1} / ${attitudeQuestions.length}
           </div>
-          <div class="inline-block px-4 py-2 bg-purple-100 rounded-full mb-4">
-            <span class="text-sm font-bold text-purple-700">คำถามที่ ${currentAttitudeQuestion + 1} / ${attitudeQuestions.length}</span>
-          </div>
-          <p class="text-xl text-gray-800 font-bold leading-relaxed max-w-lg mx-auto">${question.question}</p>
+          <p class="text-xl text-gray-800 font-bold leading-relaxed max-w-lg mx-auto">${q.question}</p>
         </div>
         <div class="space-y-3">
-          ${optionsHtml}
+          ${shuffled.map(({o,i})=>`
+            <button class="btn w-full text-left px-6 py-5 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl hover:from-purple-50 hover:to-indigo-50 border-2 border-gray-200 hover:border-purple-400 transition-all font-semibold text-gray-800 shadow-sm"
+              data-ans="${i}">
+              <span class="flex items-center gap-3"><span class="text-2xl">•</span><span>${o.text}</span></span>
+            </button>
+          `).join('')}
         </div>
       `;
+
+      host.querySelectorAll('button[data-ans]').forEach(btn=>{
+        btn.onclick = ()=> selectAttitudeAnswer(parseInt(btn.dataset.ans,10));
+      });
     }
 
-    function selectAttitudeAnswer(answerIndex) {
-      const question = attitudeQuestions[currentAttitudeQuestion];
-      const selectedOption = question.options[answerIndex];
-      
-      userData.attitudeAnswers.push({
-        question: question.question,
-        answer: selectedOption.text,
-        correct: selectedOption.correct
-      });
+    function selectAttitudeAnswer(answerIndex){
+      const q = attitudeQuestions[currentAttitudeQuestion];
+      const sel = q.options[answerIndex];
 
-      // Show explanation
-      const attitudeContent = document.getElementById('attitudeContent');
-      const bgColor = selectedOption.correct ? '#d1fae5' : '#fee2e2';
-      const borderColor = selectedOption.correct ? '#10b981' : '#ef4444';
-      const textColor = selectedOption.correct ? '#065f46' : '#991b1b';
-      const icon = selectedOption.correct ? '✅' : '❌';
+      userData.attitudeAnswers.push({ question:q.question, answer:sel.text, correct:sel.correct });
 
-      attitudeContent.innerHTML = `
+      const host = byId('attitudeContent');
+      const ok = sel.correct;
+      const bg = ok ? '#d1fae5' : '#fee2e2';
+      const bd = ok ? '#10b981' : '#ef4444';
+      const tx = ok ? '#065f46' : '#991b1b';
+      const icon = ok ? '✅' : '❌';
+      toast(ok?'เยี่ยมมาก!':'ลองใหม่คราวหน้า', ok?'success':'warn');
+      buzz();
+
+      host.innerHTML = `
         <div class="text-center mb-8">
-          <div class="inline-block p-6 rounded-3xl mb-5 shadow-xl" style="background: linear-gradient(135deg, ${bgColor}, ${bgColor});">
+          <div class="inline-block p-6 rounded-3xl mb-5 shadow-xl" style="background:${bg}">
             <div class="text-6xl">${icon}</div>
           </div>
-          <div class="inline-block px-4 py-2 bg-purple-100 rounded-full mb-4">
-            <span class="text-sm font-bold text-purple-700">คำถามที่ ${currentAttitudeQuestion + 1} / ${attitudeQuestions.length}</span>
+          <div class="inline-block px-3 py-1 bg-purple-100 rounded-full mb-3 text-purple-700 text-sm font-bold">
+            คำถามที่ ${currentAttitudeQuestion+1} / ${attitudeQuestions.length}
           </div>
-          <p class="text-lg text-gray-700 font-bold mb-6 max-w-lg mx-auto">${question.question}</p>
-          <div class="p-5 rounded-2xl mb-6 shadow-lg" style="background-color: ${bgColor}; border: 3px solid ${borderColor};">
-            <p class="font-bold text-lg" style="color: ${textColor};">คุณเลือก: ${selectedOption.text}</p>
+          <p class="text-lg text-gray-700 font-bold mb-5 max-w-lg mx-auto">${q.question}</p>
+          <div class="p-5 rounded-2xl mb-6 shadow-lg" style="background:${bg}; border:3px solid ${bd}">
+            <p class="font-bold text-lg" style="color:${tx}">คุณเลือก: ${sel.text}</p>
           </div>
         </div>
-        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 mb-8 shadow-md">
-          <div class="flex items-center gap-2 mb-3">
-            <span class="text-2xl">💡</span>
-            <h3 class="font-bold text-lg text-blue-900">คำอธิบาย</h3>
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 mb-6 shadow-md">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-2xl">💡</span><h3 class="font-bold text-lg text-blue-900">คำอธิบาย</h3>
           </div>
-          <p class="text-gray-700 leading-relaxed font-medium">${question.explanation}</p>
+          <p class="text-gray-700 leading-relaxed font-medium">${q.explanation}</p>
         </div>
-        <button onclick="nextAttitudeQuestion()" class="btn-modern w-full px-6 py-5 text-white font-bold rounded-2xl shadow-xl text-lg" style="background: linear-gradient(135deg, ${defaultConfig.primary_color} 0%, ${defaultConfig.secondary_color} 100%);">
-          ${currentAttitudeQuestion < attitudeQuestions.length - 1 ? 'คำถามถัดไป →' : 'ดูผลสรุป 🎯'}
+        <button id="btnNextAtt" class="btn w-full px-6 py-5 text-white font-bold rounded-2xl shadow-xl text-lg"
+          style="background:linear-gradient(135deg,var(--primary),var(--secondary))">
+          ${currentAttitudeQuestion < attitudeQuestions.length-1 ? 'คำถามถัดไป →' : 'ดูผลสรุป 🎯'}
         </button>
       `;
+      byId('btnNextAtt').onclick = nextAttitudeQuestion;
+      saveDebounce();
     }
 
-    function nextAttitudeQuestion() {
+    function nextAttitudeQuestion(){
       currentAttitudeQuestion++;
-      
-      if (currentAttitudeQuestion < attitudeQuestions.length) {
-        showAttitudeQuestion();
-      } else {
-        showFinalResults();
-      }
+      if(currentAttitudeQuestion < attitudeQuestions.length){ showAttitudeQuestion(); }
+      else { showFinalResults(); }
+      buzz();
     }
 
-    function showFinalResults() {
-      document.getElementById('attitudeScreen').classList.add('hidden');
-      document.getElementById('progressContainer').classList.add('hidden');
-      document.getElementById('finalScreen').classList.remove('hidden');
+    /* ===========================
+       Final + Rings
+       =========================== */
+    function ring(el, pct, color, label, valueText){
+      const R = 54, C = 2*Math.PI*R, p = Math.max(0, Math.min(100, pct));
+      el.innerHTML = `
+        <div class="p-4 rounded-2xl bg-white/90 border border-white/60 shadow text-center">
+          <svg width="140" height="140" viewBox="0 0 140 140" class="mx-auto block">
+            <circle cx="70" cy="70" r="${R}" stroke="#e5e7eb" stroke-width="14" fill="none"/>
+            <circle cx="70" cy="70" r="${R}" stroke="${color}" stroke-linecap="round"
+                    stroke-width="14" fill="none"
+                    style="stroke-dasharray:${C};stroke-dashoffset:${C};transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1)"/>
+            <text x="50%" y="50%" text-anchor="middle" dy="8" font-size="22" font-weight="800" fill="${color}">${valueText}</text>
+          </svg>
+          <div class="mt-2 font-bold text-gray-800">${label}</div>
+        </div>`;
+      requestAnimationFrame(()=>{ const bar = el.querySelectorAll('circle')[1]; bar.style.strokeDashoffset = C*(1 - p/100); });
+    }
 
-      const correctAnswers = userData.attitudeAnswers.filter(a => a.correct).length;
-      const totalQuestions = attitudeQuestions.length;
-      const score = (correctAnswers / totalQuestions) * 100;
+    function showFinalResults(){
+      byId('attitudeScreen').classList.add('hidden');
+      byId('progressContainer').classList.add('hidden');
+      byId('finalScreen').classList.remove('hidden');
 
-      let attitudeLevel, attitudeColor, attitudeMessage;
-      if (score >= 80) {
-        attitudeLevel = 'ดีเยี่ยม';
-        attitudeColor = '#10b981';
-        attitudeMessage = 'คุณมีทัศคติที่ดีมากในการบริหารจัดการเงิน มีวินัยทางการเงินที่แข็งแกร่ง';
-      } else if (score >= 60) {
-        attitudeLevel = 'ดี';
-        attitudeColor = '#3b82f6';
-        attitudeMessage = 'คุณมีทัศคติที่ดีในการบริหารจัดการเงิน แต่ยังมีจุดที่ควรปรับปรุง';
-      } else {
-        attitudeLevel = 'ควรปรับปรุง';
-        attitudeColor = '#f59e0b';
-        attitudeMessage = 'คุณควรปรับปรุงทัศคติและพฤติกรรมการบริหารจัดการเงินเพื่อความมั่นคงทางการเงินในอนาคต';
-      }
+      const correct = userData.attitudeAnswers.filter(a=>a.correct).length;
+      const total = attitudeQuestions.length;
+      const score = (correct/total)*100;
+      let attLevel, attColor, attMsg;
+      if(score>=80){ attLevel='ดีเยี่ยม'; attColor= '#10b981'; attMsg='วินัยทางการเงินแข็งแกร่ง'; }
+      else if(score>=60){ attLevel='ดี'; attColor='#3b82f6'; attMsg='ดี แต่ยังมีจุดปรับปรุงได้'; }
+      else { attLevel='ควรปรับปรุง'; attColor='#f59e0b'; attMsg='ปรับพฤติกรรมการใช้จ่าย/ออม ให้ชัดเจนยิ่งขึ้น'; }
 
-      const finalContent = document.getElementById('finalContent');
-      finalContent.innerHTML = `
-        <!-- Main Summary Header -->
-        <div class="text-center mb-10">
-          <div class="inline-block p-5 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl mb-5">
-            <div class="text-5xl">✨</div>
-          </div>
-          <h3 class="text-3xl font-extrabold mb-3 gradient-text">สรุปผลการประเมินทั้งหมด</h3>
-          <p class="text-gray-500 font-medium">ผลการวิเคราะห์สุขภาพการเงินและทัศคติการเงินของคุณ</p>
+      const d = userData.results;
+
+      const host = byId('finalContent');
+      host.innerHTML = `
+        <div class="text-center mb-6">
+          <div class="inline-block p-5 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl mb-4"><div class="text-5xl">✨</div></div>
+          <h3 class="text-2xl sm:text-3xl font-extrabold mb-2 gradient-text">สรุปผลการประเมินทั้งหมด</h3>
+          <p class="text-gray-500 font-medium">ผลการวิเคราะห์สุขภาพการเงิน + ทัศคติการเงิน</p>
         </div>
 
-        <!-- Financial Health Section -->
-        <div class="mb-8">
-          <div class="flex items-center gap-3 mb-5">
-            <div class="p-3 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl">
-              <span class="text-2xl">📊</span>
-            </div>
-            <h3 class="text-2xl font-bold text-gray-800">สุขภาพการเงิน</h3>
-          </div>
-          
-          <!-- DTI Card -->
-          <div class="result-card bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-6 mb-4 shadow-lg" style="border-color: ${userData.results.dti.color};">
-            <div class="flex items-center justify-between mb-4">
+        <div id="ringRow" class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-6"></div>
+
+        <div class="space-y-4">
+          <!-- DTI -->
+          <div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-6 shadow" style="border-color:${d.dti.color}">
+            <div class="flex items-center justify-between mb-3">
               <h4 class="text-lg font-bold text-gray-800">อัตราส่วนหนี้ต่อรายได้ (DTI)</h4>
-              <span class="status-badge px-4 py-2 rounded-full text-white text-sm font-bold" style="background-color: ${userData.results.dti.color};">${userData.results.dti.status}</span>
+              <span class="status-badge px-3 py-1 rounded-full text-white text-xs font-bold" style="background:${d.dti.color}">${d.dti.status}</span>
             </div>
-            <div class="text-4xl font-extrabold mb-3" style="color: ${userData.results.dti.color};">${userData.results.dti.value.toFixed(1)}%</div>
-            <p class="text-gray-600 leading-relaxed font-medium">${userData.results.dti.advice}</p>
+            <div class="text-3xl font-extrabold mb-2" style="color:${d.dti.color}">${d.dti.value.toFixed(1)}%</div>
+            <p class="text-gray-600">${d.dti.advice}</p>
           </div>
 
-          <!-- Emergency Fund Card -->
-          <div class="result-card bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-6 mb-4 shadow-lg" style="border-color: ${userData.results.emergencyFund.color};">
-            <div class="flex items-center justify-between mb-4">
+          <!-- EF -->
+          <div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-6 shadow" style="border-color:${d.emergencyFund.color}">
+            <div class="flex items-center justify-between mb-3">
               <h4 class="text-lg font-bold text-gray-800">เงินสำรองฉุกเฉิน</h4>
-              <span class="status-badge px-4 py-2 rounded-full text-white text-sm font-bold" style="background-color: ${userData.results.emergencyFund.color};">${userData.results.emergencyFund.status}</span>
+              <span class="status-badge px-3 py-1 rounded-full text-white text-xs font-bold" style="background:${d.emergencyFund.color}">${d.emergencyFund.status}</span>
             </div>
-            <div class="text-4xl font-extrabold mb-3" style="color: ${userData.results.emergencyFund.color};">${userData.results.emergencyFund.value.toFixed(1)} เดือน</div>
-            <p class="text-gray-600 leading-relaxed font-medium">${userData.results.emergencyFund.advice}</p>
+            <div class="text-3xl font-extrabold mb-2" style="color:${d.emergencyFund.color}">${d.emergencyFund.value.toFixed(1)} เดือน</div>
+            <p class="text-gray-600">${d.emergencyFund.advice}</p>
           </div>
 
-          <!-- Liquidity Card -->
-          <div class="result-card bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-6 mb-4 shadow-lg" style="border-color: ${userData.results.liquidity.color};">
-            <div class="flex items-center justify-between mb-4">
+          <!-- Liquidity -->
+          <div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-6 shadow" style="border-color:${d.liquidity.color}">
+            <div class="flex items-center justify-between mb-3">
               <h4 class="text-lg font-bold text-gray-800">สภาพคล่องคงเหลือ</h4>
-              <span class="status-badge px-4 py-2 rounded-full text-white text-sm font-bold" style="background-color: ${userData.results.liquidity.color};">${userData.results.liquidity.status}</span>
+              <span class="status-badge px-3 py-1 rounded-full text-white text-xs font-bold" style="background:${d.liquidity.color}">${d.liquidity.status}</span>
             </div>
-            <div class="text-4xl font-extrabold mb-3" style="color: ${userData.results.liquidity.color};">${userData.results.liquidity.value.toLocaleString('th-TH', {maximumFractionDigits: 0})} ฿</div>
-            <p class="text-gray-600 leading-relaxed font-medium">${userData.results.liquidity.advice}</p>
+            <div class="text-3xl font-extrabold mb-2" style="color:${d.liquidity.color}">${toBaht(d.liquidity.value)} ฿</div>
+            <p class="text-gray-600">${d.liquidity.advice}</p>
           </div>
         </div>
 
-        <!-- Attitude Section -->
-        <div class="mb-10">
-          <div class="flex items-center gap-3 mb-5">
-            <div class="p-3 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-xl">
-              <span class="text-2xl">🎯</span>
-            </div>
-            <h3 class="text-2xl font-bold text-gray-800">ทัศคติการเงิน</h3>
-          </div>
-          
-          <div class="result-card bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-8 shadow-lg" style="border-color: ${attitudeColor};">
-            <div class="text-center">
-              <div class="inline-block p-4 rounded-2xl mb-4" style="background: linear-gradient(135deg, ${attitudeColor}15, ${attitudeColor}25);">
-                <div class="text-5xl">🎯</div>
-              </div>
-              <h4 class="text-2xl font-bold mb-3" style="color: ${attitudeColor};">ระดับ: ${attitudeLevel}</h4>
-              <div class="text-5xl font-extrabold mb-4" style="color: ${attitudeColor};">${correctAnswers}/${totalQuestions}</div>
-              <p class="text-gray-600 leading-relaxed font-medium text-lg">${attitudeMessage}</p>
-            </div>
+        <div class="bg-gradient-to-br from-white to-gray-50 border rounded-2xl p-6 shadow mt-6">
+          <div class="text-center">
+            <div class="inline-block p-4 rounded-2xl mb-3" style="background: ${attColor}20"><div class="text-5xl">🎯</div></div>
+            <h4 class="text-2xl font-bold mb-2" style="color:${attColor}">ระดับทัศคติ: ${attLevel}</h4>
+            <div class="text-4xl font-extrabold mb-2" style="color:${attColor}">${correct}/${total}</div>
+            <p class="text-gray-600">${attMsg}</p>
           </div>
         </div>
 
-        <!-- Action Button -->
-        <button onclick="restartAssessment()" class="btn-modern w-full px-8 py-5 text-white font-bold rounded-2xl shadow-xl text-lg" style="background: linear-gradient(135deg, ${defaultConfig.primary_color} 0%, ${defaultConfig.secondary_color} 100%);">
-          <span class="flex items-center justify-center gap-2">
-            <span>🔄</span>
-            <span>ตรวจสุขภาพการเงินใหม่</span>
-          </span>
-        </button>
+        <div class="grid gap-3 sm:grid-cols-2 mt-6">
+          <button id="btnRestart" class="btn px-6 py-4 rounded-2xl text-white font-bold"
+            style="background:linear-gradient(135deg,var(--primary),var(--secondary))">🔄 เริ่มประเมินใหม่</button>
+          <button id="btnShare" class="btn px-6 py-4 rounded-2xl font-semibold bg-white border border-gray-200">🔗 แชร์ผลลัพธ์</button>
+        </div>
       `;
+
+      // Rings
+      const row = byId('ringRow');
+      const a = document.createElement('div'), b = document.createElement('div'), c = document.createElement('div');
+      row.append(a,b,c);
+      const dtiPct = Math.max(0, 100 - Math.min(100, d.dti.value));          // DTI น้อย = ดี → แปลงเป็น %
+      const efPct  = Math.min(100, (d.emergencyFund.value/6)*100);            // 6 เดือน = 100%
+      const liqPct = d.liquidity.value<=0 ? 0 : Math.min(100, (d.liquidity.value / (userData.income||1))*100);
+      ring(a, dtiPct, d.dti.color, 'DTI (ยิ่งมากยิ่งดี)', `${dtiPct.toFixed(0)}%`);
+      ring(b, efPct,  d.emergencyFund.color, 'เงินสำรองฉุกเฉิน', `${d.emergencyFund.value.toFixed(1)}ด.`);
+      ring(c, liqPct, d.liquidity.color, 'สภาพคล่องต่อรายได้', `${liqPct.toFixed(0)}%`);
+
+      // binds
+      byId('btnRestart').onclick = restartAssessment;
+      byId('btnShare').onclick = shareResult;
+
+      saveDebounce();
+      window.scrollTo({top:0, behavior:'smooth'});
     }
 
-    function restartAssessment() {
+    function restartAssessment(){
       currentStep = 0;
       currentAttitudeQuestion = 0;
-      userData = {
-        income: 0,
-        debtExpense: 0,
-        expenses: {},
-        savings: 0,
-        attitudeAnswers: []
-      };
-      
-      document.getElementById('finalScreen').classList.add('hidden');
-      document.getElementById('welcomeScreen').classList.remove('hidden');
-      document.getElementById('progressContainer').classList.add('hidden');
-      document.getElementById('progressBar').style.width = '0%';
+      userData = { income:0, debtExpense:0, expenses:{}, savings:0, attitudeAnswers:[], results:null };
+      byId('finalScreen').classList.add('hidden');
+      byId('welcomeScreen').classList.remove('hidden');
+      byId('progressContainer').classList.add('hidden');
+      byId('progressBar').style.width='0%';
+      saveDebounce();
     }
 
-    // Element SDK Integration
-    async function onConfigChange(config) {
-      const mainTitle = document.getElementById('mainTitle');
-      const subtitle = document.getElementById('subtitle');
-      
-      if (mainTitle) {
-        mainTitle.textContent = config.main_title || defaultConfig.main_title;
-        mainTitle.style.color = config.primary_color || defaultConfig.primary_color;
-      }
-      
-      if (subtitle) {
-        subtitle.textContent = config.subtitle || defaultConfig.subtitle;
-      }
-    }
+    /* ===========================
+       Init & Resume
+       =========================== */
+    document.addEventListener('DOMContentLoaded', ()=>{
+      // Header text (สามารถเชื่อม Element SDK ได้หากใช้)
+      byId('mainTitle').textContent = defaultConfig.main_title;
+      byId('subtitle').textContent  = defaultConfig.subtitle;
 
-    function mapToCapabilities(config) {
-      return {
-        recolorables: [
-          {
-            get: () => config.primary_color || defaultConfig.primary_color,
-            set: (value) => {
-              config.primary_color = value;
-              window.elementSdk.setConfig({ primary_color: value });
-            }
+      const hasState = loadState();
+      const btnStart = byId('btnStart');
+      const btnResume = byId('btnResume');
+
+      btnStart.onclick = startAssessment;
+      if(hasState){
+        btnResume.classList.remove('hidden');
+        btnResume.onclick = ()=>{
+          // ถ้ามีผลแล้ว กระโดดไป Final เลย, ถ้ายังไม่มี เริ่มถามต่อ
+          if(userData.results){
+            byId('welcomeScreen').classList.add('hidden');
+            showFinalResults();
+          }else{
+            startAssessment();
           }
-        ],
-        borderables: [],
-        fontEditable: undefined,
-        fontSizeable: undefined
-      };
-    }
-
-    function mapToEditPanelValues(config) {
-      return new Map([
-        ["main_title", config.main_title || defaultConfig.main_title],
-        ["subtitle", config.subtitle || defaultConfig.subtitle]
-      ]);
-    }
-
-    if (window.elementSdk) {
-      window.elementSdk.init({
-        defaultConfig,
-        onConfigChange,
-        mapToCapabilities,
-        mapToEditPanelValues
-      });
-    }
+          toast('โหลดข้อมูลครั้งก่อนแล้ว','success');
+        };
+      }
+    });
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99cc1e6d60ea130f',t:'MTc2Mjg0NjU4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
