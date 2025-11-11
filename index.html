@@ -320,7 +320,7 @@
               <span class="text-2xl">${cat.icon}</span>
               <span>${cat.label}</span>
             </label>
-            <input type="number" id="expense_${cat.key}" class="input-modern w-full px-5 py-3 border-0 rounded-xl focus:outline-none text-lg font-semibold text-gray-800" placeholder="0" min="0" step="0.01" value="${userData.expenses[cat.key] || 0}">
+            <input type="number" id="expense_${cat.key}" class="input-modern w-full px-5 py-3 border-0 rounded-xl focus:outline-none text-lg font-semibold text-gray-800" placeholder="0" min="0" step="0.01" value="${userData.expenses[cat.key] || ''}">
           </div>
         `).join('');
 
@@ -492,8 +492,13 @@
       document.getElementById('progressBar').style.width = progress + '%';
       document.getElementById('progressText').textContent = Math.round(progress) + '%';
 
-      const optionsHtml = question.options.map((option, index) => `
-        <button onclick="selectAttitudeAnswer(${index})" class="btn-modern w-full text-left px-6 py-5 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl hover:from-purple-50 hover:to-indigo-50 border-2 border-gray-200 hover:border-purple-400 transition-all mb-3 font-semibold text-gray-800 shadow-sm hover:shadow-md">
+      // Shuffle options randomly
+      const shuffledOptions = question.options
+        .map((option, index) => ({ option, originalIndex: index }))
+        .sort(() => Math.random() - 0.5);
+
+      const optionsHtml = shuffledOptions.map(({ option, originalIndex }) => `
+        <button onclick="selectAttitudeAnswer(${originalIndex})" class="btn-modern w-full text-left px-6 py-5 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl hover:from-purple-50 hover:to-indigo-50 border-2 border-gray-200 hover:border-purple-400 transition-all mb-3 font-semibold text-gray-800 shadow-sm hover:shadow-md">
           <span class="flex items-center gap-3">
             <span class="text-2xl">•</span>
             <span>${option.text}</span>
@@ -741,5 +746,5 @@
       });
     }
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99cbf906b2ab7b41',t:'MTc2Mjg0NTA1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99cc1e6d60ea130f',t:'MTc2Mjg0NjU4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
