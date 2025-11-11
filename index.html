@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
   :root{
-    --bg-from:#f8fafc; --bg-to:#f1f5f9; --card:#ffffff; --line:#e5e7eb;
+    --bg-from:#f8fafc; --bg-to:#eef2ff; --card:#ffffff; --line:#e5e7eb;
     --text:#0f172a; --muted:#64748b; --accent:#6366f1; --accent-2:#4f46e5;
     --success:#10b981; --warning:#f59e0b; --error:#ef4444;
   }
@@ -17,23 +17,28 @@
   html,body{height:100%}
   body{
     font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
-    background:linear-gradient(180deg,var(--bg-from),var(--bg-to));
+    background:radial-gradient(1200px 600px at 20% -10%, #eef2ff 0%, transparent 60%), 
+               linear-gradient(180deg,var(--bg-from),var(--bg-to));
     color:var(--text);
   }
   .wrap{max-width:1100px;margin:0 auto;padding:16px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 24px rgba(15,23,42,.06)}
-  .btn{border:1px solid var(--line);border-radius:12px;padding:.8rem 1rem;line-height:1}
-  .btn:hover{background:#f8fafc}
-  .btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
-  .btn-primary:hover{background:#2a2a2a}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;
+    box-shadow:0 10px 30px rgba(15,23,42,.08); transition:transform .15s ease, box-shadow .15s ease
+  }
+  .card:hover{ transform:translateY(-1px); box-shadow:0 14px 34px rgba(15,23,42,.12) }
+  .btn{border:1px solid var(--line);border-radius:12px;padding:.9rem 1rem;line-height:1;transition:filter .2s}
+  .btn:hover{background:#f8fafc;filter:brightness(1.02)}
+  .btn-primary{background:#101113;color:#fff;border-color:#101113}
+  .btn-primary:hover{filter:brightness(1.08)}
   .seg{border:1px solid var(--line);border-radius:999px;padding:.35rem;display:inline-flex;gap:.25rem;background:#fff}
-  .seg button{padding:.5rem .9rem;border-radius:999px;font-weight:600}
+  .seg button{padding:.55rem .95rem;border-radius:999px;font-weight:600;transition:background .15s}
   .seg .active{background:#0f172a;color:#fff}
-  .input{width:100%;border:1px solid var(--line);border-radius:12px;padding:0.9rem 0.9rem;font-size:1rem}
+  .input{width:100%;border:1px solid var(--line);border-radius:12px;padding:1rem .95rem;font-size:1rem}
   .input:focus{outline:none;box-shadow:0 0 0 3px rgba(99,102,241,.2);border-color:#c7d2fe}
   .kbd{font-size:.75rem;border:1px dashed var(--line);background:#fff;border-radius:8px;padding:.2rem .45rem;color:var(--muted)}
   .table{width:100%;border-collapse:separate;border-spacing:0}
-  .table th,.table td{border-bottom:1px solid var(--line);padding:.75rem;text-align:right;font-size:.95rem}
+  .table th,.table td{border-bottom:1px solid var(--line);padding:.75rem;text-align:right;font-size:.95rem;white-space:nowrap}
   .table th:first-child,.table td:first-child{text-align:center}
   .kpi{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fff;min-width:240px}
   .kpi .val{font-size:1.9rem;font-weight:700}
@@ -47,13 +52,11 @@
     .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem}
   }
   /* Sticky header & bottom nav (safe-area) */
-  header.appbar{position:sticky;top:0;z-index:40;backdrop-filter:blur(6px);background:rgba(255,255,255,.85);border-bottom:1px solid var(--line)}
-  nav.bottom{position:sticky;bottom:0;z-index:40;background:rgba(255,255,255,.9);backdrop-filter:blur(6px);border-top:1px solid var(--line);padding:6px calc(env(safe-area-inset-right,0) + 8px) calc(env(safe-area-inset-bottom,0) + 6px) calc(env(safe-area-inset-left,0) + 8px)}
-  nav.bottom .tab{flex:1;border-radius:12px;padding:.6rem .4rem;text-align:center;font-size:.87rem;border:1px solid transparent}
+  header.appbar{position:sticky;top:0;z-index:40;backdrop-filter:blur(8px);background:rgba(255,255,255,.7);border-bottom:1px solid var(--line)}
+  nav.bottom{position:sticky;bottom:0;z-index:40;background:rgba(255,255,255,.85);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:6px calc(env(safe-area-inset-right,0) + 8px) calc(env(safe-area-inset-bottom,0) + 6px) calc(env(safe-area-inset-left,0) + 8px)}
+  nav.bottom .tab{flex:1;border-radius:12px;padding:.75rem .4rem;text-align:center;font-size:.9rem;border:1px solid transparent}
   nav.bottom .tab.active{background:#0f172a;color:#fff}
-  /* Prevent accidental horizontal scroll */
   .no-x{overflow-x:hidden}
-  /* Print */
   @media print{
     header, nav.bottom, .no-print {display:none!important}
     body{background:#fff}
@@ -72,14 +75,11 @@
         <span class="kbd">IRR Pro</span><span class="kbd">Tax Cap</span><span class="kbd">Compare</span><span class="kbd">Sensitivity</span>
       </div>
     </div>
-    <!-- Desktop segmented tabs -->
+    <!-- Desktop segmented tabs (ตัด Tax / Compare / Sensitivity ออก) -->
     <div class="hidden md:block">
       <div class="seg">
         <button class="active" data-view="simple">Simple</button>
         <button data-view="advanced">Advanced</button>
-        <button data-view="tax">Tax</button>
-        <button data-view="compare">Compare</button>
-        <button data-view="sensitivity">Sensitivity</button>
         <button data-view="charts">Charts</button>
         <button data-view="about">About</button>
       </div>
@@ -88,7 +88,7 @@
 </header>
 
 <main class="wrap space-y-5 pb-24">
-  <!-- KPI: horizontally scrollable on mobile -->
+  <!-- KPI -->
   <section class="flex gap-3 overflow-x-auto snap-x">
     <div class="kpi snap-start">
       <div class="text-sm text-[var(--muted)]">IRR ต่อปี (Annualized)</div>
@@ -114,7 +114,7 @@
 
   <!-- Global Controls -->
   <section class="card p-4">
-    <div class="grid1 grid2-sm md:grid-cols-4 gap-3">
+    <div class="grid1 grid2-sm md:grid-cols-4">
       <div>
         <label class="block text-sm text-[var(--muted)] mb-1">ความถี่งวด</label>
         <select id="freq" class="input">
@@ -202,7 +202,6 @@
       </div>
     </div>
 
-    <!-- Tier Fills -->
     <div class="mt-3">
       <div class="flex items-center justify-between gap-3">
         <div class="font-semibold">กำหนดเงินคืนระหว่างงวด (หลายช่วง)</div>
@@ -219,7 +218,6 @@
       </div>
     </div>
 
-    <!-- Editable Table -->
     <div class="mt-4">
       <div class="text-sm font-semibold mb-2">ตารางแก้ไขเงินคืนรายงวด</div>
       <div class="overflow-x-auto -mx-2 md:mx-0 px-2 md:px-0">
@@ -252,81 +250,6 @@
     </div>
   </section>
 
-  <!-- TAX -->
-  <section id="view-tax" class="card p-4 hidden">
-    <div class="font-semibold mb-2">Tax & Rules (ตั้งค่าลดหย่อนอย่างยืดหยุ่น)</div>
-    <div class="grid1 grid2-sm md:grid-cols-4">
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">ใช้สิทธิเริ่มงวดที่</label>
-        <input id="taxStart" type="number" class="input" min="1" value="1" inputmode="numeric">
-      </div>
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">สิ้นสุดงวดที่</label>
-        <input id="taxEnd" type="number" class="input" min="1" value="19" inputmode="numeric">
-      </div>
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">เพดานลดหย่อน/งวด (บาท)</label>
-        <input id="taxCapPerPeriod" type="number" class="input" step="0.01" value="999999999" inputmode="decimal">
-      </div>
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">เพดานรวมทั้งสัญญา (บาท)</label>
-        <input id="taxCapContract" type="number" class="input" step="0.01" value="999999999" inputmode="decimal">
-      </div>
-    </div>
-    <div class="grid1 grid2 mt-3">
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">นับลดหย่อนเฉพาะงวดที่ “มีจ่ายเบี้ย”</label>
-        <select id="taxOnlyWhenPay" class="input"><option value="yes" selected>ใช่</option><option value="no">ไม่จำกัด</option></select>
-      </div>
-      <div class="self-end"><button class="btn btn-primary w-full" id="recalcAll">คำนวณใหม่</button></div>
-    </div>
-    <div class="hint mt-2">หมายเหตุ: ตั้งเพดานตามเงื่อนไขผลิตภัณฑ์/ภาษีจริง</div>
-  </section>
-
-  <!-- COMPARE -->
-  <section id="view-compare" class="card p-4 hidden">
-    <div class="font-semibold mb-2">Compare (Scenario A / B / C)</div>
-    <div class="hint mb-2">บันทึกสถานะปัจจุบันเป็น A/B/C แล้วดูผลเทียบเคียง</div>
-    <div class="grid1 md:grid-cols-3 gap-2 no-print">
-      <button class="btn" data-save="A">บันทึกเป็น A</button>
-      <button class="btn" data-save="B">บันทึกเป็น B</button>
-      <button class="btn" data-save="C">บันทึกเป็น C</button>
-      <button class="btn" id="exportJSON">ส่งออก JSON</button>
-      <input type="file" id="importJSON" accept="application/json" class="hidden"/>
-      <button class="btn" id="importBtn">นำเข้า JSON</button>
-      <input type="file" id="importCSV" accept=".csv,text/csv" class="hidden"/>
-      <button class="btn" id="importCsvBtn">นำเข้า CSV (เฉพาะเงินคืนรายงวด)</button>
-    </div>
-    <div class="grid md:grid-cols-3 gap-3 mt-3" id="cmp-cards"></div>
-  </section>
-
-  <!-- SENSITIVITY -->
-  <section id="view-sensitivity" class="card p-4 hidden">
-    <div class="font-semibold mb-2">Sensitivity (วิเคราะห์ความไว)</div>
-    <div class="grid1 md:grid-cols-3 gap-3">
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">ปรับเบี้ย (%)</label>
-        <input id="sn-prem" type="range" min="-50" max="50" step="1" value="0" class="w-full">
-        <div class="hint">Current: <span id="sn-prem-l">0%</span></div>
-      </div>
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">ปรับเงินคืนระหว่างงวด (%)</label>
-        <input id="sn-inter" type="range" min="-50" max="50" step="1" value="0" class="w-full">
-        <div class="hint">Current: <span id="sn-inter-l">0%</span></div>
-      </div>
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">ปรับเงินก้อนสุดท้าย (%)</label>
-        <input id="sn-final" type="range" min="-50" max="50" step="1" value="0" class="w-full">
-        <div class="hint">Current: <span id="sn-final-l">0%</span></div>
-      </div>
-    </div>
-    <div class="grid1 md:grid-cols-3 gap-3 mt-3">
-      <div class="kpi"><div class="text-sm text-[var(--muted)]">IRR Base (Ann.)</div><div id="sn-base" class="val">—</div></div>
-      <div class="kpi"><div class="text-sm text-[var(--muted)]">IRR Adjusted</div><div id="sn-adj" class="val">—</div></div>
-      <div class="kpi"><div class="text-sm text-[var(--muted)]">Δ IRR</div><div id="sn-delta" class="val">—</div></div>
-    </div>
-  </section>
-
   <!-- CHARTS -->
   <section id="view-charts" class="card p-4 hidden">
     <div class="font-semibold mb-2">Charts</div>
@@ -349,23 +272,34 @@
       <li>IRR ต่อ “งวด” แปลงเป็น IRR ต่อปีด้วย <code>(1 + r_period)^(งวด/ปี) − 1</code></li>
       <li>ลดหย่อนภาษีตั้งค่าได้ทั้ง % เพดานต่องวด เพดานรวมสัญญา ช่วงงวด และ “นับเฉพาะงวดที่มีจ่ายเบี้ย”</li>
       <li>เงินคืนหลายช่วง: ใช้ “เพิ่มช่วง” หรือแก้ไขรายงวดในตาราง</li>
-      <li>สำหรับผลิตภัณฑ์เฉพาะ ใช้ Scenario A/B/C เพื่อเทียบผล</li>
       <li>โปรดตรวจเงื่อนไขผลิตภัณฑ์จริงและข้อกฎหมายภาษีล่าสุดก่อนตัดสินใจ</li>
     </ul>
   </section>
+
+  <!-- ซ่อนส่วน Tax/Compare/Sensitivity ไว้ (ยังคงอยู่เพื่อไม่ให้ logic พัง แต่ไม่ทำปุ่มเข้าถึง) -->
+  <section id="view-tax" class="card p-4 hidden"></section>
+  <section id="view-compare" class="card p-4 hidden">
+    <div class="hint">ส่วน Compare ถูกปิดการเข้าถึงจาก UI ตามคำขอ</div>
+    <div class="grid md:grid-cols-3 gap-3 mt-3" id="cmp-cards"></div>
+  </section>
+  <section id="view-sensitivity" class="card p-4 hidden">
+    <div class="hint">ส่วน Sensitivity ถูกปิดการเข้าถึงจาก UI ตามคำขอ</div>
+    <div class="grid md:grid-cols-3 gap-3 mt-3">
+      <div class="kpi"><div class="text-sm text-[var(--muted)]">IRR Base (Ann.)</div><div id="sn-base" class="val">—</div></div>
+      <div class="kpi"><div class="text-sm text-[var(--muted)]">IRR Adjusted</div><div id="sn-adj" class="val">—</div></div>
+      <div class="kpi"><div class="text-sm text-[var(--muted)]">Δ IRR</div><div id="sn-delta" class="val">—</div></div>
+    </div>
+    <input id="sn-prem" type="range" class="hidden"><input id="sn-inter" type="range" class="hidden"><input id="sn-final" type="range" class="hidden">
+    <span id="sn-prem-l" class="hidden"></span><span id="sn-inter-l" class="hidden"></span><span id="sn-final-l" class="hidden"></span>
+  </section>
 </main>
 
-<!-- Bottom Tabs (mobile) -->
+<!-- Bottom Tabs (mobile) — ตัด Tax / Compare / Sensitivity ออก -->
 <nav class="bottom md:hidden">
   <div class="wrap px-0">
     <div class="grid grid-cols-4 gap-2">
       <button class="tab active" data-view="simple">Simple</button>
       <button class="tab" data-view="advanced">Advanced</button>
-      <button class="tab" data-view="tax">Tax</button>
-      <button class="tab" data-view="compare">Compare</button>
-    </div>
-    <div class="grid grid-cols-3 gap-2 mt-2">
-      <button class="tab" data-view="sensitivity">Sensitivity</button>
       <button class="tab" data-view="charts">Charts</button>
       <button class="tab" data-view="about">About</button>
     </div>
@@ -488,7 +422,6 @@ function renderCharts(){
   const cf = rows.map(r=>r.total);
   const cum = rows.reduce((arr,v)=>{ arr.push((arr.at(-1)||0)+v); return arr; }, []);
 
-  // CF
   if(state.charts.cf) state.charts.cf.destroy();
   const cfCtx = document.getElementById('cfChart').getContext('2d');
   state.charts.cf = new Chart(cfCtx, {
@@ -497,7 +430,6 @@ function renderCharts(){
     options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{ticks:{callback:v=>Number(v).toLocaleString()}}}}
   });
 
-  // Cumulative
   if(state.charts.cum) state.charts.cum.destroy();
   const cumCtx = document.getElementById('cumChart').getContext('2d');
   state.charts.cum = new Chart(cumCtx, {
@@ -520,7 +452,7 @@ function renderTiers(){
   `).join('');
 }
 
-/* ========= Compare ========= */
+/* ========= Compare/Sensitivity helpers (คงไว้เพื่อความสมบูรณ์ของ logic) ========= */
 function snapshot(){
   return {
     freq: state.freq, periods: state.periods, payPeriods: state.payPeriods,
@@ -531,13 +463,11 @@ function snapshot(){
     taxOnlyWhenPay: state.taxOnlyWhenPay, interim: [...state.interim]
   };
 }
-function restore(snap){
-  Object.assign(state, snap);
-  refreshAll();
-}
+function restore(snap){ Object.assign(state, snap); refreshAll(); }
 function renderCompare(){
   const ids=['A','B','C'];
   const box = $('cmp-cards');
+  if(!box) return;
   const cards = ids.map(k=>{
     const s = state.scenarios[k];
     if(!s) return `<div class="card p-3"><div class="text-sm text-[var(--muted)]">Scenario ${k}</div><div class="mt-1 text-base">ยังไม่ได้บันทึก</div></div>`;
@@ -562,59 +492,26 @@ function renderCompare(){
   }).join('');
   box.innerHTML = cards;
 }
-
-/* ========= Sensitivity ========= */
-function sensitivityEval(){
-  const basePer = irr(cashflows());
-  const baseAnn = isFinite(basePer)? Math.pow(1+basePer, state.freq)-1 : NaN;
-  $('sn-base').textContent = pct(baseAnn);
-
-  const dp = Number($('sn-prem').value)/100;
-  const di = Number($('sn-inter').value)/100;
-  const df = Number($('sn-final').value)/100;
-  $('sn-prem-l').textContent = `${(dp*100).toFixed(0)}%`;
-  $('sn-inter-l').textContent = `${(di*100).toFixed(0)}%`;
-  $('sn-final-l').textContent = `${(df*100).toFixed(0)}%`;
-
-  const rows = buildRows();
-  const cfAdj = rows.map((r)=>{
-    const premAdj = (r.pay>0) ? (r.pay*(1+dp)) : 0;
-    const interAdj = r.between*(1+di);
-    const finalAdj = r.final*(1+df);
-    return (interAdj + r.tax + finalAdj) - premAdj - r.fee;
-  });
-  const rPerAdj = irr(cfAdj);
-  const rAnnAdj = isFinite(rPerAdj)? Math.pow(1+rPerAdj, state.freq)-1 : NaN;
-
-  $('sn-adj').textContent = pct(rAnnAdj);
-  const delta = (isFinite(rAnnAdj)&&isFinite(baseAnn)) ? (rAnnAdj - baseAnn) : NaN;
-  $('sn-delta').textContent = isFinite(delta)? ((delta*100).toFixed(2)+'%') : '—';
-}
+function sensitivityEval(){ /* ส่วนนี้ถูกปิดจาก UI จึงไม่ประมวลผล */ }
 
 /* ========= Events ========= */
 function bind(){
-  // Tabs (desktop segmented & mobile bottom)
-  const wireTabs = (root)=>{
-    root.querySelectorAll('[data-view]').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        // toggle active styles in both navs
-        document.querySelectorAll('[data-view]').forEach(x=>x.classList.remove('active'));
-        document.querySelectorAll(`[data-view="${b.dataset.view}"]`).forEach(x=>x.classList.add('active'));
-        const view = b.dataset.view;
-        ['simple','advanced','tax','compare','sensitivity','charts','about'].forEach(v=>{
-          const el = document.getElementById('view-'+v);
-          if(el) el.classList.toggle('hidden', v!==view);
-        });
-        if(view==='compare') renderCompare();
-        if(view==='sensitivity') sensitivityEval();
-        if(view==='charts') renderCharts();
-        // scroll to top of main for better mobile context
-        window.scrollTo({top:0, behavior:'smooth'});
+  // Tabs (desktop segmented & mobile bottom) — อิงปุ่มที่มีอยู่จริงเท่านั้น
+  const tabs = document.querySelectorAll('[data-view]');
+  tabs.forEach(b=>{
+    b.addEventListener('click', ()=>{
+      tabs.forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll(`[data-view="${b.dataset.view}"]`).forEach(x=>x.classList.add('active'));
+      // ซ่อน/โชว์เฉพาะวิวที่ยังใช้
+      const pages = ['simple','advanced','charts','about']; // ตัด tax/compare/sensitivity ออกจากการสลับ
+      pages.forEach(v=>{
+        const el = document.getElementById('view-'+v);
+        if(el) el.classList.toggle('hidden', v!==b.dataset.view);
       });
+      if(b.dataset.view==='charts') renderCharts();
+      window.scrollTo({top:0, behavior:'smooth'});
     });
-  };
-  wireTabs(document);
-  // default: Simple active already
+  });
 
   // Global
   $('freq').onchange = ()=>{ state.freq = Number($('freq').value||1); refreshAll(); };
@@ -627,7 +524,7 @@ function bind(){
   };
   $('printBtn').onclick = ()=> window.print();
 
-  // Simple appl
+  // Simple apply
   $('applySimple').onclick = ()=>{
     state.premium = Number($('s-premium').value||0);
     const sInter = Number($('s-interim').value||0);
@@ -645,77 +542,49 @@ function bind(){
 
   // Advanced inputs
   ['premium','feePerPeriod','taxRate','finalLump'].forEach(id=>{
-    $(id).oninput = ()=>{
-      state[id] = (id==='taxRate') ? Number($(id).value||0)/100 : Number($(id).value||0);
+    const el = $(id); if(!el) return;
+    el.oninput = ()=>{
+      state[id] = (id==='taxRate') ? Number(el.value||0)/100 : Number(el.value||0);
       refreshAll();
     };
   });
 
-  // Tax setup
-  ['taxStart','taxEnd','taxCapPerPeriod','taxCapContract'].forEach(id=>{
-    $(id).oninput = ()=>{ state[id] = Number($(id).value||0); refreshAll(); };
-  });
-  $('taxOnlyWhenPay').onchange = ()=>{ state.taxOnlyWhenPay = $('taxOnlyWhenPay').value==='yes'; refreshAll(); };
-  $('recalcAll').onclick = refreshAll;
-
   // Table interim edits
-  document.getElementById('tbody').addEventListener('input', (e)=>{
-    const t = e.target; if(!t.matches('input[data-row]')) return;
-    const idx = +t.dataset.row; state.interim[idx] = Number(t.value||0); refreshAll();
-  });
+  const tb = document.getElementById('tbody');
+  if(tb){
+    tb.addEventListener('input', (e)=>{
+      const t = e.target; if(!t.matches('input[data-row]')) return;
+      const idx = +t.dataset.row; state.interim[idx] = Number(t.value||0); refreshAll();
+    });
+  }
 
   // Tiers
-  $('addTier').onclick = ()=>{ state.tiers.push({from:1,to:state.periods,amt:0}); renderTiers(); };
-  $('tiers').addEventListener('input', (e)=>{
-    const t=e.target; if(!t.matches('[data-tier]')) return;
-    const i=+t.dataset.tier, k=t.dataset.k;
-    state.tiers[i][k] = (k==='amt') ? Number(t.value||0) : Number(t.value||1);
-  });
-  $('tiers').addEventListener('click', (e)=>{
-    const b=e.target; if(!b.matches('[data-tier-del]')) return;
-    const i=+b.dataset.tierDel; state.tiers.splice(i,1); renderTiers();
-  });
-  $('applyTiers').onclick = ()=>{
-    for(const t of state.tiers){
-      const s=Math.max(1, Math.min(state.periods, t.from|0));
-      const e=Math.max(1, Math.min(state.periods, t.to|0));
-      for(let i=s-1;i<=e-1;i++) state.interim[i] = Number(t.amt||0);
-    }
-    refreshAll();
-  };
-  $('fillZero').onclick = ()=>{ state.interim = new Array(state.periods).fill(0); refreshAll(); };
-  $('clearInterim').onclick = ()=>{ state.interim = []; refreshAll(); };
-
-  // Compare save
-  document.querySelectorAll('[data-save]').forEach(btn=>{
-    btn.onclick = ()=>{ const k=btn.dataset.save; state.scenarios[k]=snapshot(); renderCompare(); alert('บันทึก Scenario '+k+' แล้ว'); };
-  });
-
-  // Import/Export
-  $('exportJSON').onclick = ()=>{
-    const blob = new Blob([JSON.stringify(snapshot(),null,2)], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a=document.createElement('a'); a.href=url; a.download='insurance-studio.json'; a.click(); URL.revokeObjectURL(url);
-  };
-  $('importBtn').onclick = ()=> $('importJSON').click();
-  $('importJSON').onchange = async (e)=>{
-    const f=e.target.files[0]; if(!f) return;
-    try{ const text=await f.text(); const data=JSON.parse(text); restore(data); alert('นำเข้าแล้ว'); }
-    catch(err){ alert('ไฟล์ไม่ถูกต้อง'); }
-  };
-  $('importCsvBtn').onclick = ()=> $('importCSV').click();
-  $('importCSV').onchange = async (e)=>{
-    const f=e.target.files[0]; if(!f) return;
-    const text = await f.text();
-    const lines = text.trim().split(/\r?\n/);
-    const head = lines.shift().split(',').map(s=>s.trim().toLowerCase());
-    const idxInter = head.indexOf('interim');
-    if(idxInter<0) return alert('CSV ต้องมีคอลัมน์ interim หนึ่งคอลัมน์');
-    const vals = lines.map(l=>Number(l.split(',')[idxInter]||0));
-    state.interim = vals;
-    $('periods').value = vals.length; state.periods = vals.length;
-    refreshAll();
-  };
+  const tiersBox = document.getElementById('tiers');
+  if(tiersBox){
+    $('addTier').onclick = ()=>{ state.tiers.push({from:1,to:state.periods,amt:0}); renderTiers(); };
+    tiersBox.addEventListener('input', (e)=>{
+      const t=e.target; if(!t.matches('[data-tier]')) return;
+      const i=+t.dataset.tier, k=t.dataset.k;
+      state.tiers[i][k] = (k==='amt') ? Number(t.value||0) : Number(t.value||1);
+    });
+    tiersBox.addEventListener('click', (e)=>{
+      const b=e.target; if(!b.matches('[data-tier-del]')) return;
+      const i=+b.dataset.tierDel; state.tiers.splice(i,1); renderTiers();
+    });
+    const applyBtn = document.getElementById('applyTiers');
+    const fill0Btn = document.getElementById('fillZero');
+    const clrBtn = document.getElementById('clearInterim');
+    applyBtn.onclick = ()=>{
+      for(const t of state.tiers){
+        const s=Math.max(1, Math.min(state.periods, t.from|0));
+        const e=Math.max(1, Math.min(state.periods, t.to|0));
+        for(let i=s-1;i<=e-1;i++) state.interim[i] = Number(t.amt||0);
+      }
+      refreshAll();
+    };
+    fill0Btn.onclick = ()=>{ state.interim = new Array(state.periods).fill(0); refreshAll(); };
+    clrBtn.onclick = ()=>{ state.interim = []; refreshAll(); };
+  }
 }
 
 /* ========= Refresh All ========= */
@@ -726,15 +595,11 @@ function refreshAll(){
   $('freq').value = String(state.freq);
   $('periods').value = state.periods;
   $('payPeriods').value = state.payPeriods;
-  $('premium').value = state.premium;
-  $('feePerPeriod').value = state.feePerPeriod;
-  $('taxRate').value = (state.taxRate*100).toFixed(2);
-  $('finalLump').value = state.finalLump;
-  $('taxStart').value = state.taxStart;
-  $('taxEnd').value = state.taxEnd;
-  $('taxCapPerPeriod').value = state.taxCapPerPeriod;
-  $('taxCapContract').value = state.taxCapContract;
-  $('taxOnlyWhenPay').value = state.taxOnlyWhenPay?'yes':'no';
+
+  if($('premium')) $('premium').value = state.premium;
+  if($('feePerPeriod')) $('feePerPeriod').value = state.feePerPeriod;
+  if($('taxRate')) $('taxRate').value = (state.taxRate*100).toFixed(2);
+  if($('finalLump')) $('finalLump').value = state.finalLump;
 
   renderTable();
   refreshKPIs();
