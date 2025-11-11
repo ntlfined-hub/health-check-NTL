@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Insurance Return Studio • IRR ระดับโปร</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg-from:#f8fafc; --bg-to:#f1f5f9; --card:#ffffff; --line:#e5e7eb;
+    --text:#0f172a; --muted:#64748b; --accent:#6366f1; --accent-2:#4f46e5;
+    --success:#10b981; --warning:#f59e0b; --error:#ef4444;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+    background:linear-gradient(180deg,var(--bg-from),var(--bg-to));
+    color:var(--text);
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 24px rgba(15,23,42,.06)}
+  .btn{border:1px solid var(--line);border-radius:12px;padding:.8rem 1rem;line-height:1}
+  .btn:hover{background:#f8fafc}
+  .btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+  .btn-primary:hover{background:#2a2a2a}
+  .seg{border:1px solid var(--line);border-radius:999px;padding:.35rem;display:inline-flex;gap:.25rem;background:#fff}
+  .seg button{padding:.5rem .9rem;border-radius:999px;font-weight:600}
+  .seg .active{background:#0f172a;color:#fff}
+  .input{width:100%;border:1px solid var(--line);border-radius:12px;padding:0.9rem 0.9rem;font-size:1rem}
+  .input:focus{outline:none;box-shadow:0 0 0 3px rgba(99,102,241,.2);border-color:#c7d2fe}
+  .kbd{font-size:.75rem;border:1px dashed var(--line);background:#fff;border-radius:8px;padding:.2rem .45rem;color:var(--muted)}
+  .table{width:100%;border-collapse:separate;border-spacing:0}
+  .table th,.table td{border-bottom:1px solid var(--line);padding:.75rem;text-align:right;font-size:.95rem}
+  .table th:first-child,.table td:first-child{text-align:center}
+  .kpi{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fff;min-width:240px}
+  .kpi .val{font-size:1.9rem;font-weight:700}
+  .hint{font-size:.86rem;color:var(--muted)}
+  /* Mobile-first grids */
+  .grid1{display:grid;grid-template-columns:1fr;gap:.75rem}
+  @media(min-width:640px){ .grid2-sm{grid-template-columns:repeat(2,1fr)} }
+  @media(min-width:768px){
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+    .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem}
+  }
+  /* Sticky header & bottom nav (safe-area) */
+  header.appbar{position:sticky;top:0;z-index:40;backdrop-filter:blur(6px);background:rgba(255,255,255,.85);border-bottom:1px solid var(--line)}
+  nav.bottom{position:sticky;bottom:0;z-index:40;background:rgba(255,255,255,.9);backdrop-filter:blur(6px);border-top:1px solid var(--line);padding:6px calc(env(safe-area-inset-right,0) + 8px) calc(env(safe-area-inset-bottom,0) + 6px) calc(env(safe-area-inset-left,0) + 8px)}
+  nav.bottom .tab{flex:1;border-radius:12px;padding:.6rem .4rem;text-align:center;font-size:.87rem;border:1px solid transparent}
+  nav.bottom .tab.active{background:#0f172a;color:#fff}
+  /* Prevent accidental horizontal scroll */
+  .no-x{overflow-x:hidden}
+  /* Print */
+  @media print{
+    header, nav.bottom, .no-print {display:none!important}
+    body{background:#fff}
+    .wrap{max-width:100%;padding:0}
+    .card{box-shadow:none;border:1px solid #ddd;border-radius:0}
+  }
+</style>
+</head>
+<body class="no-x">
+<!-- Top App Bar -->
+<header class="appbar">
+  <div class="wrap py-3 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <div class="text-lg font-semibold">Insurance Return Studio</div>
+      <div class="hidden md:flex items-center gap-2 text-sm text-[var(--muted)]">
+        <span class="kbd">IRR Pro</span><span class="kbd">Tax Cap</span><span class="kbd">Compare</span><span class="kbd">Sensitivity</span>
+      </div>
+    </div>
+    <!-- Desktop segmented tabs -->
+    <div class="hidden md:block">
+      <div class="seg">
+        <button class="active" data-view="simple">Simple</button>
+        <button data-view="advanced">Advanced</button>
+        <button data-view="tax">Tax</button>
+        <button data-view="compare">Compare</button>
+        <button data-view="sensitivity">Sensitivity</button>
+        <button data-view="charts">Charts</button>
+        <button data-view="about">About</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap space-y-5 pb-24">
+  <!-- KPI: horizontally scrollable on mobile -->
+  <section class="flex gap-3 overflow-x-auto snap-x">
+    <div class="kpi snap-start">
+      <div class="text-sm text-[var(--muted)]">IRR ต่อปี (Annualized)</div>
+      <div id="k-irr-ann" class="val">—</div>
+      <div class="hint">อ้างอิงความถี่งวด</div>
+    </div>
+    <div class="kpi snap-start">
+      <div class="text-sm text-[var(--muted)]">IRR ต่อ “งวด”</div>
+      <div id="k-irr-per" class="val">—</div>
+      <div class="hint">ถ้างวด=รายเดือน จะเป็น IRR รายเดือน</div>
+    </div>
+    <div class="kpi snap-start">
+      <div class="text-sm text-[var(--muted)]">ลงทุนสุทธิ (ออก)</div>
+      <div id="k-out" class="val">—</div>
+      <div class="hint">ผลรวมกระแสเงินสดติดลบ</div>
+    </div>
+    <div class="kpi snap-start">
+      <div class="text-sm text-[var(--muted)]">เงินรับรวม (เข้า)</div>
+      <div id="k-in" class="val">—</div>
+      <div class="hint">ผลรวมกระแสเงินสดบวก</div>
+    </div>
+  </section>
+
+  <!-- Global Controls -->
+  <section class="card p-4">
+    <div class="grid1 grid2-sm md:grid-cols-4 gap-3">
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">ความถี่งวด</label>
+        <select id="freq" class="input">
+          <option value="1" selected>รายปี (1 งวด/ปี)</option>
+          <option value="2">รายครึ่งปี (2 งวด/ปี)</option>
+          <option value="4">รายไตรมาส (4 งวด/ปี)</option>
+          <option value="12">รายเดือน (12 งวด/ปี)</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">จำนวนงวดทั้งหมด</label>
+        <input id="periods" type="number" class="input" min="1" max="600" value="19" inputmode="numeric">
+      </div>
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">งวดที่ “จ่ายเบี้ย”</label>
+        <input id="payPeriods" type="number" class="input" min="0" value="10" inputmode="numeric">
+      </div>
+      <div class="no-print">
+        <label class="block text-sm text-[var(--muted)] mb-1">ดำเนินการ</label>
+        <div class="flex gap-2">
+          <button class="btn w-full" id="saveLS">บันทึก</button>
+          <button class="btn w-full" id="loadLS">โหลด</button>
+          <button class="btn w-full" id="printBtn">พิมพ์</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIMPLE -->
+  <section id="view-simple" class="card p-4">
+    <div class="font-semibold mb-2">Simple (ตาม 5 ข้อมูลที่ผู้ใช้ทราบ)</div>
+    <div class="grid1 grid2-sm md:grid-cols-3">
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">เบี้ยต่อ “งวด”</label>
+        <input id="s-premium" type="number" class="input" step="0.01" value="50000" inputmode="decimal">
+      </div>
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">เงินคืนระหว่างงวด (คงที่)</label>
+        <input id="s-interim" type="number" class="input" step="0.01" value="3000" inputmode="decimal">
+      </div>
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">เริ่มรับงวดที่</label>
+        <input id="s-interim-start" type="number" class="input" min="1" value="1" inputmode="numeric">
+      </div>
+    </div>
+    <div class="grid1 grid2-sm md:grid-cols-3 mt-3">
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">จำนวนงวดที่รับระหว่างงวด</label>
+        <input id="s-interim-count" type="number" class="input" min="0" value="19" inputmode="numeric">
+      </div>
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">เงินก้อนสุดท้าย (งวดสุดท้าย)</label>
+        <input id="s-final" type="number" class="input" step="0.01" value="0" inputmode="decimal">
+      </div>
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">อัตราลดหย่อนภาษี (% ของเบี้ยที่จ่าย)</label>
+        <input id="s-tax-rate" type="number" class="input" step="0.01" value="15" inputmode="decimal">
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-2 mt-3">
+      <button class="btn btn-primary w-full sm:w-auto" id="applySimple">คำนวณ/เติมค่า</button>
+      <div class="hint">* กรอกครั้งเดียวแล้วคำนวณทันที</div>
+    </div>
+  </section>
+
+  <!-- ADVANCED -->
+  <section id="view-advanced" class="card p-4 hidden">
+    <div class="font-semibold mb-2">Advanced (เงินคืนหลายช่วง + ตารางแก้รายงวด + ค่าธรรมเนียม)</div>
+    <div class="grid1 grid2-sm md:grid-cols-4">
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">เบี้ย/งวด</label>
+        <input id="premium" type="number" class="input" step="0.01" value="50000" inputmode="decimal">
+      </div>
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">ค่าธรรมเนียม/งวด (หักออก)</label>
+        <input id="feePerPeriod" type="number" class="input" step="0.01" value="0" inputmode="decimal">
+      </div>
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">อัตราลดหย่อนภาษี (%)</label>
+        <input id="taxRate" type="number" class="input" step="0.01" value="15" inputmode="decimal">
+      </div>
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">เงินก้อนสุดท้าย</label>
+        <input id="finalLump" type="number" class="input" step="0.01" value="0" inputmode="decimal">
+      </div>
+    </div>
+
+    <!-- Tier Fills -->
+    <div class="mt-3">
+      <div class="flex items-center justify-between gap-3">
+        <div class="font-semibold">กำหนดเงินคืนระหว่างงวด (หลายช่วง)</div>
+        <div class="hint">คลิก “เพิ่มช่วง” เพื่อกำหนดได้ไม่จำกัด</div>
+      </div>
+      <div id="tiers" class="space-y-2 mt-2"></div>
+      <div class="grid1 grid2 gap-2 mt-2">
+        <button class="btn" id="addTier">+ เพิ่มช่วง</button>
+        <div class="flex gap-2">
+          <button class="btn w-full" id="fillZero">กำหนด 0 ทุกงวด</button>
+          <button class="btn w-full" id="clearInterim">ล้างเงินคืนทั้งหมด</button>
+          <button class="btn btn-primary w-full" id="applyTiers">เติมตามช่วง</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Editable Table -->
+    <div class="mt-4">
+      <div class="text-sm font-semibold mb-2">ตารางแก้ไขเงินคืนรายงวด</div>
+      <div class="overflow-x-auto -mx-2 md:mx-0 px-2 md:px-0">
+        <table class="table">
+          <thead>
+            <tr class="bg-white">
+              <th>งวด</th>
+              <th>เบี้ย</th>
+              <th>ค่าธรรมเนียม</th>
+              <th style="min-width:200px">เงินคืนระหว่างงวด (แก้ไขได้)</th>
+              <th>ลดหย่อนภาษี</th>
+              <th>ก้อนสุดท้าย</th>
+              <th>สุทธิ (Total)</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+          <tfoot>
+            <tr class="bg-slate-50 font-semibold">
+              <td>รวม</td>
+              <td id="sPrem">—</td>
+              <td id="sFee">—</td>
+              <td id="sInterim">—</td>
+              <td id="sTax">—</td>
+              <td id="sFinal">—</td>
+              <td id="sTotal">—</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAX -->
+  <section id="view-tax" class="card p-4 hidden">
+    <div class="font-semibold mb-2">Tax & Rules (ตั้งค่าลดหย่อนอย่างยืดหยุ่น)</div>
+    <div class="grid1 grid2-sm md:grid-cols-4">
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">ใช้สิทธิเริ่มงวดที่</label>
+        <input id="taxStart" type="number" class="input" min="1" value="1" inputmode="numeric">
+      </div>
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">สิ้นสุดงวดที่</label>
+        <input id="taxEnd" type="number" class="input" min="1" value="19" inputmode="numeric">
+      </div>
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">เพดานลดหย่อน/งวด (บาท)</label>
+        <input id="taxCapPerPeriod" type="number" class="input" step="0.01" value="999999999" inputmode="decimal">
+      </div>
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">เพดานรวมทั้งสัญญา (บาท)</label>
+        <input id="taxCapContract" type="number" class="input" step="0.01" value="999999999" inputmode="decimal">
+      </div>
+    </div>
+    <div class="grid1 grid2 mt-3">
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">นับลดหย่อนเฉพาะงวดที่ “มีจ่ายเบี้ย”</label>
+        <select id="taxOnlyWhenPay" class="input"><option value="yes" selected>ใช่</option><option value="no">ไม่จำกัด</option></select>
+      </div>
+      <div class="self-end"><button class="btn btn-primary w-full" id="recalcAll">คำนวณใหม่</button></div>
+    </div>
+    <div class="hint mt-2">หมายเหตุ: ตั้งเพดานตามเงื่อนไขผลิตภัณฑ์/ภาษีจริง</div>
+  </section>
+
+  <!-- COMPARE -->
+  <section id="view-compare" class="card p-4 hidden">
+    <div class="font-semibold mb-2">Compare (Scenario A / B / C)</div>
+    <div class="hint mb-2">บันทึกสถานะปัจจุบันเป็น A/B/C แล้วดูผลเทียบเคียง</div>
+    <div class="grid1 md:grid-cols-3 gap-2 no-print">
+      <button class="btn" data-save="A">บันทึกเป็น A</button>
+      <button class="btn" data-save="B">บันทึกเป็น B</button>
+      <button class="btn" data-save="C">บันทึกเป็น C</button>
+      <button class="btn" id="exportJSON">ส่งออก JSON</button>
+      <input type="file" id="importJSON" accept="application/json" class="hidden"/>
+      <button class="btn" id="importBtn">นำเข้า JSON</button>
+      <input type="file" id="importCSV" accept=".csv,text/csv" class="hidden"/>
+      <button class="btn" id="importCsvBtn">นำเข้า CSV (เฉพาะเงินคืนรายงวด)</button>
+    </div>
+    <div class="grid md:grid-cols-3 gap-3 mt-3" id="cmp-cards"></div>
+  </section>
+
+  <!-- SENSITIVITY -->
+  <section id="view-sensitivity" class="card p-4 hidden">
+    <div class="font-semibold mb-2">Sensitivity (วิเคราะห์ความไว)</div>
+    <div class="grid1 md:grid-cols-3 gap-3">
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">ปรับเบี้ย (%)</label>
+        <input id="sn-prem" type="range" min="-50" max="50" step="1" value="0" class="w-full">
+        <div class="hint">Current: <span id="sn-prem-l">0%</span></div>
+      </div>
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">ปรับเงินคืนระหว่างงวด (%)</label>
+        <input id="sn-inter" type="range" min="-50" max="50" step="1" value="0" class="w-full">
+        <div class="hint">Current: <span id="sn-inter-l">0%</span></div>
+      </div>
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">ปรับเงินก้อนสุดท้าย (%)</label>
+        <input id="sn-final" type="range" min="-50" max="50" step="1" value="0" class="w-full">
+        <div class="hint">Current: <span id="sn-final-l">0%</span></div>
+      </div>
+    </div>
+    <div class="grid1 md:grid-cols-3 gap-3 mt-3">
+      <div class="kpi"><div class="text-sm text-[var(--muted)]">IRR Base (Ann.)</div><div id="sn-base" class="val">—</div></div>
+      <div class="kpi"><div class="text-sm text-[var(--muted)]">IRR Adjusted</div><div id="sn-adj" class="val">—</div></div>
+      <div class="kpi"><div class="text-sm text-[var(--muted)]">Δ IRR</div><div id="sn-delta" class="val">—</div></div>
+    </div>
+  </section>
+
+  <!-- CHARTS -->
+  <section id="view-charts" class="card p-4 hidden">
+    <div class="font-semibold mb-2">Charts</div>
+    <div class="grid1 md:grid-cols-2 gap-3">
+      <div>
+        <div class="text-sm text-[var(--muted)] mb-1">Cashflow by Period</div>
+        <div class="w-full" style="height:220px"><canvas id="cfChart"></canvas></div>
+      </div>
+      <div>
+        <div class="text-sm text-[var(--muted)] mb-1">Cumulative Cashflow</div>
+        <div class="w-full" style="height:220px"><canvas id="cumChart"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="view-about" class="card p-4 hidden">
+    <div class="font-semibold mb-2">แนวทางและข้อควรทราบ</div>
+    <ul class="list-disc pl-6 space-y-1 text-sm">
+      <li>IRR ต่อ “งวด” แปลงเป็น IRR ต่อปีด้วย <code>(1 + r_period)^(งวด/ปี) − 1</code></li>
+      <li>ลดหย่อนภาษีตั้งค่าได้ทั้ง % เพดานต่องวด เพดานรวมสัญญา ช่วงงวด และ “นับเฉพาะงวดที่มีจ่ายเบี้ย”</li>
+      <li>เงินคืนหลายช่วง: ใช้ “เพิ่มช่วง” หรือแก้ไขรายงวดในตาราง</li>
+      <li>สำหรับผลิตภัณฑ์เฉพาะ ใช้ Scenario A/B/C เพื่อเทียบผล</li>
+      <li>โปรดตรวจเงื่อนไขผลิตภัณฑ์จริงและข้อกฎหมายภาษีล่าสุดก่อนตัดสินใจ</li>
+    </ul>
+  </section>
+</main>
+
+<!-- Bottom Tabs (mobile) -->
+<nav class="bottom md:hidden">
+  <div class="wrap px-0">
+    <div class="grid grid-cols-4 gap-2">
+      <button class="tab active" data-view="simple">Simple</button>
+      <button class="tab" data-view="advanced">Advanced</button>
+      <button class="tab" data-view="tax">Tax</button>
+      <button class="tab" data-view="compare">Compare</button>
+    </div>
+    <div class="grid grid-cols-3 gap-2 mt-2">
+      <button class="tab" data-view="sensitivity">Sensitivity</button>
+      <button class="tab" data-view="charts">Charts</button>
+      <button class="tab" data-view="about">About</button>
+    </div>
+  </div>
+</nav>
+
+<script>
+/* ========= Utilities ========= */
+const $ = (id)=>document.getElementById(id);
+const fmt = (n)=> (isFinite(n) ? n.toLocaleString(undefined,{maximumFractionDigits:2}) : '—');
+const pct = (x)=> (isFinite(x) ? (x*100).toFixed(4)+'%' : '—');
+
+/* ========= IRR (robust) ========= */
+function npv(rate, cf){ let s=0; for(let t=0;t<cf.length;t++) s += cf[t]/Math.pow(1+rate,t); return s; }
+function dnpv(rate, cf){ let s=0; for(let t=1;t<cf.length;t++) s += -t*cf[t]/Math.pow(1+rate,t+1); return s; }
+function irr(cf){
+  if(!(cf.some(v=>v>0) && cf.some(v=>v<0))) return NaN;
+  let r=0.1;
+  for(let i=0;i<60;i++){
+    const f=npv(r,cf), df=dnpv(r,cf);
+    if(Math.abs(f)<1e-9) return r;
+    if(df===0 || !isFinite(df)) break;
+    r = r - f/df;
+    if(!isFinite(r) || r<=-0.999999) break;
+  }
+  let lo=-0.9999, hi=10, flo=npv(lo,cf), fhi=npv(hi,cf);
+  if(flo*fhi>0){ for(let k=0;k<10;k++){ hi*=2; fhi=npv(hi,cf); if(flo*fhi<=0) break; } if(flo*fhi>0) return NaN; }
+  for(let i=0;i<200;i++){
+    const mid=(lo+hi)/2, fm=npv(mid,cf);
+    if(Math.abs(fm)<1e-9) return mid;
+    if(flo*fm<=0){ hi=mid; fhi=fm; } else { lo=mid; flo=fm; }
+  }
+  return (lo+hi)/2;
+}
+
+/* ========= State ========= */
+const state = {
+  freq: 1, periods: 19, payPeriods: 10,
+  premium: 50000, feePerPeriod: 0, finalLump: 0,
+  taxRate: 0.15, taxStart: 1, taxEnd: 19,
+  taxCapPerPeriod: 999999999, taxCapContract: 999999999, taxOnlyWhenPay: true,
+  interim: [], tiers: [], scenarios: {A:null,B:null,C:null},
+  charts: {cf:null, cum:null}
+};
+
+/* ========= Core cashflow builder ========= */
+function buildRows(){
+  const N = state.periods|0, payN = Math.max(0, Math.min(state.payPeriods|0, N));
+  while(state.interim.length < N) state.interim.push(0);
+  if(state.interim.length > N) state.interim = state.interim.slice(0,N);
+
+  const rows = [];
+  let taxAccum = 0;
+  for(let i=0;i<N;i++){
+    const p = i+1;
+    const pay = (p<=payN) ? state.premium : 0;
+    const fee = state.feePerPeriod || 0;
+
+    const eligible = (p>=state.taxStart && p<=state.taxEnd) && (!state.taxOnlyWhenPay || pay>0);
+    let tax = 0;
+    if(eligible){
+      tax = Math.min(pay*state.taxRate, state.taxCapPerPeriod);
+      if(taxAccum + tax > state.taxCapContract){
+        tax = Math.max(0, state.taxCapContract - taxAccum);
+      }
+    }
+    taxAccum += tax;
+
+    const between = Number(state.interim[i]||0);
+    const final = (p===N) ? state.finalLump : 0;
+
+    const total = (between + tax + final) - pay - fee;
+    rows.push({period:p, pay, fee, between, tax, final, total});
+  }
+  return rows;
+}
+function cashflows(){ return buildRows().map(r=>r.total); }
+
+/* ========= Rendering ========= */
+function refreshKPIs(){
+  const cf = cashflows();
+  const rPer = irr(cf);
+  const k = state.freq>0 ? Math.max(1, state.freq) : 1;
+  const rAnn = isFinite(rPer) ? Math.pow(1+rPer, k)-1 : NaN;
+
+  const rows = buildRows();
+  const out = rows.filter(r=>r.total<0).reduce((a,r)=>a+r.total,0);
+  const inn = rows.filter(r=>r.total>0).reduce((a,r)=>a+r.total,0);
+
+  $('k-irr-per').textContent = pct(rPer);
+  $('k-irr-ann').textContent = pct(rAnn);
+  $('k-out').textContent = fmt(out);
+  $('k-in').textContent = fmt(inn);
+}
+function renderTable(){
+  const rows = buildRows();
+  const tb = $('tbody');
+  tb.innerHTML = rows.map((r,i)=>`
+    <tr>
+      <td>${r.period}</td>
+      <td>${fmt(-r.pay)}</td>
+      <td>${fmt(-r.fee)}</td>
+      <td><input class="input" type="number" step="0.01" data-row="${i}" value="${r.between}" inputmode="decimal"></td>
+      <td>${fmt(r.tax)}</td>
+      <td>${fmt(r.final)}</td>
+      <td>${fmt(r.total)}</td>
+    </tr>
+  `).join('');
+
+  $('sPrem').textContent    = fmt(rows.reduce((a,r)=>a - r.pay, 0));
+  $('sFee').textContent     = fmt(rows.reduce((a,r)=>a - r.fee, 0));
+  $('sInterim').textContent = fmt(rows.reduce((a,r)=>a + r.between, 0));
+  $('sTax').textContent     = fmt(rows.reduce((a,r)=>a + r.tax, 0));
+  $('sFinal').textContent   = fmt(rows.reduce((a,r)=>a + r.final, 0));
+  $('sTotal').textContent   = fmt(rows.reduce((a,r)=>a + r.total, 0));
+}
+function renderCharts(){
+  const rows = buildRows();
+  const labels = rows.map(r=>`งวด ${r.period}`);
+  const cf = rows.map(r=>r.total);
+  const cum = rows.reduce((arr,v)=>{ arr.push((arr.at(-1)||0)+v); return arr; }, []);
+
+  // CF
+  if(state.charts.cf) state.charts.cf.destroy();
+  const cfCtx = document.getElementById('cfChart').getContext('2d');
+  state.charts.cf = new Chart(cfCtx, {
+    type:'bar',
+    data:{ labels, datasets:[{ label:'Total', data: cf }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{ticks:{callback:v=>Number(v).toLocaleString()}}}}
+  });
+
+  // Cumulative
+  if(state.charts.cum) state.charts.cum.destroy();
+  const cumCtx = document.getElementById('cumChart').getContext('2d');
+  state.charts.cum = new Chart(cumCtx, {
+    type:'line',
+    data:{ labels, datasets:[{ label:'Cumulative', data: cum, borderWidth:2, fill:false }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{ticks:{callback:v=>Number(v).toLocaleString()}}}}
+  });
+}
+function renderTiers(){
+  const box = $('tiers');
+  box.innerHTML = state.tiers.map((t,idx)=>`
+    <div class="grid1 md:grid-cols-4 gap-2">
+      <div><input class="input" type="number" step="1" min="1" data-tier="${idx}" data-k="from" value="${t.from}" placeholder="จากงวด" inputmode="numeric"></div>
+      <div><input class="input" type="number" step="1" min="1" data-tier="${idx}" data-k="to" value="${t.to}" placeholder="ถึงงวด" inputmode="numeric"></div>
+      <div><input class="input" type="number" step="0.01" data-tier="${idx}" data-k="amt" value="${t.amt}" placeholder="จำนวนเงิน" inputmode="decimal"></div>
+      <div class="flex gap-2">
+        <button class="btn w-full" data-tier-del="${idx}">ลบช่วง</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ========= Compare ========= */
+function snapshot(){
+  return {
+    freq: state.freq, periods: state.periods, payPeriods: state.payPeriods,
+    premium: state.premium, feePerPeriod: state.feePerPeriod,
+    finalLump: state.finalLump, taxRate: state.taxRate,
+    taxStart: state.taxStart, taxEnd: state.taxEnd,
+    taxCapPerPeriod: state.taxCapPerPeriod, taxCapContract: state.taxCapContract,
+    taxOnlyWhenPay: state.taxOnlyWhenPay, interim: [...state.interim]
+  };
+}
+function restore(snap){
+  Object.assign(state, snap);
+  refreshAll();
+}
+function renderCompare(){
+  const ids=['A','B','C'];
+  const box = $('cmp-cards');
+  const cards = ids.map(k=>{
+    const s = state.scenarios[k];
+    if(!s) return `<div class="card p-3"><div class="text-sm text-[var(--muted)]">Scenario ${k}</div><div class="mt-1 text-base">ยังไม่ได้บันทึก</div></div>`;
+    const cf = (()=>{
+      const bak = {...state}; const itBak=[...state.interim];
+      restore(s); const flows = cashflows();
+      Object.assign(state,bak); state.interim=[...itBak];
+      return flows;
+    })();
+    const rPer = irr(cf);
+    const rAnn = isFinite(rPer)? Math.pow(1+rPer, s.freq||1)-1 : NaN;
+    const out = cf.filter(x=>x<0).reduce((a,v)=>a+v,0);
+    const inn = cf.filter(x=>x>0).reduce((a,v)=>a+v,0);
+    return `
+    <div class="card p-3">
+      <div class="text-sm text-[var(--muted)]">Scenario ${k}</div>
+      <div class="mt-1 text-sm">IRR (Per): <span class="font-semibold">${pct(rPer)}</span></div>
+      <div class="mt-1 text-sm">IRR (Annualized): <span class="font-semibold">${pct(rAnn)}</span></div>
+      <div class="mt-1 text-sm">ลงทุนสุทธิ: <span class="font-semibold">${fmt(out)}</span></div>
+      <div class="mt-1 text-sm">เงินรับรวม: <span class="font-semibold">${fmt(inn)}</span></div>
+    </div>`;
+  }).join('');
+  box.innerHTML = cards;
+}
+
+/* ========= Sensitivity ========= */
+function sensitivityEval(){
+  const basePer = irr(cashflows());
+  const baseAnn = isFinite(basePer)? Math.pow(1+basePer, state.freq)-1 : NaN;
+  $('sn-base').textContent = pct(baseAnn);
+
+  const dp = Number($('sn-prem').value)/100;
+  const di = Number($('sn-inter').value)/100;
+  const df = Number($('sn-final').value)/100;
+  $('sn-prem-l').textContent = `${(dp*100).toFixed(0)}%`;
+  $('sn-inter-l').textContent = `${(di*100).toFixed(0)}%`;
+  $('sn-final-l').textContent = `${(df*100).toFixed(0)}%`;
+
+  const rows = buildRows();
+  const cfAdj = rows.map((r)=>{
+    const premAdj = (r.pay>0) ? (r.pay*(1+dp)) : 0;
+    const interAdj = r.between*(1+di);
+    const finalAdj = r.final*(1+df);
+    return (interAdj + r.tax + finalAdj) - premAdj - r.fee;
+  });
+  const rPerAdj = irr(cfAdj);
+  const rAnnAdj = isFinite(rPerAdj)? Math.pow(1+rPerAdj, state.freq)-1 : NaN;
+
+  $('sn-adj').textContent = pct(rAnnAdj);
+  const delta = (isFinite(rAnnAdj)&&isFinite(baseAnn)) ? (rAnnAdj - baseAnn) : NaN;
+  $('sn-delta').textContent = isFinite(delta)? ((delta*100).toFixed(2)+'%') : '—';
+}
+
+/* ========= Events ========= */
+function bind(){
+  // Tabs (desktop segmented & mobile bottom)
+  const wireTabs = (root)=>{
+    root.querySelectorAll('[data-view]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        // toggle active styles in both navs
+        document.querySelectorAll('[data-view]').forEach(x=>x.classList.remove('active'));
+        document.querySelectorAll(`[data-view="${b.dataset.view}"]`).forEach(x=>x.classList.add('active'));
+        const view = b.dataset.view;
+        ['simple','advanced','tax','compare','sensitivity','charts','about'].forEach(v=>{
+          const el = document.getElementById('view-'+v);
+          if(el) el.classList.toggle('hidden', v!==view);
+        });
+        if(view==='compare') renderCompare();
+        if(view==='sensitivity') sensitivityEval();
+        if(view==='charts') renderCharts();
+        // scroll to top of main for better mobile context
+        window.scrollTo({top:0, behavior:'smooth'});
+      });
+    });
+  };
+  wireTabs(document);
+  // default: Simple active already
+
+  // Global
+  $('freq').onchange = ()=>{ state.freq = Number($('freq').value||1); refreshAll(); };
+  $('periods').oninput = ()=>{ state.periods = Math.max(1, Math.min(600, Number($('periods').value||1))); refreshAll(); };
+  $('payPeriods').oninput = ()=>{ state.payPeriods = Math.max(0, Number($('payPeriods').value||0)); refreshAll(); };
+  $('saveLS').onclick = ()=>{ localStorage.setItem('ins_full_state', JSON.stringify(snapshot())); alert('บันทึกไว้ในอุปกรณ์แล้ว'); };
+  $('loadLS').onclick = ()=>{
+    const raw = localStorage.getItem('ins_full_state'); if(!raw) return alert('ยังไม่มีข้อมูลที่บันทึก');
+    try{ const s=JSON.parse(raw); restore(s); }catch(e){ alert('ข้อมูลไม่ถูกต้อง');}
+  };
+  $('printBtn').onclick = ()=> window.print();
+
+  // Simple appl
+  $('applySimple').onclick = ()=>{
+    state.premium = Number($('s-premium').value||0);
+    const sInter = Number($('s-interim').value||0);
+    const sStart = Math.max(1, Number($('s-interim-start').value||1));
+    const sCount = Math.max(0, Number($('s-interim-count').value||0));
+    state.finalLump = Number($('s-final').value||0);
+    state.taxRate = Number($('s-tax-rate').value||0)/100;
+
+    state.interim = new Array(state.periods).fill(0);
+    for(let i=0;i<sCount;i++){
+      const idx = sStart-1+i; if(idx<state.interim.length) state.interim[idx] = sInter;
+    }
+    refreshAll();
+  };
+
+  // Advanced inputs
+  ['premium','feePerPeriod','taxRate','finalLump'].forEach(id=>{
+    $(id).oninput = ()=>{
+      state[id] = (id==='taxRate') ? Number($(id).value||0)/100 : Number($(id).value||0);
+      refreshAll();
+    };
+  });
+
+  // Tax setup
+  ['taxStart','taxEnd','taxCapPerPeriod','taxCapContract'].forEach(id=>{
+    $(id).oninput = ()=>{ state[id] = Number($(id).value||0); refreshAll(); };
+  });
+  $('taxOnlyWhenPay').onchange = ()=>{ state.taxOnlyWhenPay = $('taxOnlyWhenPay').value==='yes'; refreshAll(); };
+  $('recalcAll').onclick = refreshAll;
+
+  // Table interim edits
+  document.getElementById('tbody').addEventListener('input', (e)=>{
+    const t = e.target; if(!t.matches('input[data-row]')) return;
+    const idx = +t.dataset.row; state.interim[idx] = Number(t.value||0); refreshAll();
+  });
+
+  // Tiers
+  $('addTier').onclick = ()=>{ state.tiers.push({from:1,to:state.periods,amt:0}); renderTiers(); };
+  $('tiers').addEventListener('input', (e)=>{
+    const t=e.target; if(!t.matches('[data-tier]')) return;
+    const i=+t.dataset.tier, k=t.dataset.k;
+    state.tiers[i][k] = (k==='amt') ? Number(t.value||0) : Number(t.value||1);
+  });
+  $('tiers').addEventListener('click', (e)=>{
+    const b=e.target; if(!b.matches('[data-tier-del]')) return;
+    const i=+b.dataset.tierDel; state.tiers.splice(i,1); renderTiers();
+  });
+  $('applyTiers').onclick = ()=>{
+    for(const t of state.tiers){
+      const s=Math.max(1, Math.min(state.periods, t.from|0));
+      const e=Math.max(1, Math.min(state.periods, t.to|0));
+      for(let i=s-1;i<=e-1;i++) state.interim[i] = Number(t.amt||0);
+    }
+    refreshAll();
+  };
+  $('fillZero').onclick = ()=>{ state.interim = new Array(state.periods).fill(0); refreshAll(); };
+  $('clearInterim').onclick = ()=>{ state.interim = []; refreshAll(); };
+
+  // Compare save
+  document.querySelectorAll('[data-save]').forEach(btn=>{
+    btn.onclick = ()=>{ const k=btn.dataset.save; state.scenarios[k]=snapshot(); renderCompare(); alert('บันทึก Scenario '+k+' แล้ว'); };
+  });
+
+  // Import/Export
+  $('exportJSON').onclick = ()=>{
+    const blob = new Blob([JSON.stringify(snapshot(),null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='insurance-studio.json'; a.click(); URL.revokeObjectURL(url);
+  };
+  $('importBtn').onclick = ()=> $('importJSON').click();
+  $('importJSON').onchange = async (e)=>{
+    const f=e.target.files[0]; if(!f) return;
+    try{ const text=await f.text(); const data=JSON.parse(text); restore(data); alert('นำเข้าแล้ว'); }
+    catch(err){ alert('ไฟล์ไม่ถูกต้อง'); }
+  };
+  $('importCsvBtn').onclick = ()=> $('importCSV').click();
+  $('importCSV').onchange = async (e)=>{
+    const f=e.target.files[0]; if(!f) return;
+    const text = await f.text();
+    const lines = text.trim().split(/\r?\n/);
+    const head = lines.shift().split(',').map(s=>s.trim().toLowerCase());
+    const idxInter = head.indexOf('interim');
+    if(idxInter<0) return alert('CSV ต้องมีคอลัมน์ interim หนึ่งคอลัมน์');
+    const vals = lines.map(l=>Number(l.split(',')[idxInter]||0));
+    state.interim = vals;
+    $('periods').value = vals.length; state.periods = vals.length;
+    refreshAll();
+  };
+}
+
+/* ========= Refresh All ========= */
+function refreshAll(){
+  while(state.interim.length < state.periods) state.interim.push(0);
+  if(state.interim.length > state.periods) state.interim = state.interim.slice(0,state.periods);
+
+  $('freq').value = String(state.freq);
+  $('periods').value = state.periods;
+  $('payPeriods').value = state.payPeriods;
+  $('premium').value = state.premium;
+  $('feePerPeriod').value = state.feePerPeriod;
+  $('taxRate').value = (state.taxRate*100).toFixed(2);
+  $('finalLump').value = state.finalLump;
+  $('taxStart').value = state.taxStart;
+  $('taxEnd').value = state.taxEnd;
+  $('taxCapPerPeriod').value = state.taxCapPerPeriod;
+  $('taxCapContract').value = state.taxCapContract;
+  $('taxOnlyWhenPay').value = state.taxOnlyWhenPay?'yes':'no';
+
+  renderTable();
+  refreshKPIs();
+  renderTiers();
+
+  const chartsVisible = !document.getElementById('view-charts').classList.contains('hidden');
+  if(chartsVisible) renderCharts();
+}
+
+/* ========= Init (Preset) ========= */
+function init(){
+  state.freq = 1; state.periods = 19; state.payPeriods = 10;
+  state.premium = 50000; state.feePerPeriod = 0; state.taxRate = 0.15; state.finalLump = 0;
+  state.taxStart=1; state.taxEnd=19; state.taxCapPerPeriod=999999999; state.taxCapContract=999999999; state.taxOnlyWhenPay=true;
+
+  state.interim = new Array(19).fill(0);
+  for(let i=0;i<10;i++) state.interim[i]=3000;
+  for(let i=10;i<19;i++) state.interim[i]=6000;
+
+  state.tiers = [{from:1,to:10,amt:3000},{from:11,to:19,amt:6000}];
+
+  bind();
+  refreshAll();
+}
+init();
+</script>
+</body>
+</html>
