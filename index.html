@@ -1,630 +1,745 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>Insurance Return Studio • IRR ระดับโปร</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<style>
-  :root{
-    --bg-from:#f8fafc; --bg-to:#eef2ff; --card:#ffffff; --line:#e5e7eb;
-    --text:#0f172a; --muted:#64748b; --accent:#6366f1; --accent-2:#4f46e5;
-    --success:#10b981; --warning:#f59e0b; --error:#ef4444;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
-    background:radial-gradient(1200px 600px at 20% -10%, #eef2ff 0%, transparent 60%), 
-               linear-gradient(180deg,var(--bg-from),var(--bg-to));
-    color:var(--text);
-  }
-  .wrap{max-width:1100px;margin:0 auto;padding:16px}
-  .card{
-    background:var(--card);border:1px solid var(--line);border-radius:16px;
-    box-shadow:0 10px 30px rgba(15,23,42,.08); transition:transform .15s ease, box-shadow .15s ease
-  }
-  .card:hover{ transform:translateY(-1px); box-shadow:0 14px 34px rgba(15,23,42,.12) }
-  .btn{border:1px solid var(--line);border-radius:12px;padding:.9rem 1rem;line-height:1;transition:filter .2s}
-  .btn:hover{background:#f8fafc;filter:brightness(1.02)}
-  .btn-primary{background:#101113;color:#fff;border-color:#101113}
-  .btn-primary:hover{filter:brightness(1.08)}
-  .seg{border:1px solid var(--line);border-radius:999px;padding:.35rem;display:inline-flex;gap:.25rem;background:#fff}
-  .seg button{padding:.55rem .95rem;border-radius:999px;font-weight:600;transition:background .15s}
-  .seg .active{background:#0f172a;color:#fff}
-  .input{width:100%;border:1px solid var(--line);border-radius:12px;padding:1rem .95rem;font-size:1rem}
-  .input:focus{outline:none;box-shadow:0 0 0 3px rgba(99,102,241,.2);border-color:#c7d2fe}
-  .kbd{font-size:.75rem;border:1px dashed var(--line);background:#fff;border-radius:8px;padding:.2rem .45rem;color:var(--muted)}
-  .table{width:100%;border-collapse:separate;border-spacing:0}
-  .table th,.table td{border-bottom:1px solid var(--line);padding:.75rem;text-align:right;font-size:.95rem;white-space:nowrap}
-  .table th:first-child,.table td:first-child{text-align:center}
-  .kpi{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fff;min-width:240px}
-  .kpi .val{font-size:1.9rem;font-weight:700}
-  .hint{font-size:.86rem;color:var(--muted)}
-  /* Mobile-first grids */
-  .grid1{display:grid;grid-template-columns:1fr;gap:.75rem}
-  @media(min-width:640px){ .grid2-sm{grid-template-columns:repeat(2,1fr)} }
-  @media(min-width:768px){
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
-    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
-    .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem}
-  }
-  /* Sticky header & bottom nav (safe-area) */
-  header.appbar{position:sticky;top:0;z-index:40;backdrop-filter:blur(8px);background:rgba(255,255,255,.7);border-bottom:1px solid var(--line)}
-  nav.bottom{position:sticky;bottom:0;z-index:40;background:rgba(255,255,255,.85);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:6px calc(env(safe-area-inset-right,0) + 8px) calc(env(safe-area-inset-bottom,0) + 6px) calc(env(safe-area-inset-left,0) + 8px)}
-  nav.bottom .tab{flex:1;border-radius:12px;padding:.75rem .4rem;text-align:center;font-size:.9rem;border:1px solid transparent}
-  nav.bottom .tab.active{background:#0f172a;color:#fff}
-  .no-x{overflow-x:hidden}
-  @media print{
-    header, nav.bottom, .no-print {display:none!important}
-    body{background:#fff}
-    .wrap{max-width:100%;padding:0}
-    .card{box-shadow:none;border:1px solid #ddd;border-radius:0}
-  }
-</style>
-</head>
-<body class="no-x">
-<!-- Top App Bar -->
-<header class="appbar">
-  <div class="wrap py-3 flex items-center justify-between gap-3">
-    <div class="flex items-center gap-3">
-      <div class="text-lg font-semibold">Insurance Return Studio</div>
-      <div class="hidden md:flex items-center gap-2 text-sm text-[var(--muted)]">
-        <span class="kbd">IRR Pro</span><span class="kbd">Tax Cap</span><span class="kbd">Compare</span><span class="kbd">Sensitivity</span>
-      </div>
-    </div>
-    <!-- Desktop segmented tabs (ตัด Tax / Compare / Sensitivity ออก) -->
-    <div class="hidden md:block">
-      <div class="seg">
-        <button class="active" data-view="simple">Simple</button>
-        <button data-view="advanced">Advanced</button>
-        <button data-view="charts">Charts</button>
-        <button data-view="about">About</button>
-      </div>
-    </div>
-  </div>
-</header>
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ตรวจสุขภาพการเงิน</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Inter', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    html {
+      height: 100%;
+    }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    .progress-bar {
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .result-card {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(10px);
+    }
+    
+    .result-card:hover {
+      transform: translateY(-4px) scale(1.01);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
 
-<main class="wrap space-y-5 pb-24">
-  <!-- KPI -->
-  <section class="flex gap-3 overflow-x-auto snap-x">
-    <div class="kpi snap-start">
-      <div class="text-sm text-[var(--muted)]">IRR ต่อปี (Annualized)</div>
-      <div id="k-irr-ann" class="val">—</div>
-      <div class="hint">อ้างอิงความถี่งวด</div>
-    </div>
-    <div class="kpi snap-start">
-      <div class="text-sm text-[var(--muted)]">IRR ต่อ “งวด”</div>
-      <div id="k-irr-per" class="val">—</div>
-      <div class="hint">ถ้างวด=รายเดือน จะเป็น IRR รายเดือน</div>
-    </div>
-    <div class="kpi snap-start">
-      <div class="text-sm text-[var(--muted)]">ลงทุนสุทธิ (ออก)</div>
-      <div id="k-out" class="val">—</div>
-      <div class="hint">ผลรวมกระแสเงินสดติดลบ</div>
-    </div>
-    <div class="kpi snap-start">
-      <div class="text-sm text-[var(--muted)]">เงินรับรวม (เข้า)</div>
-      <div id="k-in" class="val">—</div>
-      <div class="hint">ผลรวมกระแสเงินสดบวก</div>
-    </div>
-  </section>
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
 
-  <!-- Global Controls -->
-  <section class="card p-4">
-    <div class="grid1 grid2-sm md:grid-cols-4">
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">ความถี่งวด</label>
-        <select id="freq" class="input">
-          <option value="1" selected>รายปี (1 งวด/ปี)</option>
-          <option value="2">รายครึ่งปี (2 งวด/ปี)</option>
-          <option value="4">รายไตรมาส (4 งวด/ปี)</option>
-          <option value="12">รายเดือน (12 งวด/ปี)</option>
-        </select>
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-modern {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-modern:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-modern:active {
+      transform: translateY(0);
+    }
+
+    .input-modern {
+      transition: all 0.3s ease;
+      background: rgba(249, 250, 251, 0.8);
+    }
+
+    .input-modern:focus {
+      background: white;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 16px rgba(102, 126, 234, 0.15);
+    }
+
+    .status-badge {
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+
+    .animate-pulse-slow {
+      animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="min-h-full">
+  <main class="min-h-full relative overflow-hidden" style="background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);"><!-- Animated Background Elements -->
+   <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse-slow"></div>
+    <div class="absolute top-40 right-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse-slow" style="animation-delay: 1s;"></div>
+    <div class="absolute -bottom-20 left-1/2 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse-slow" style="animation-delay: 2s;"></div>
+   </div>
+   <div class="min-h-full flex items-center justify-center p-4 relative z-10">
+    <div class="w-full max-w-2xl"><!-- Progress Bar -->
+     <div id="progressContainer" class="mb-8 hidden">
+      <div class="flex justify-between items-center mb-2"><span class="text-white text-sm font-medium opacity-80">ความคืบหน้า</span> <span id="progressText" class="text-white text-sm font-bold">0%</span>
       </div>
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">จำนวนงวดทั้งหมด</label>
-        <input id="periods" type="number" class="input" min="1" max="600" value="19" inputmode="numeric">
+      <div class="bg-white bg-opacity-10 rounded-full h-2 overflow-hidden backdrop-blur-sm">
+       <div id="progressBar" class="progress-bar h-2 rounded-full" style="width: 0%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);"></div>
       </div>
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">งวดที่ “จ่ายเบี้ย”</label>
-        <input id="payPeriods" type="number" class="input" min="0" value="10" inputmode="numeric">
-      </div>
-      <div class="no-print">
-        <label class="block text-sm text-[var(--muted)] mb-1">ดำเนินการ</label>
-        <div class="flex gap-2">
-          <button class="btn w-full" id="saveLS">บันทึก</button>
-          <button class="btn w-full" id="loadLS">โหลด</button>
-          <button class="btn w-full" id="printBtn">พิมพ์</button>
+     </div><!-- Content Container -->
+     <div id="contentContainer" class="glass-card rounded-3xl shadow-2xl p-10 fade-in"><!-- Welcome Screen -->
+      <div id="welcomeScreen">
+       <div class="text-center">
+        <div class="inline-block p-6 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl mb-6 shadow-2xl">
+         <div class="text-6xl">
+          💰
+         </div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- SIMPLE -->
-  <section id="view-simple" class="card p-4">
-    <div class="font-semibold mb-2">Simple (ตาม 5 ข้อมูลที่ผู้ใช้ทราบ)</div>
-    <div class="grid1 grid2-sm md:grid-cols-3">
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">เบี้ยต่อ “งวด”</label>
-        <input id="s-premium" type="number" class="input" step="0.01" value="50000" inputmode="decimal">
-      </div>
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">เงินคืนระหว่างงวด (คงที่)</label>
-        <input id="s-interim" type="number" class="input" step="0.01" value="3000" inputmode="decimal">
-      </div>
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">เริ่มรับงวดที่</label>
-        <input id="s-interim-start" type="number" class="input" min="1" value="1" inputmode="numeric">
-      </div>
-    </div>
-    <div class="grid1 grid2-sm md:grid-cols-3 mt-3">
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">จำนวนงวดที่รับระหว่างงวด</label>
-        <input id="s-interim-count" type="number" class="input" min="0" value="19" inputmode="numeric">
-      </div>
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">เงินก้อนสุดท้าย (งวดสุดท้าย)</label>
-        <input id="s-final" type="number" class="input" step="0.01" value="0" inputmode="decimal">
-      </div>
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">อัตราลดหย่อนภาษี (% ของเบี้ยที่จ่าย)</label>
-        <input id="s-tax-rate" type="number" class="input" step="0.01" value="15" inputmode="decimal">
-      </div>
-    </div>
-    <div class="flex flex-wrap gap-2 mt-3">
-      <button class="btn btn-primary w-full sm:w-auto" id="applySimple">คำนวณ/เติมค่า</button>
-      <div class="hint">* กรอกครั้งเดียวแล้วคำนวณทันที</div>
-    </div>
-  </section>
-
-  <!-- ADVANCED -->
-  <section id="view-advanced" class="card p-4 hidden">
-    <div class="font-semibold mb-2">Advanced (เงินคืนหลายช่วง + ตารางแก้รายงวด + ค่าธรรมเนียม)</div>
-    <div class="grid1 grid2-sm md:grid-cols-4">
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">เบี้ย/งวด</label>
-        <input id="premium" type="number" class="input" step="0.01" value="50000" inputmode="decimal">
-      </div>
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">ค่าธรรมเนียม/งวด (หักออก)</label>
-        <input id="feePerPeriod" type="number" class="input" step="0.01" value="0" inputmode="decimal">
-      </div>
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">อัตราลดหย่อนภาษี (%)</label>
-        <input id="taxRate" type="number" class="input" step="0.01" value="15" inputmode="decimal">
-      </div>
-      <div>
-        <label class="block text-sm text-[var(--muted)] mb-1">เงินก้อนสุดท้าย</label>
-        <input id="finalLump" type="number" class="input" step="0.01" value="0" inputmode="decimal">
-      </div>
-    </div>
-
-    <div class="mt-3">
-      <div class="flex items-center justify-between gap-3">
-        <div class="font-semibold">กำหนดเงินคืนระหว่างงวด (หลายช่วง)</div>
-        <div class="hint">คลิก “เพิ่มช่วง” เพื่อกำหนดได้ไม่จำกัด</div>
-      </div>
-      <div id="tiers" class="space-y-2 mt-2"></div>
-      <div class="grid1 grid2 gap-2 mt-2">
-        <button class="btn" id="addTier">+ เพิ่มช่วง</button>
-        <div class="flex gap-2">
-          <button class="btn w-full" id="fillZero">กำหนด 0 ทุกงวด</button>
-          <button class="btn w-full" id="clearInterim">ล้างเงินคืนทั้งหมด</button>
-          <button class="btn btn-primary w-full" id="applyTiers">เติมตามช่วง</button>
+        <h1 id="mainTitle" class="text-5xl font-extrabold mb-4 gradient-text leading-tight">ตรวจสุขภาพการเงิน</h1>
+        <p id="subtitle" class="text-gray-500 mb-10 text-lg font-medium max-w-md mx-auto">วิเคราะห์สุขภาพการเงินของคุณและรับคำแนะนำที่เหมาะสม</p><button onclick="startAssessment()" class="btn-modern px-10 py-5 text-white font-bold rounded-2xl text-lg shadow-xl" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"> <span class="flex items-center justify-center gap-2"> <span>เริ่มต้นตรวจสุขภาพการเงิน</span> <span class="text-xl">→</span> </span> </button>
+       </div>
+      </div><!-- Question Screens -->
+      <div id="questionScreen" class="hidden">
+       <div id="questionContent"></div>
+      </div><!-- Results Screen -->
+      <div id="resultsScreen" class="hidden">
+       <div class="text-center mb-8">
+        <div class="text-5xl mb-4">
+         📊
         </div>
+        <h2 class="text-3xl font-bold mb-2" style="color: #667eea;">ผลการวิเคราะห์สุขภาพการเงิน</h2>
+       </div>
+       <div id="resultsContent"></div>
+      </div><!-- Attitude Test Screen -->
+      <div id="attitudeScreen" class="hidden">
+       <div id="attitudeContent"></div>
+      </div><!-- Final Results Screen -->
+      <div id="finalScreen" class="hidden">
+       <div class="text-center mb-8">
+        <div class="text-5xl mb-4">
+         🎯
+        </div>
+        <h2 class="text-3xl font-bold mb-2" style="color: #667eea;">สรุปผลการประเมิน</h2>
+       </div>
+       <div id="finalContent"></div>
       </div>
+     </div>
     </div>
+   </div>
+  </main>
+  <script>
+    const defaultConfig = {
+      main_title: "ตรวจสุขภาพการเงิน",
+      subtitle: "วิเคราะห์สุขภาพการเงินของคุณและรับคำแนะนำที่เหมาะสม",
+      primary_color: "#667eea",
+      secondary_color: "#764ba2",
+      background_color: "#ffffff",
+      text_color: "#333333",
+      success_color: "#10b981"
+    };
 
-    <div class="mt-4">
-      <div class="text-sm font-semibold mb-2">ตารางแก้ไขเงินคืนรายงวด</div>
-      <div class="overflow-x-auto -mx-2 md:mx-0 px-2 md:px-0">
-        <table class="table">
-          <thead>
-            <tr class="bg-white">
-              <th>งวด</th>
-              <th>เบี้ย</th>
-              <th>ค่าธรรมเนียม</th>
-              <th style="min-width:200px">เงินคืนระหว่างงวด (แก้ไขได้)</th>
-              <th>ลดหย่อนภาษี</th>
-              <th>ก้อนสุดท้าย</th>
-              <th>สุทธิ (Total)</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-          <tfoot>
-            <tr class="bg-slate-50 font-semibold">
-              <td>รวม</td>
-              <td id="sPrem">—</td>
-              <td id="sFee">—</td>
-              <td id="sInterim">—</td>
-              <td id="sTax">—</td>
-              <td id="sFinal">—</td>
-              <td id="sTotal">—</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-    </div>
-  </section>
+    let currentStep = 0;
+    let userData = {
+      income: 0,
+      debtExpense: 0,
+      expenses: {},
+      savings: 0,
+      attitudeAnswers: []
+    };
 
-  <!-- CHARTS -->
-  <section id="view-charts" class="card p-4 hidden">
-    <div class="font-semibold mb-2">Charts</div>
-    <div class="grid1 md:grid-cols-2 gap-3">
-      <div>
-        <div class="text-sm text-[var(--muted)] mb-1">Cashflow by Period</div>
-        <div class="w-full" style="height:220px"><canvas id="cfChart"></canvas></div>
-      </div>
-      <div>
-        <div class="text-sm text-[var(--muted)] mb-1">Cumulative Cashflow</div>
-        <div class="w-full" style="height:220px"><canvas id="cumChart"></canvas></div>
-      </div>
-    </div>
-  </section>
+    const expenseCategories = [
+      { key: 'food', label: 'ค่าอาหาร', icon: '🍜' },
+      { key: 'transport', label: 'ค่าเดินทาง/น้ำมัน', icon: '🚗' },
+      { key: 'household', label: 'ค่าของใช้ในบ้าน', icon: '🏠' },
+      { key: 'utilities', label: 'ค่าน้ำ/ค่าไฟ', icon: '💡' },
+      { key: 'entertainment', label: 'ค่านันทนาการ/สังสรรค์', icon: '🎉' },
+      { key: 'clothing', label: 'ค่าเสื้อผ้า/เครื่องประดับ', icon: '👔' },
+      { key: 'internet', label: 'ค่าเน็ต/โทรศัพท์', icon: '📱' },
+      { key: 'other', label: 'อื่นๆ', icon: '📝' }
+    ];
 
-  <!-- ABOUT -->
-  <section id="view-about" class="card p-4 hidden">
-    <div class="font-semibold mb-2">แนวทางและข้อควรทราบ</div>
-    <ul class="list-disc pl-6 space-y-1 text-sm">
-      <li>IRR ต่อ “งวด” แปลงเป็น IRR ต่อปีด้วย <code>(1 + r_period)^(งวด/ปี) − 1</code></li>
-      <li>ลดหย่อนภาษีตั้งค่าได้ทั้ง % เพดานต่องวด เพดานรวมสัญญา ช่วงงวด และ “นับเฉพาะงวดที่มีจ่ายเบี้ย”</li>
-      <li>เงินคืนหลายช่วง: ใช้ “เพิ่มช่วง” หรือแก้ไขรายงวดในตาราง</li>
-      <li>โปรดตรวจเงื่อนไขผลิตภัณฑ์จริงและข้อกฎหมายภาษีล่าสุดก่อนตัดสินใจ</li>
-    </ul>
-  </section>
+    const attitudeQuestions = [
+      {
+        question: 'เมื่อได้รับเงินเดือน คุณทำอะไรเป็นอย่างแรก?',
+        options: [
+          { text: 'แบ่งเงินออมก่อนทุกอย่าง', correct: true },
+          { text: 'จ่ายหนี้ก่อน', correct: false },
+          { text: 'ใช้จ่ายตามความต้องการก่อน แล้วค่อยออมที่เหลือ', correct: false }
+        ],
+        explanation: 'คำตอบที่ถูกต้องคือ "แบ่งเงินออมก่อนทุกอย่าง" เพราะหากออมก่อนจะทำให้มั่นใจได้ว่าจะมีเงินออมแน่นอน ตามหลักการ "จ่ายตัวเองก่อน" (Pay Yourself First) ส่วนการจ่ายหนี้ควรทำหลังจากออมแล้ว และไม่ควรใช้จ่ายก่อนแล้วค่อยออมที่เหลือ เพราะอาจไม่มีเงินเหลือออมเลย'
+      },
+      {
+        question: 'คุณมีการวางแผนการเงินระยะยาวหรือไม่?',
+        options: [
+          { text: 'มีแผนชัดเจนและทบทวนเป็นประจำ', correct: true },
+          { text: 'มีแผนคร่าวๆ แต่ไม่ได้ติดตามจริงจัง', correct: false },
+          { text: 'ไม่มีแผน ใช้ชีวิตไปวันต่อวัน', correct: false }
+        ],
+        explanation: 'คำตอบที่ถูกต้องคือ "มีแผนชัดเจนและทบทวนเป็นประจำ" เพราะการวางแผนการเงินที่ดีต้องมีเป้าหมายชัดเจนและติดตามผลอย่างสม่ำเสมอ จะช่วยให้บรรลุเป้าหมายทางการเงินได้ง่ายขึ้น และสามารถปรับแผนได้ทันท่วงทีเมื่อสถานการณ์เปลี่ยนแปลง'
+      },
+      {
+        question: 'เมื่อมีเงินก้อนพิเศษ (โบนัส/ของขวัญ) คุณจะทำอย่างไร?',
+        options: [
+          { text: 'นำไปออมและลงทุนส่วนใหญ่', correct: true },
+          { text: 'ใช้จ่ายซื้อของที่อยากได้มานาน', correct: false },
+          { text: 'แบ่งครึ่งหนึ่งใช้จ่าย ครึ่งหนึ่งออม', correct: false }
+        ],
+        explanation: 'คำตอบที่ถูกต้องคือ "นำไปออมและลงทุนส่วนใหญ่" เพราะเงินก้อนพิเศษเป็นโอกาสดีในการเพิ่มเงินออมและสร้างความมั่นคงทางการเงิน ควรนำไปออมอย่างน้อย 70-80% และอาจใช้จ่ายเล็กน้อยเพื่อให้รางวัลตัวเอง แต่ไม่ควรใช้จ่ายทั้งหมดหรือครึ่งหนึ่ง'
+      },
+      {
+        question: 'คุณมีการติดตามรายรับ-รายจ่ายของตัวเองหรือไม่?',
+        options: [
+          { text: 'บันทึกทุกรายการและวิเคราะห์เป็นประจำ', correct: true },
+          { text: 'บันทึกบ้างเป็นครั้งคราว', correct: false },
+          { text: 'ไม่ได้บันทึก จำคร่าวๆ ในใจ', correct: false }
+        ],
+        explanation: 'คำตอบที่ถูกต้องคือ "บันทึกทุกรายการและวิเคราะห์เป็นประจำ" เพราะการรู้ว่าเงินไปไหนบ้างเป็นพื้นฐานสำคัญของการบริหารการเงิน จะช่วยให้เห็นพฤติกรรมการใช้จ่าย หาจุดที่ควรปรับปรุง และวางแผนการเงินได้อย่างมีประสิทธิภาพ'
+      },
+      {
+        question: 'เมื่อเจอสินค้าลดราคา/โปรโมชั่น คุณจะตัดสินใจอย่างไร?',
+        options: [
+          { text: 'พิจารณาว่าจำเป็นจริงหรือไม่ก่อนซื้อ', correct: true },
+          { text: 'ซื้อทันทีเพราะราคาถูก', correct: false },
+          { text: 'ซื้อเก็บไว้ก่อน อาจใช้ในอนาคต', correct: false }
+        ],
+        explanation: 'คำตอบที่ถูกต้องคือ "พิจารณาว่าจำเป็นจริงหรือไม่ก่อนซื้อ" เพราะการลดราคาไม่ได้หมายความว่าคุ้มค่าเสมอไป หากซื้อสิ่งที่ไม่จำเป็นแม้จะถูกก็ยังเป็นการสูญเสียเงิน ควรซื้อเฉพาะสิ่งที่ต้องการจริงๆ และอยู่ในงบประมาณที่วางไว้'
+      }
+    ];
 
-  <!-- ซ่อนส่วน Tax/Compare/Sensitivity ไว้ (ยังคงอยู่เพื่อไม่ให้ logic พัง แต่ไม่ทำปุ่มเข้าถึง) -->
-  <section id="view-tax" class="card p-4 hidden"></section>
-  <section id="view-compare" class="card p-4 hidden">
-    <div class="hint">ส่วน Compare ถูกปิดการเข้าถึงจาก UI ตามคำขอ</div>
-    <div class="grid md:grid-cols-3 gap-3 mt-3" id="cmp-cards"></div>
-  </section>
-  <section id="view-sensitivity" class="card p-4 hidden">
-    <div class="hint">ส่วน Sensitivity ถูกปิดการเข้าถึงจาก UI ตามคำขอ</div>
-    <div class="grid md:grid-cols-3 gap-3 mt-3">
-      <div class="kpi"><div class="text-sm text-[var(--muted)]">IRR Base (Ann.)</div><div id="sn-base" class="val">—</div></div>
-      <div class="kpi"><div class="text-sm text-[var(--muted)]">IRR Adjusted</div><div id="sn-adj" class="val">—</div></div>
-      <div class="kpi"><div class="text-sm text-[var(--muted)]">Δ IRR</div><div id="sn-delta" class="val">—</div></div>
-    </div>
-    <input id="sn-prem" type="range" class="hidden"><input id="sn-inter" type="range" class="hidden"><input id="sn-final" type="range" class="hidden">
-    <span id="sn-prem-l" class="hidden"></span><span id="sn-inter-l" class="hidden"></span><span id="sn-final-l" class="hidden"></span>
-  </section>
-</main>
+    const questions = [
+      {
+        id: 'income',
+        title: 'รายได้รวมต่อเดือน',
+        icon: '💵',
+        description: 'กรุณากรอกรายได้รวมทั้งหมดที่คุณได้รับต่อเดือน',
+        type: 'single',
+        field: 'income'
+      },
+      {
+        id: 'debt',
+        title: 'รายจ่ายหนี้รวมต่อเดือน',
+        icon: '💳',
+        description: 'กรุณากรอกยอดเงินที่ต้องจ่ายชำระหนี้ทั้งหมดต่อเดือน',
+        type: 'single',
+        field: 'debtExpense'
+      },
+      {
+        id: 'expenses',
+        title: 'รายจ่ายทั่วไปในชีวิตประจำวัน',
+        icon: '🛒',
+        description: 'กรุณากรอกค่าใช้จ่ายในแต่ละหมวดต่อเดือน',
+        type: 'multiple',
+        field: 'expenses'
+      },
+      {
+        id: 'savings',
+        title: 'เงินออมรวมในปัจจุบัน',
+        icon: '🏦',
+        description: 'กรุณากรอกจำนวนเงินออมทั้งหมดที่คุณมีในปัจจุบัน',
+        type: 'single',
+        field: 'savings'
+      }
+    ];
 
-<!-- Bottom Tabs (mobile) — ตัด Tax / Compare / Sensitivity ออก -->
-<nav class="bottom md:hidden">
-  <div class="wrap px-0">
-    <div class="grid grid-cols-4 gap-2">
-      <button class="tab active" data-view="simple">Simple</button>
-      <button class="tab" data-view="advanced">Advanced</button>
-      <button class="tab" data-view="charts">Charts</button>
-      <button class="tab" data-view="about">About</button>
-    </div>
-  </div>
-</nav>
+    function startAssessment() {
+      document.getElementById('welcomeScreen').classList.add('hidden');
+      document.getElementById('progressContainer').classList.remove('hidden');
+      currentStep = 0;
+      showQuestion();
+    }
 
-<script>
-/* ========= Utilities ========= */
-const $ = (id)=>document.getElementById(id);
-const fmt = (n)=> (isFinite(n) ? n.toLocaleString(undefined,{maximumFractionDigits:2}) : '—');
-const pct = (x)=> (isFinite(x) ? (x*100).toFixed(4)+'%' : '—');
+    function showQuestion() {
+      const questionScreen = document.getElementById('questionScreen');
+      const questionContent = document.getElementById('questionContent');
+      questionScreen.classList.remove('hidden');
+      
+      const question = questions[currentStep];
+      const progress = ((currentStep + 1) / questions.length) * 100;
+      document.getElementById('progressBar').style.width = progress + '%';
+      document.getElementById('progressText').textContent = Math.round(progress) + '%';
 
-/* ========= IRR (robust) ========= */
-function npv(rate, cf){ let s=0; for(let t=0;t<cf.length;t++) s += cf[t]/Math.pow(1+rate,t); return s; }
-function dnpv(rate, cf){ let s=0; for(let t=1;t<cf.length;t++) s += -t*cf[t]/Math.pow(1+rate,t+1); return s; }
-function irr(cf){
-  if(!(cf.some(v=>v>0) && cf.some(v=>v<0))) return NaN;
-  let r=0.1;
-  for(let i=0;i<60;i++){
-    const f=npv(r,cf), df=dnpv(r,cf);
-    if(Math.abs(f)<1e-9) return r;
-    if(df===0 || !isFinite(df)) break;
-    r = r - f/df;
-    if(!isFinite(r) || r<=-0.999999) break;
-  }
-  let lo=-0.9999, hi=10, flo=npv(lo,cf), fhi=npv(hi,cf);
-  if(flo*fhi>0){ for(let k=0;k<10;k++){ hi*=2; fhi=npv(hi,cf); if(flo*fhi<=0) break; } if(flo*fhi>0) return NaN; }
-  for(let i=0;i<200;i++){
-    const mid=(lo+hi)/2, fm=npv(mid,cf);
-    if(Math.abs(fm)<1e-9) return mid;
-    if(flo*fm<=0){ hi=mid; fhi=fm; } else { lo=mid; flo=fm; }
-  }
-  return (lo+hi)/2;
-}
+      if (question.type === 'single') {
+        questionContent.innerHTML = `
+          <div class="text-center mb-8">
+            <div class="inline-block p-5 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-2xl mb-5">
+              <div class="text-5xl">${question.icon}</div>
+            </div>
+            <h2 class="text-3xl font-bold mb-3 text-gray-800">${question.title}</h2>
+            <p class="text-gray-500 font-medium">${question.description}</p>
+          </div>
+          <div class="mb-8">
+            <label for="inputField" class="block text-sm font-bold mb-3 text-gray-700 uppercase tracking-wide">จำนวนเงิน (บาท)</label>
+            <input type="number" id="inputField" class="input-modern w-full px-6 py-4 border-0 rounded-2xl focus:outline-none text-xl font-semibold text-gray-800" placeholder="0" min="0" step="0.01">
+          </div>
+          <div class="flex gap-3">
+            ${currentStep > 0 ? '<button onclick="previousQuestion()" class="flex-1 px-6 py-4 bg-gray-100 text-gray-700 font-bold rounded-2xl hover:bg-gray-200 transition-all">← ย้อนกลับ</button>' : ''}
+            <button onclick="nextQuestion()" class="btn-modern flex-1 px-6 py-4 text-white font-bold rounded-2xl shadow-lg" style="background: linear-gradient(135deg, ${defaultConfig.primary_color} 0%, ${defaultConfig.secondary_color} 100%);">ถัดไป →</button>
+          </div>
+        `;
+      } else if (question.type === 'multiple') {
+        let expenseInputs = expenseCategories.map(cat => `
+          <div class="mb-3">
+            <label for="expense_${cat.key}" class="block text-sm font-bold mb-2 text-gray-700 flex items-center gap-2">
+              <span class="text-2xl">${cat.icon}</span>
+              <span>${cat.label}</span>
+            </label>
+            <input type="number" id="expense_${cat.key}" class="input-modern w-full px-5 py-3 border-0 rounded-xl focus:outline-none text-lg font-semibold text-gray-800" placeholder="0" min="0" step="0.01" value="${userData.expenses[cat.key] || 0}">
+          </div>
+        `).join('');
 
-/* ========= State ========= */
-const state = {
-  freq: 1, periods: 19, payPeriods: 10,
-  premium: 50000, feePerPeriod: 0, finalLump: 0,
-  taxRate: 0.15, taxStart: 1, taxEnd: 19,
-  taxCapPerPeriod: 999999999, taxCapContract: 999999999, taxOnlyWhenPay: true,
-  interim: [], tiers: [], scenarios: {A:null,B:null,C:null},
-  charts: {cf:null, cum:null}
-};
-
-/* ========= Core cashflow builder ========= */
-function buildRows(){
-  const N = state.periods|0, payN = Math.max(0, Math.min(state.payPeriods|0, N));
-  while(state.interim.length < N) state.interim.push(0);
-  if(state.interim.length > N) state.interim = state.interim.slice(0,N);
-
-  const rows = [];
-  let taxAccum = 0;
-  for(let i=0;i<N;i++){
-    const p = i+1;
-    const pay = (p<=payN) ? state.premium : 0;
-    const fee = state.feePerPeriod || 0;
-
-    const eligible = (p>=state.taxStart && p<=state.taxEnd) && (!state.taxOnlyWhenPay || pay>0);
-    let tax = 0;
-    if(eligible){
-      tax = Math.min(pay*state.taxRate, state.taxCapPerPeriod);
-      if(taxAccum + tax > state.taxCapContract){
-        tax = Math.max(0, state.taxCapContract - taxAccum);
+        questionContent.innerHTML = `
+          <div class="text-center mb-8">
+            <div class="inline-block p-5 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-2xl mb-5">
+              <div class="text-5xl">${question.icon}</div>
+            </div>
+            <h2 class="text-3xl font-bold mb-3 text-gray-800">${question.title}</h2>
+            <p class="text-gray-500 font-medium">${question.description}</p>
+          </div>
+          <div class="max-h-96 overflow-y-auto mb-8 pr-2 space-y-1">
+            ${expenseInputs}
+          </div>
+          <div class="flex gap-3">
+            <button onclick="previousQuestion()" class="flex-1 px-6 py-4 bg-gray-100 text-gray-700 font-bold rounded-2xl hover:bg-gray-200 transition-all">← ย้อนกลับ</button>
+            <button onclick="nextQuestion()" class="btn-modern flex-1 px-6 py-4 text-white font-bold rounded-2xl shadow-lg" style="background: linear-gradient(135deg, ${defaultConfig.primary_color} 0%, ${defaultConfig.secondary_color} 100%);">ถัดไป →</button>
+          </div>
+        `;
       }
     }
-    taxAccum += tax;
 
-    const between = Number(state.interim[i]||0);
-    const final = (p===N) ? state.finalLump : 0;
+    function nextQuestion() {
+      const question = questions[currentStep];
+      
+      if (question.type === 'single') {
+        const value = parseFloat(document.getElementById('inputField').value) || 0;
+        if (value < 0) {
+          showInlineMessage('กรุณากรอกจำนวนเงินที่ถูกต้อง');
+          return;
+        }
+        userData[question.field] = value;
+      } else if (question.type === 'multiple') {
+        expenseCategories.forEach(cat => {
+          const value = parseFloat(document.getElementById(`expense_${cat.key}`).value) || 0;
+          userData.expenses[cat.key] = value;
+        });
+      }
 
-    const total = (between + tax + final) - pay - fee;
-    rows.push({period:p, pay, fee, between, tax, final, total});
-  }
-  return rows;
-}
-function cashflows(){ return buildRows().map(r=>r.total); }
+      currentStep++;
+      
+      if (currentStep < questions.length) {
+        showQuestion();
+      } else {
+        showResults();
+      }
+    }
 
-/* ========= Rendering ========= */
-function refreshKPIs(){
-  const cf = cashflows();
-  const rPer = irr(cf);
-  const k = state.freq>0 ? Math.max(1, state.freq) : 1;
-  const rAnn = isFinite(rPer) ? Math.pow(1+rPer, k)-1 : NaN;
+    function previousQuestion() {
+      if (currentStep > 0) {
+        currentStep--;
+        showQuestion();
+      }
+    }
 
-  const rows = buildRows();
-  const out = rows.filter(r=>r.total<0).reduce((a,r)=>a+r.total,0);
-  const inn = rows.filter(r=>r.total>0).reduce((a,r)=>a+r.total,0);
+    function showInlineMessage(message) {
+      const existingMsg = document.querySelector('.inline-message');
+      if (existingMsg) existingMsg.remove();
+      
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'inline-message bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4';
+      msgDiv.textContent = message;
+      
+      const questionContent = document.getElementById('questionContent');
+      questionContent.insertBefore(msgDiv, questionContent.firstChild);
+      
+      setTimeout(() => msgDiv.remove(), 3000);
+    }
 
-  $('k-irr-per').textContent = pct(rPer);
-  $('k-irr-ann').textContent = pct(rAnn);
-  $('k-out').textContent = fmt(out);
-  $('k-in').textContent = fmt(inn);
-}
-function renderTable(){
-  const rows = buildRows();
-  const tb = $('tbody');
-  tb.innerHTML = rows.map((r,i)=>`
-    <tr>
-      <td>${r.period}</td>
-      <td>${fmt(-r.pay)}</td>
-      <td>${fmt(-r.fee)}</td>
-      <td><input class="input" type="number" step="0.01" data-row="${i}" value="${r.between}" inputmode="decimal"></td>
-      <td>${fmt(r.tax)}</td>
-      <td>${fmt(r.final)}</td>
-      <td>${fmt(r.total)}</td>
-    </tr>
-  `).join('');
+    function showResults() {
+      // Calculate and store results but don't show yet
+      // Calculate DTI
+      const dti = userData.income > 0 ? (userData.debtExpense / userData.income) * 100 : 0;
+      let dtiStatus, dtiColor, dtiAdvice;
+      
+      if (dti <= 35) {
+        dtiStatus = 'ดีมาก';
+        dtiColor = '#10b981';
+        dtiAdvice = 'อัตราส่วนหนี้ของคุณอยู่ในเกณฑ์ที่ดีมาก คุณมีการบริหารหนี้ที่ดีและมีเงินเหลือเพียงพอสำหรับการออมและลงทุน';
+      } else if (dti <= 45) {
+        dtiStatus = 'ระมัดระวัง';
+        dtiColor = '#f59e0b';
+        dtiAdvice = 'อัตราส่วนหนี้ของคุณอยู่ในระดับที่ต้องระมัดระวัง ไม่ควรสร้างหนี้เพิ่มและควรเร่งเคลียร์หนี้ให้หมดโดยเร็ว';
+      } else {
+        dtiStatus = 'อันตราย';
+        dtiColor = '#ef4444';
+        dtiAdvice = 'อัตราส่วนหนี้ของคุณสูงเกินไป ควรหยุดสร้างหนี้เพิ่มทันที เร่งเคลียร์หนี้ให้หมด และหากจ่ายไม่ไหวควรเจรจาปรับโครงสร้างหนี้';
+      }
 
-  $('sPrem').textContent    = fmt(rows.reduce((a,r)=>a - r.pay, 0));
-  $('sFee').textContent     = fmt(rows.reduce((a,r)=>a - r.fee, 0));
-  $('sInterim').textContent = fmt(rows.reduce((a,r)=>a + r.between, 0));
-  $('sTax').textContent     = fmt(rows.reduce((a,r)=>a + r.tax, 0));
-  $('sFinal').textContent   = fmt(rows.reduce((a,r)=>a + r.final, 0));
-  $('sTotal').textContent   = fmt(rows.reduce((a,r)=>a + r.total, 0));
-}
-function renderCharts(){
-  const rows = buildRows();
-  const labels = rows.map(r=>`งวด ${r.period}`);
-  const cf = rows.map(r=>r.total);
-  const cum = rows.reduce((arr,v)=>{ arr.push((arr.at(-1)||0)+v); return arr; }, []);
+      // Calculate Emergency Fund
+      const totalMonthlyExpense = userData.debtExpense + Object.values(userData.expenses).reduce((a, b) => a + b, 0);
+      const emergencyMonths = totalMonthlyExpense > 0 ? userData.savings / totalMonthlyExpense : 0;
+      let efStatus, efColor, efAdvice;
+      
+      if (emergencyMonths < 3) {
+        efStatus = 'ไม่เพียงพอ';
+        efColor = '#ef4444';
+        const needed = (3 * totalMonthlyExpense) - userData.savings;
+        efAdvice = `เงินสำรองฉุกเฉินของคุณยังไม่เพียงพอ ควรมีอย่างน้อย 3-6 เดือน คุณควรเก็บเงินเพิ่มอีกประมาณ ${needed.toLocaleString('th-TH', {maximumFractionDigits: 0})} บาท เพื่อให้ถึงเป้าหมายขั้นต่ำ`;
+      } else if (emergencyMonths <= 6) {
+        efStatus = 'เพียงพอ';
+        efColor = '#10b981';
+        efAdvice = 'เงินสำรองฉุกเฉินของคุณอยู่ในเกณฑ์ที่เหมาะสม สามารถรองรับเหตุฉุกเฉินได้ดี';
+      } else {
+        efStatus = 'เกินเป้า';
+        efColor = '#3b82f6';
+        const excess = userData.savings - (6 * totalMonthlyExpense);
+        efAdvice = `เงินสำรองฉุกเฉินของคุณเกินเป้าหมาย คุณสามารถนำเงินส่วนที่เกิน (ประมาณ ${excess.toLocaleString('th-TH', {maximumFractionDigits: 0})} บาท) ไปลงทุนเพื่อให้เงินงอกเงยได้`;
+      }
 
-  if(state.charts.cf) state.charts.cf.destroy();
-  const cfCtx = document.getElementById('cfChart').getContext('2d');
-  state.charts.cf = new Chart(cfCtx, {
-    type:'bar',
-    data:{ labels, datasets:[{ label:'Total', data: cf }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{ticks:{callback:v=>Number(v).toLocaleString()}}}}
-  });
+      // Calculate Liquidity
+      const totalExpense = totalMonthlyExpense;
+      const liquidity = userData.income - totalExpense;
+      let liqStatus, liqColor, liqAdvice;
+      
+      if (liquidity < 0) {
+        liqStatus = 'ติดลบ';
+        liqColor = '#ef4444';
+        
+        // Analyze expenses
+        const expenseArray = Object.entries(userData.expenses).map(([key, value]) => ({
+          key,
+          value,
+          label: expenseCategories.find(c => c.key === key)?.label || key
+        })).sort((a, b) => b.value - a.value);
+        
+        const top3 = expenseArray.slice(0, 3).filter(e => e.value > 0);
+        
+        if (dti > 45) {
+          liqAdvice = `สภาพคล่องของคุณติดลบ ${Math.abs(liquidity).toLocaleString('th-TH', {maximumFractionDigits: 0})} บาท เนื่องจากภาระหนี้สูง (${dti.toFixed(1)}% ของรายได้) ควรลดภาระหนี้เป็นอันดับแรก`;
+        } else {
+          liqAdvice = `สภาพคล่องของคุณติดลบ ${Math.abs(liquidity).toLocaleString('th-TH', {maximumFractionDigits: 0})} บาท ควรลดค่าใช้จ่าย โดยเฉพาะ 3 หมวดที่ใช้จ่ายมากที่สุด: `;
+          if (top3.length > 0) {
+            liqAdvice += top3.map((e, i) => `${i + 1}. ${e.label} (${e.value.toLocaleString('th-TH', {maximumFractionDigits: 0})} บาท)`).join(' ');
+          }
+        }
+      } else {
+        liqStatus = 'ดี';
+        liqColor = '#10b981';
+        liqAdvice = `สภาพคล่องของคุณดี มีเงินเหลือ ${liquidity.toLocaleString('th-TH', {maximumFractionDigits: 0})} บาท ต่อเดือน ควรนำไปออมและลงทุนเพื่ออนาคต`;
+      }
 
-  if(state.charts.cum) state.charts.cum.destroy();
-  const cumCtx = document.getElementById('cumChart').getContext('2d');
-  state.charts.cum = new Chart(cumCtx, {
-    type:'line',
-    data:{ labels, datasets:[{ label:'Cumulative', data: cum, borderWidth:2, fill:false }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{ticks:{callback:v=>Number(v).toLocaleString()}}}}
-  });
-}
-function renderTiers(){
-  const box = $('tiers');
-  box.innerHTML = state.tiers.map((t,idx)=>`
-    <div class="grid1 md:grid-cols-4 gap-2">
-      <div><input class="input" type="number" step="1" min="1" data-tier="${idx}" data-k="from" value="${t.from}" placeholder="จากงวด" inputmode="numeric"></div>
-      <div><input class="input" type="number" step="1" min="1" data-tier="${idx}" data-k="to" value="${t.to}" placeholder="ถึงงวด" inputmode="numeric"></div>
-      <div><input class="input" type="number" step="0.01" data-tier="${idx}" data-k="amt" value="${t.amt}" placeholder="จำนวนเงิน" inputmode="decimal"></div>
-      <div class="flex gap-2">
-        <button class="btn w-full" data-tier-del="${idx}">ลบช่วง</button>
-      </div>
-    </div>
-  `).join('');
-}
+      // Store results for final summary
+      userData.results = {
+        dti: { value: dti, status: dtiStatus, color: dtiColor, advice: dtiAdvice },
+        emergencyFund: { value: emergencyMonths, status: efStatus, color: efColor, advice: efAdvice },
+        liquidity: { value: liquidity, status: liqStatus, color: liqColor, advice: liqAdvice }
+      };
 
-/* ========= Compare/Sensitivity helpers (คงไว้เพื่อความสมบูรณ์ของ logic) ========= */
-function snapshot(){
-  return {
-    freq: state.freq, periods: state.periods, payPeriods: state.payPeriods,
-    premium: state.premium, feePerPeriod: state.feePerPeriod,
-    finalLump: state.finalLump, taxRate: state.taxRate,
-    taxStart: state.taxStart, taxEnd: state.taxEnd,
-    taxCapPerPeriod: state.taxCapPerPeriod, taxCapContract: state.taxCapContract,
-    taxOnlyWhenPay: state.taxOnlyWhenPay, interim: [...state.interim]
-  };
-}
-function restore(snap){ Object.assign(state, snap); refreshAll(); }
-function renderCompare(){
-  const ids=['A','B','C'];
-  const box = $('cmp-cards');
-  if(!box) return;
-  const cards = ids.map(k=>{
-    const s = state.scenarios[k];
-    if(!s) return `<div class="card p-3"><div class="text-sm text-[var(--muted)]">Scenario ${k}</div><div class="mt-1 text-base">ยังไม่ได้บันทึก</div></div>`;
-    const cf = (()=>{
-      const bak = {...state}; const itBak=[...state.interim];
-      restore(s); const flows = cashflows();
-      Object.assign(state,bak); state.interim=[...itBak];
-      return flows;
-    })();
-    const rPer = irr(cf);
-    const rAnn = isFinite(rPer)? Math.pow(1+rPer, s.freq||1)-1 : NaN;
-    const out = cf.filter(x=>x<0).reduce((a,v)=>a+v,0);
-    const inn = cf.filter(x=>x>0).reduce((a,v)=>a+v,0);
-    return `
-    <div class="card p-3">
-      <div class="text-sm text-[var(--muted)]">Scenario ${k}</div>
-      <div class="mt-1 text-sm">IRR (Per): <span class="font-semibold">${pct(rPer)}</span></div>
-      <div class="mt-1 text-sm">IRR (Annualized): <span class="font-semibold">${pct(rAnn)}</span></div>
-      <div class="mt-1 text-sm">ลงทุนสุทธิ: <span class="font-semibold">${fmt(out)}</span></div>
-      <div class="mt-1 text-sm">เงินรับรวม: <span class="font-semibold">${fmt(inn)}</span></div>
-    </div>`;
-  }).join('');
-  box.innerHTML = cards;
-}
-function sensitivityEval(){ /* ส่วนนี้ถูกปิดจาก UI จึงไม่ประมวลผล */ }
+      // Go directly to attitude test
+      startAttitudeTest();
+    }
 
-/* ========= Events ========= */
-function bind(){
-  // Tabs (desktop segmented & mobile bottom) — อิงปุ่มที่มีอยู่จริงเท่านั้น
-  const tabs = document.querySelectorAll('[data-view]');
-  tabs.forEach(b=>{
-    b.addEventListener('click', ()=>{
-      tabs.forEach(x=>x.classList.remove('active'));
-      document.querySelectorAll(`[data-view="${b.dataset.view}"]`).forEach(x=>x.classList.add('active'));
-      // ซ่อน/โชว์เฉพาะวิวที่ยังใช้
-      const pages = ['simple','advanced','charts','about']; // ตัด tax/compare/sensitivity ออกจากการสลับ
-      pages.forEach(v=>{
-        const el = document.getElementById('view-'+v);
-        if(el) el.classList.toggle('hidden', v!==b.dataset.view);
+    let currentAttitudeQuestion = 0;
+
+    function startAttitudeTest() {
+      document.getElementById('questionScreen').classList.add('hidden');
+      document.getElementById('attitudeScreen').classList.remove('hidden');
+      document.getElementById('progressContainer').classList.remove('hidden');
+      currentAttitudeQuestion = 0;
+      userData.attitudeAnswers = [];
+      showAttitudeQuestion();
+    }
+
+    function showAttitudeQuestion() {
+      const attitudeContent = document.getElementById('attitudeContent');
+      const question = attitudeQuestions[currentAttitudeQuestion];
+      const progress = ((currentAttitudeQuestion + 1) / attitudeQuestions.length) * 100;
+      document.getElementById('progressBar').style.width = progress + '%';
+      document.getElementById('progressText').textContent = Math.round(progress) + '%';
+
+      const optionsHtml = question.options.map((option, index) => `
+        <button onclick="selectAttitudeAnswer(${index})" class="btn-modern w-full text-left px-6 py-5 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl hover:from-purple-50 hover:to-indigo-50 border-2 border-gray-200 hover:border-purple-400 transition-all mb-3 font-semibold text-gray-800 shadow-sm hover:shadow-md">
+          <span class="flex items-center gap-3">
+            <span class="text-2xl">•</span>
+            <span>${option.text}</span>
+          </span>
+        </button>
+      `).join('');
+
+      attitudeContent.innerHTML = `
+        <div class="text-center mb-8">
+          <div class="inline-block p-5 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-2xl mb-5">
+            <div class="text-5xl">🤔</div>
+          </div>
+          <div class="inline-block px-4 py-2 bg-purple-100 rounded-full mb-4">
+            <span class="text-sm font-bold text-purple-700">คำถามที่ ${currentAttitudeQuestion + 1} / ${attitudeQuestions.length}</span>
+          </div>
+          <p class="text-xl text-gray-800 font-bold leading-relaxed max-w-lg mx-auto">${question.question}</p>
+        </div>
+        <div class="space-y-3">
+          ${optionsHtml}
+        </div>
+      `;
+    }
+
+    function selectAttitudeAnswer(answerIndex) {
+      const question = attitudeQuestions[currentAttitudeQuestion];
+      const selectedOption = question.options[answerIndex];
+      
+      userData.attitudeAnswers.push({
+        question: question.question,
+        answer: selectedOption.text,
+        correct: selectedOption.correct
       });
-      if(b.dataset.view==='charts') renderCharts();
-      window.scrollTo({top:0, behavior:'smooth'});
-    });
-  });
 
-  // Global
-  $('freq').onchange = ()=>{ state.freq = Number($('freq').value||1); refreshAll(); };
-  $('periods').oninput = ()=>{ state.periods = Math.max(1, Math.min(600, Number($('periods').value||1))); refreshAll(); };
-  $('payPeriods').oninput = ()=>{ state.payPeriods = Math.max(0, Number($('payPeriods').value||0)); refreshAll(); };
-  $('saveLS').onclick = ()=>{ localStorage.setItem('ins_full_state', JSON.stringify(snapshot())); alert('บันทึกไว้ในอุปกรณ์แล้ว'); };
-  $('loadLS').onclick = ()=>{
-    const raw = localStorage.getItem('ins_full_state'); if(!raw) return alert('ยังไม่มีข้อมูลที่บันทึก');
-    try{ const s=JSON.parse(raw); restore(s); }catch(e){ alert('ข้อมูลไม่ถูกต้อง');}
-  };
-  $('printBtn').onclick = ()=> window.print();
+      // Show explanation
+      const attitudeContent = document.getElementById('attitudeContent');
+      const bgColor = selectedOption.correct ? '#d1fae5' : '#fee2e2';
+      const borderColor = selectedOption.correct ? '#10b981' : '#ef4444';
+      const textColor = selectedOption.correct ? '#065f46' : '#991b1b';
+      const icon = selectedOption.correct ? '✅' : '❌';
 
-  // Simple apply
-  $('applySimple').onclick = ()=>{
-    state.premium = Number($('s-premium').value||0);
-    const sInter = Number($('s-interim').value||0);
-    const sStart = Math.max(1, Number($('s-interim-start').value||1));
-    const sCount = Math.max(0, Number($('s-interim-count').value||0));
-    state.finalLump = Number($('s-final').value||0);
-    state.taxRate = Number($('s-tax-rate').value||0)/100;
-
-    state.interim = new Array(state.periods).fill(0);
-    for(let i=0;i<sCount;i++){
-      const idx = sStart-1+i; if(idx<state.interim.length) state.interim[idx] = sInter;
+      attitudeContent.innerHTML = `
+        <div class="text-center mb-8">
+          <div class="inline-block p-6 rounded-3xl mb-5 shadow-xl" style="background: linear-gradient(135deg, ${bgColor}, ${bgColor});">
+            <div class="text-6xl">${icon}</div>
+          </div>
+          <div class="inline-block px-4 py-2 bg-purple-100 rounded-full mb-4">
+            <span class="text-sm font-bold text-purple-700">คำถามที่ ${currentAttitudeQuestion + 1} / ${attitudeQuestions.length}</span>
+          </div>
+          <p class="text-lg text-gray-700 font-bold mb-6 max-w-lg mx-auto">${question.question}</p>
+          <div class="p-5 rounded-2xl mb-6 shadow-lg" style="background-color: ${bgColor}; border: 3px solid ${borderColor};">
+            <p class="font-bold text-lg" style="color: ${textColor};">คุณเลือก: ${selectedOption.text}</p>
+          </div>
+        </div>
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 mb-8 shadow-md">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-2xl">💡</span>
+            <h3 class="font-bold text-lg text-blue-900">คำอธิบาย</h3>
+          </div>
+          <p class="text-gray-700 leading-relaxed font-medium">${question.explanation}</p>
+        </div>
+        <button onclick="nextAttitudeQuestion()" class="btn-modern w-full px-6 py-5 text-white font-bold rounded-2xl shadow-xl text-lg" style="background: linear-gradient(135deg, ${defaultConfig.primary_color} 0%, ${defaultConfig.secondary_color} 100%);">
+          ${currentAttitudeQuestion < attitudeQuestions.length - 1 ? 'คำถามถัดไป →' : 'ดูผลสรุป 🎯'}
+        </button>
+      `;
     }
-    refreshAll();
-  };
 
-  // Advanced inputs
-  ['premium','feePerPeriod','taxRate','finalLump'].forEach(id=>{
-    const el = $(id); if(!el) return;
-    el.oninput = ()=>{
-      state[id] = (id==='taxRate') ? Number(el.value||0)/100 : Number(el.value||0);
-      refreshAll();
-    };
-  });
-
-  // Table interim edits
-  const tb = document.getElementById('tbody');
-  if(tb){
-    tb.addEventListener('input', (e)=>{
-      const t = e.target; if(!t.matches('input[data-row]')) return;
-      const idx = +t.dataset.row; state.interim[idx] = Number(t.value||0); refreshAll();
-    });
-  }
-
-  // Tiers
-  const tiersBox = document.getElementById('tiers');
-  if(tiersBox){
-    $('addTier').onclick = ()=>{ state.tiers.push({from:1,to:state.periods,amt:0}); renderTiers(); };
-    tiersBox.addEventListener('input', (e)=>{
-      const t=e.target; if(!t.matches('[data-tier]')) return;
-      const i=+t.dataset.tier, k=t.dataset.k;
-      state.tiers[i][k] = (k==='amt') ? Number(t.value||0) : Number(t.value||1);
-    });
-    tiersBox.addEventListener('click', (e)=>{
-      const b=e.target; if(!b.matches('[data-tier-del]')) return;
-      const i=+b.dataset.tierDel; state.tiers.splice(i,1); renderTiers();
-    });
-    const applyBtn = document.getElementById('applyTiers');
-    const fill0Btn = document.getElementById('fillZero');
-    const clrBtn = document.getElementById('clearInterim');
-    applyBtn.onclick = ()=>{
-      for(const t of state.tiers){
-        const s=Math.max(1, Math.min(state.periods, t.from|0));
-        const e=Math.max(1, Math.min(state.periods, t.to|0));
-        for(let i=s-1;i<=e-1;i++) state.interim[i] = Number(t.amt||0);
+    function nextAttitudeQuestion() {
+      currentAttitudeQuestion++;
+      
+      if (currentAttitudeQuestion < attitudeQuestions.length) {
+        showAttitudeQuestion();
+      } else {
+        showFinalResults();
       }
-      refreshAll();
-    };
-    fill0Btn.onclick = ()=>{ state.interim = new Array(state.periods).fill(0); refreshAll(); };
-    clrBtn.onclick = ()=>{ state.interim = []; refreshAll(); };
-  }
-}
+    }
 
-/* ========= Refresh All ========= */
-function refreshAll(){
-  while(state.interim.length < state.periods) state.interim.push(0);
-  if(state.interim.length > state.periods) state.interim = state.interim.slice(0,state.periods);
+    function showFinalResults() {
+      document.getElementById('attitudeScreen').classList.add('hidden');
+      document.getElementById('progressContainer').classList.add('hidden');
+      document.getElementById('finalScreen').classList.remove('hidden');
 
-  $('freq').value = String(state.freq);
-  $('periods').value = state.periods;
-  $('payPeriods').value = state.payPeriods;
+      const correctAnswers = userData.attitudeAnswers.filter(a => a.correct).length;
+      const totalQuestions = attitudeQuestions.length;
+      const score = (correctAnswers / totalQuestions) * 100;
 
-  if($('premium')) $('premium').value = state.premium;
-  if($('feePerPeriod')) $('feePerPeriod').value = state.feePerPeriod;
-  if($('taxRate')) $('taxRate').value = (state.taxRate*100).toFixed(2);
-  if($('finalLump')) $('finalLump').value = state.finalLump;
+      let attitudeLevel, attitudeColor, attitudeMessage;
+      if (score >= 80) {
+        attitudeLevel = 'ดีเยี่ยม';
+        attitudeColor = '#10b981';
+        attitudeMessage = 'คุณมีทัศคติที่ดีมากในการบริหารจัดการเงิน มีวินัยทางการเงินที่แข็งแกร่ง';
+      } else if (score >= 60) {
+        attitudeLevel = 'ดี';
+        attitudeColor = '#3b82f6';
+        attitudeMessage = 'คุณมีทัศคติที่ดีในการบริหารจัดการเงิน แต่ยังมีจุดที่ควรปรับปรุง';
+      } else {
+        attitudeLevel = 'ควรปรับปรุง';
+        attitudeColor = '#f59e0b';
+        attitudeMessage = 'คุณควรปรับปรุงทัศคติและพฤติกรรมการบริหารจัดการเงินเพื่อความมั่นคงทางการเงินในอนาคต';
+      }
 
-  renderTable();
-  refreshKPIs();
-  renderTiers();
+      const finalContent = document.getElementById('finalContent');
+      finalContent.innerHTML = `
+        <!-- Main Summary Header -->
+        <div class="text-center mb-10">
+          <div class="inline-block p-5 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl mb-5">
+            <div class="text-5xl">✨</div>
+          </div>
+          <h3 class="text-3xl font-extrabold mb-3 gradient-text">สรุปผลการประเมินทั้งหมด</h3>
+          <p class="text-gray-500 font-medium">ผลการวิเคราะห์สุขภาพการเงินและทัศคติการเงินของคุณ</p>
+        </div>
 
-  const chartsVisible = !document.getElementById('view-charts').classList.contains('hidden');
-  if(chartsVisible) renderCharts();
-}
+        <!-- Financial Health Section -->
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="p-3 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl">
+              <span class="text-2xl">📊</span>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800">สุขภาพการเงิน</h3>
+          </div>
+          
+          <!-- DTI Card -->
+          <div class="result-card bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-6 mb-4 shadow-lg" style="border-color: ${userData.results.dti.color};">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="text-lg font-bold text-gray-800">อัตราส่วนหนี้ต่อรายได้ (DTI)</h4>
+              <span class="status-badge px-4 py-2 rounded-full text-white text-sm font-bold" style="background-color: ${userData.results.dti.color};">${userData.results.dti.status}</span>
+            </div>
+            <div class="text-4xl font-extrabold mb-3" style="color: ${userData.results.dti.color};">${userData.results.dti.value.toFixed(1)}%</div>
+            <p class="text-gray-600 leading-relaxed font-medium">${userData.results.dti.advice}</p>
+          </div>
 
-/* ========= Init (Preset) ========= */
-function init(){
-  state.freq = 1; state.periods = 19; state.payPeriods = 10;
-  state.premium = 50000; state.feePerPeriod = 0; state.taxRate = 0.15; state.finalLump = 0;
-  state.taxStart=1; state.taxEnd=19; state.taxCapPerPeriod=999999999; state.taxCapContract=999999999; state.taxOnlyWhenPay=true;
+          <!-- Emergency Fund Card -->
+          <div class="result-card bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-6 mb-4 shadow-lg" style="border-color: ${userData.results.emergencyFund.color};">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="text-lg font-bold text-gray-800">เงินสำรองฉุกเฉิน</h4>
+              <span class="status-badge px-4 py-2 rounded-full text-white text-sm font-bold" style="background-color: ${userData.results.emergencyFund.color};">${userData.results.emergencyFund.status}</span>
+            </div>
+            <div class="text-4xl font-extrabold mb-3" style="color: ${userData.results.emergencyFund.color};">${userData.results.emergencyFund.value.toFixed(1)} เดือน</div>
+            <p class="text-gray-600 leading-relaxed font-medium">${userData.results.emergencyFund.advice}</p>
+          </div>
 
-  state.interim = new Array(19).fill(0);
-  for(let i=0;i<10;i++) state.interim[i]=3000;
-  for(let i=10;i<19;i++) state.interim[i]=6000;
+          <!-- Liquidity Card -->
+          <div class="result-card bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-6 mb-4 shadow-lg" style="border-color: ${userData.results.liquidity.color};">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="text-lg font-bold text-gray-800">สภาพคล่องคงเหลือ</h4>
+              <span class="status-badge px-4 py-2 rounded-full text-white text-sm font-bold" style="background-color: ${userData.results.liquidity.color};">${userData.results.liquidity.status}</span>
+            </div>
+            <div class="text-4xl font-extrabold mb-3" style="color: ${userData.results.liquidity.color};">${userData.results.liquidity.value.toLocaleString('th-TH', {maximumFractionDigits: 0})} ฿</div>
+            <p class="text-gray-600 leading-relaxed font-medium">${userData.results.liquidity.advice}</p>
+          </div>
+        </div>
 
-  state.tiers = [{from:1,to:10,amt:3000},{from:11,to:19,amt:6000}];
+        <!-- Attitude Section -->
+        <div class="mb-10">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="p-3 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-xl">
+              <span class="text-2xl">🎯</span>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800">ทัศคติการเงิน</h3>
+          </div>
+          
+          <div class="result-card bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-8 shadow-lg" style="border-color: ${attitudeColor};">
+            <div class="text-center">
+              <div class="inline-block p-4 rounded-2xl mb-4" style="background: linear-gradient(135deg, ${attitudeColor}15, ${attitudeColor}25);">
+                <div class="text-5xl">🎯</div>
+              </div>
+              <h4 class="text-2xl font-bold mb-3" style="color: ${attitudeColor};">ระดับ: ${attitudeLevel}</h4>
+              <div class="text-5xl font-extrabold mb-4" style="color: ${attitudeColor};">${correctAnswers}/${totalQuestions}</div>
+              <p class="text-gray-600 leading-relaxed font-medium text-lg">${attitudeMessage}</p>
+            </div>
+          </div>
+        </div>
 
-  bind();
-  refreshAll();
-}
-init();
-</script>
-</body>
+        <!-- Action Button -->
+        <button onclick="restartAssessment()" class="btn-modern w-full px-8 py-5 text-white font-bold rounded-2xl shadow-xl text-lg" style="background: linear-gradient(135deg, ${defaultConfig.primary_color} 0%, ${defaultConfig.secondary_color} 100%);">
+          <span class="flex items-center justify-center gap-2">
+            <span>🔄</span>
+            <span>ตรวจสุขภาพการเงินใหม่</span>
+          </span>
+        </button>
+      `;
+    }
+
+    function restartAssessment() {
+      currentStep = 0;
+      currentAttitudeQuestion = 0;
+      userData = {
+        income: 0,
+        debtExpense: 0,
+        expenses: {},
+        savings: 0,
+        attitudeAnswers: []
+      };
+      
+      document.getElementById('finalScreen').classList.add('hidden');
+      document.getElementById('welcomeScreen').classList.remove('hidden');
+      document.getElementById('progressContainer').classList.add('hidden');
+      document.getElementById('progressBar').style.width = '0%';
+    }
+
+    // Element SDK Integration
+    async function onConfigChange(config) {
+      const mainTitle = document.getElementById('mainTitle');
+      const subtitle = document.getElementById('subtitle');
+      
+      if (mainTitle) {
+        mainTitle.textContent = config.main_title || defaultConfig.main_title;
+        mainTitle.style.color = config.primary_color || defaultConfig.primary_color;
+      }
+      
+      if (subtitle) {
+        subtitle.textContent = config.subtitle || defaultConfig.subtitle;
+      }
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.primary_color || defaultConfig.primary_color,
+            set: (value) => {
+              config.primary_color = value;
+              window.elementSdk.setConfig({ primary_color: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["main_title", config.main_title || defaultConfig.main_title],
+        ["subtitle", config.subtitle || defaultConfig.subtitle]
+      ]);
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99cbf906b2ab7b41',t:'MTc2Mjg0NTA1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
