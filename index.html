@@ -22,18 +22,35 @@
     @media (prefers-reduced-motion:reduce){ *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important } }
     input[data-money]{ outline:none } td input{ text-align:right }
     .sr{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0 }
+
+    /* ===== Print styles for clean PDF ===== */
+    .no-print{ }
+    @media print{
+      /* แสดงเฉพาะผลลัพธ์สุดท้ายใน PDF */
+      body{ background:#fff !important; }
+      #progressContainer, #welcomeScreen, #questionScreen, #attitudeScreen, #toastRoot { display:none !important; }
+      #finalScreen{ display:block !important; }
+      .no-print{ display:none !important; }
+      .glass{ background:#fff !important; border:0 !important; backdrop-filter:none !important; box-shadow:none !important; }
+      .print-container{ box-shadow:none !important; }
+      /* ให้สี SVG/ตัวอักษรคงเดิมใน PDF */
+      *{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+      /* กันไม่ให้การ์ดถูกตัดกลางหน้า */
+      .page-break-avoid{ break-inside:avoid; }
+      .page-break{ page-break-before:always; }
+    }
   </style>
 </head>
 <body class="min-h-full">
   <!-- decorations -->
-  <div aria-hidden="true" class="pointer-events-none select-none">
+  <div aria-hidden="true" class="pointer-events-none select-none no-print">
     <div class="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply blur-3xl opacity-20"></div>
     <div class="absolute top-40 right-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply blur-3xl opacity-20"></div>
     <div class="absolute -bottom-20 left-1/2 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply blur-3xl opacity-20"></div>
   </div>
 
   <main class="relative z-10 min-h-full flex items-center justify-center p-4">
-    <div class="w-full max-w-3xl">
+    <div class="w-full max-w-3xl print-container">
       <!-- Progress -->
       <div id="progressContainer" class="mb-6 hidden" aria-live="polite">
         <div class="flex justify-between items-center mb-2">
@@ -73,7 +90,7 @@
   </main>
 
   <!-- Toast -->
-  <div id="toastRoot" class="fixed left-1/2 -translate-x-1/2 bottom-6 z-[9999]" aria-live="assertive" aria-atomic="true"></div>
+  <div id="toastRoot" class="fixed left-1/2 -translate-x-1/2 bottom-6 z-[9999] no-print" aria-live="assertive" aria-atomic="true"></div>
 
   <script>
     /* ===== Helpers ===== */
@@ -84,7 +101,8 @@
 
     function toast(msg, type){
       if(type===void 0) type='info';
-      var root=$('toastRoot'); var el=document.createElement('div');
+      var root=$('toastRoot'); if(!root) return;
+      var el=document.createElement('div');
       el.className='px-4 py-3 rounded-xl text-white shadow-lg mb-2';
       el.style.background= type==='success'?'#10b981': type==='warn'?'#f59e0b': type==='error'?'#ef4444':'#6366f1';
       el.textContent= String(msg); root.appendChild(el);
@@ -172,16 +190,9 @@
     }
     var debounce=(function(fn){ var t; return function(){ clearTimeout(t); t=setTimeout(fn,300); }; })(persist);
 
-    function shareResult(){
-      if(!userData.results){ toast('ยังไม่มีผลลัพธ์','warn'); return; }
-      var s=btoa(encodeURIComponent(JSON.stringify(userData)));
-      var url=(location.origin||'')+(location.pathname||'')+'?s='+s;
-      if(navigator.clipboard && navigator.clipboard.writeText){
-        navigator.clipboard.writeText(url).then(function(){ toast('คัดลอกลิงก์ผลแล้ว','success'); });
-      }else{
-        prompt('คัดลอกลิงก์นี้', url);
-      }
-    }
+    /* (เดิม) shareResult — ไม่ถูกเรียกใช้อีกแล้ว
+    function shareResult(){ ... }
+    */
 
     /* ===== Flow ===== */
     function setProgress(i,total){
@@ -405,7 +416,7 @@
     function ring(el, pct, color, label, valueText){
       var R=54, C=2*Math.PI*R, p=Math.max(0,Math.min(100,pct));
       el.innerHTML =
-        '<div class="p-4 rounded-2xl bg-white/90 border border-white/60 shadow text-center">'+
+        '<div class="p-4 rounded-2xl bg-white/90 border border-white/60 shadow text-center page-break-avoid">'+
           '<svg width="140" height="140" viewBox="0 0 140 140" class="mx-auto block" role="img" aria-label="'+label+' '+valueText+'">'+
             '<circle cx="70" cy="70" r="'+R+'" stroke="var(--ring)" stroke-width="14" fill="none"></circle>'+
             '<circle cx="70" cy="70" r="'+R+'" stroke="'+color+'" stroke-linecap="round" stroke-width="14" fill="none" class="ring-anim" style="stroke-dasharray:'+C+';stroke-dashoffset:'+C+';transform:rotate(-90deg);transform-origin:50% 50%"></circle>'+
@@ -422,7 +433,7 @@
       var visibleCats = expenseCategories.filter(function(c){ return (data.expenses[c.key]||0)>0 || (initCaps[c.key]||0)>0; });
       var rows = visibleCats.map(function(c){
         var now=data.expenses[c.key]||0; var rec=(initCaps[c.key]!==undefined?initCaps[c.key]:now);
-        return '<tr class="text-sm">'+
+        return '<tr class="text-sm page-break-avoid">'+
           '<td class="py-2">'+c.icon+' '+c.label+(c.need?'<span class="text-[10px] ml-2 px-2 py-[2px] rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">จำเป็น</span>':'')+'</td>'+
           '<td class="py-2 text-right mono">'+thb(now)+'</td>'+
           '<td class="py-2 text-right"><input data-money data-cap="'+c.key+'" class="w-28 px-2 py-1 rounded-lg border text-right" value="'+thb(rec)+'" aria-label="ปรับ '+c.label+'"></td>'+
@@ -437,7 +448,7 @@
     function incomeDebtTable(R){
       return ''+
       '<div class="grid gap-4">'+
-        '<div class="rounded-2xl border p-4 bg-white">'+
+        '<div class="rounded-2xl border p-4 bg-white page-break-avoid">'+
           '<div class="font-semibold mb-2 flex items-center gap-2"><span class="text-xl">💵</span>หมวดรายรับ</div>'+
           '<table class="w-full">'+
             '<thead><tr class="text-xs text-gray-500 border-b"><th class="py-2 text-left">รายการ</th><th class="py-2 text-right">ตอนนี้</th><th class="py-2 text-right">ปรับใหม่ (ใส่เอง)</th><th class="py-2 text-right">ส่วนต่าง</th></tr></thead>'+
@@ -450,9 +461,9 @@
               '</tr>'+
             '</tbody>'+
           '</table>'+
-          '<p class="text-xs text-gray-500 mt-2">ปล่อยว่างไว้ = ใช้รายรับเท่าเดิม</p>'+
+          <p class="text-xs text-gray-500 mt-2">ปล่อยว่างไว้ = ใช้รายรับเท่าเดิม</p>'+
         '</div>'+
-        '<div class="rounded-2xl border p-4 bg-white">'+
+        '<div class="rounded-2xl border p-4 bg-white page-break-avoid">'+
           '<div class="font-semibold mb-2 flex items-center gap-2"><span class="text-xl">💳</span>หมวดจ่ายหนี้</div>'+
           '<table class="w-full">'+
             '<thead><tr class="text-xs text-gray-500 border-b"><th class="py-2 text-left">รายการ</th><th class="py-2 text-right">ตอนนี้</th><th class="py-2 text-right">ปรับใหม่ (ใส่เอง)</th><th class="py-2 text-right">ส่วนต่าง</th></tr></thead>'+
@@ -492,27 +503,31 @@
         initCaps[k]=Math.min(now, Math.max(cap, stepFloor));
       });
 
+      // หัวกระดาษ (จะติดไปกับ PDF ด้วย)
+      var today = new Date();
+      var stamp = today.toLocaleDateString('th-TH', { year:'numeric', month:'short', day:'numeric' });
+
       $('finalContent').innerHTML =
         '<div class="text-center mb-2">'+
           '<div class="inline-block p-5 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl mb-3" aria-hidden="true"><div class="text-5xl">✨</div></div>'+
           '<h2 class="text-2xl sm:text-3xl font-extrabold" style="background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent">สรุปผลของคุณ (อ่านง่าย ทำได้จริง)</h2>'+
-          '<p class="text-gray-500">ตัวเลขทั้งหมดคำนวณจากข้อมูลของคุณ</p>'+
+          '<p class="text-gray-500">ตัวเลขทั้งหมดคำนวณจากข้อมูลของคุณ • สร้างเมื่อ '+stamp+'</p>'+
         '</div>'+
         '<div id="ringRow" class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-4"></div>'+
         '<div class="grid gap-4">'+
-          '<div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-5 shadow" style="border-color:'+R.dtiColor+'">'+
+          '<div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-5 shadow page-break-avoid" style="border-color:'+R.dtiColor+'">'+
             '<div class="flex items-center justify-between mb-2"><h3 class="text-lg font-bold">ภาระหนี้ (DTI)</h3><span class="px-3 py-1 text-xs rounded-full text-white" style="background:'+R.dtiColor+'">'+R.dtiStatus+'</span></div>'+
             '<div class="text-3xl font-extrabold mb-1" style="color:'+R.dtiColor+'">'+R.dti.toFixed(1)+'%</div>'+ ul(R.advice.dti) +
           '</div>'+
-          '<div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-5 shadow" style="border-color:'+R.efColor+'">'+
+          '<div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-5 shadow page-break-avoid" style="border-color:'+R.efColor+'">'+
             '<div class="flex items-center justify-between mb-2"><h3 class="text-lg font-bold">เงินฉุกเฉิน</h3><span class="px-3 py-1 text-xs rounded-full text-white" style="background:'+R.efColor+'">'+R.efStatus+'</span></div>'+
             '<div class="text-3xl font-extrabold mb-1" style="color:'+R.efColor+'">'+R.efMonths.toFixed(1)+' เดือน</div>'+ ul(R.advice.ef) +
           '</div>'+
-          '<div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-5 shadow" style="border-color:'+R.liqColor+'">'+
+          '<div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-5 shadow page-break-avoid" style="border-color:'+R.liqColor+'">'+
             '<div class="flex items-center justify-between mb-2"><h3 class="text-lg font-bold">สภาพคล่อง/เดือน</h3><span class="px-3 py-1 text-xs rounded-full text-white" style="background:'+R.liqColor+'">'+R.liqStatus+'</span></div>'+
             '<div class="text-3xl font-extrabold mb-1" style="color:'+R.liqColor+'">'+thb(R.liquidity)+' ฿</div>'+ ul(R.advice.liq) +
           '</div>'+
-          '<div class="bg-white rounded-2xl p-5 border">'+
+          '<div class="bg-white rounded-2xl p-5 border page-break-avoid">'+
             '<div class="flex items-center gap-2 mb-2"><span class="text-2xl" aria-hidden="true">🧭</span><h3 class="text-lg font-bold">ปรับรายรับ / จ่ายหนี้ / รายจ่าย (ให้กรอกเอง)</h3></div>'+
             incomeDebtTable(R)+
             '<div class="mt-4 rounded-2xl border p-4 bg-white">'+
@@ -523,9 +538,9 @@
             '</div>'+
           '</div>'+
         '</div>'+
-        '<div class="grid gap-3 sm:grid-cols-2 mt-5">'+
+        '<div class="grid gap-3 sm:grid-cols-2 mt-5 no-print">'+
           '<button id="btnRestart" class="btn px-6 py-4 rounded-2xl text-white font-bold" style="background:linear-gradient(135deg,var(--primary),var(--secondary))">🔄 เริ่มใหม่</button>'+
-          '<button id="btnShare" class="btn px-6 py-4 rounded-2xl font-semibold bg-white border">🔗 แชร์ผลลัพธ์</button>'+
+          '<button id="btnSavePdf" class="btn px-6 py-4 rounded-2xl font-semibold bg-white border">🖨️ บันทึกเป็น PDF</button>'+
         '</div>';
 
       // วงแหวนสรุป
@@ -571,7 +586,7 @@
         var newInc   = incBlank  ? incNow  : Math.max(0, parseMoneyInput(incInp));
         var newDebt  = debtBlank ? debtNow : Math.max(0, parseMoneyInput(debtInp));
 
-        // diff สี: รายรับเพิ่ม = เขียว / ลด = แดง, หนี้เพิ่ม = แดง / ลด = เขียว
+        // diff สี
         var di=$('diff_income'); if(di){
           if(incBlank){ di.textContent=''; di.style.color='#111827'; }
           else{ var d=newInc-incNow; di.textContent=(d>0?'+':'')+thb(d); di.style.color=d>=0?'#10b981':'#ef4444'; }
@@ -616,7 +631,17 @@
         currentStep=0; var fs=$('finalScreen'); if(fs) fs.classList.add('hidden'); var ws=$('welcomeScreen'); if(ws) ws.classList.remove('hidden');
         var pb=$('progressBar'); if(pb) pb.style.width='0%'; persist();
       });
-      $('btnShare').addEventListener('click', shareResult);
+
+      // ปุ่มบันทึกเป็น PDF
+      var saveBtn = $('btnSavePdf');
+      if(saveBtn){
+        saveBtn.addEventListener('click', function(){
+          // ให้แน่ใจว่าหน้าผลลัพธ์อยู่บนสุดก่อนพิมพ์
+          window.scrollTo({ top: 0, behavior: 'instant' });
+          // หน่วงสั้นๆ ให้ layout เสถียร (ป้องกันกรณีกรอก input แล้วเปิด print ทันที)
+          setTimeout(function(){ window.print(); }, 60);
+        });
+      }
     }
 
     /* ===== Init + robust start/resume ===== */
