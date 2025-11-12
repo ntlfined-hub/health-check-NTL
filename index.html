@@ -24,14 +24,17 @@ body{
 .ring-anim{ transition:stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1) }
 input[data-money]{ text-align:right }
 .sr{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0 }
+.text-balance{ text-wrap:balance }
+.break-any{ overflow-wrap:break-word; word-break:break-word }
 </style>
 </head>
 <body class="min-h-full">
   <main class="relative z-10 min-h-full flex items-center justify-center p-4">
     <div class="w-full max-w-3xl">
+      <!-- Progress -->
       <div id="progressContainer" class="mb-6 hidden" aria-live="polite">
         <div class="flex justify-between items-center mb-2">
-          <span class="text-white/80 text-sm font-medium">ความคืบหน้า</span>
+          <span class="text-white/85 text-sm font-medium">ความคืบหน้า</span>
           <span id="progressText" class="text-white text-sm font-bold">0%</span>
         </div>
         <div class="bg-white/15 rounded-full h-2 overflow-hidden backdrop-blur">
@@ -46,11 +49,13 @@ input[data-money]{ text-align:right }
             <div class="inline-block p-6 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl mb-6 shadow-2xl" aria-hidden="true">
               <div class="text-6xl">💰</div>
             </div>
-            <h1 class="text-4xl sm:text-5xl font-extrabold mb-3" style="background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+            <h1 class="text-3xl sm:text-5xl font-extrabold mb-3 text-balance break-any" style="background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent">
               ตรวจสุขภาพการเงิน
             </h1>
-            <p class="text-gray-600 mb-4">กรอกตัวเลขจริง แล้วรับสรุปสั้นๆ ชัดๆ พร้อมแผนปรับที่ทำได้จริง</p>
-            <button id="btnStart" class="btn w-full px-6 py-4 rounded-2xl text-white font-bold shadow-xl"
+            <p class="text-gray-600 mb-4 sm:mb-6 text-base sm:text-lg font-medium max-w-xl mx-auto text-balance break-any">
+              กรอกตัวเลขจริง แล้วรับสรุปสั้น ชัด และแผนปรับที่ทำได้จริง
+            </p>
+            <button id="btnStart" class="btn w-full px-6 py-4 sm:py-5 rounded-2xl text-white font-bold text-base sm:text-lg shadow-xl"
               style="background:linear-gradient(135deg,var(--primary),var(--secondary))">เริ่มต้น →</button>
           </div>
         </section>
@@ -58,6 +63,11 @@ input[data-money]{ text-align:right }
         <!-- Questions -->
         <section id="questionScreen" class="hidden" aria-live="polite">
           <div id="questionContent"></div>
+        </section>
+
+        <!-- Attitude -->
+        <section id="attitudeScreen" class="hidden" aria-live="polite">
+          <div id="attitudeContent"></div>
         </section>
 
         <!-- Final -->
@@ -71,10 +81,10 @@ input[data-money]{ text-align:right }
   <div id="toastRoot" class="fixed left-1/2 -translate-x-1/2 bottom-6 z-[9999]" aria-live="assertive" aria-atomic="true"></div>
 
 <script>
-/* ---------- helpers (หลีกเลี่ยงการใช้ || เพื่อกัน error) ---------- */
-function def(v, d){ return (v===undefined || v===null ? d : v); }
+/* ===== helpers (เลี่ยงการใช้ || เพื่อกัน parsing error) ===== */
+function def(v,d){ return (v===undefined||v===null)?d:v; }
 const moneyFmt = new Intl.NumberFormat('th-TH',{maximumFractionDigits:0});
-function thb(n){ const x = Number(n); return moneyFmt.format(Math.round(Number.isFinite(x)?x:0)); }
+function thb(n){ const x=Number(n); return moneyFmt.format(Math.round(Number.isFinite(x)?x:0)); }
 function $(id){ return document.getElementById(id); }
 function toast(msg){
   const root=$('toastRoot'); const el=document.createElement('div');
@@ -83,8 +93,8 @@ function toast(msg){
 }
 function parseMoneyInput(el){
   if(!el) return 0;
-  const raw = String(def(el.dataset.raw, el.value)).replace(/,/g,'').trim();
-  const n = Number(raw); return Number.isFinite(n)&&n>=0?n:0;
+  const raw=String(def(el.dataset.raw, el.value)).replace(/,/g,'').trim();
+  const n=Number(raw); return Number.isFinite(n)&&n>=0?n:0;
 }
 document.addEventListener('input',(e)=>{
   const t=e.target;
@@ -98,53 +108,71 @@ document.addEventListener('input',(e)=>{
   }
 });
 
-/* ---------- data ---------- */
-let step=0;
+/* ===== data ===== */
+let step=0, attStep=0;
 const expenseCategories=[
   {key:'food',label:'ค่าอาหาร',icon:'🍜',need:true},
   {key:'transport',label:'เดินทาง/น้ำมัน',icon:'🚗',need:true},
   {key:'utilities',label:'ค่าน้ำ/ไฟ',icon:'💡',need:true},
   {key:'clothing',label:'เสื้อผ้า/เครื่องประดับ',icon:'👔',need:false}
 ];
-let user={income:0,debt:0,expenses:{},savings:0,results:null};
+let user={income:0,debt:0,expenses:{},savings:0,attitudeAnswers:[],results:null};
 
-/* ---------- flow ---------- */
 const questions=[
   {id:'income',title:'รายได้รวมต่อเดือน',icon:'💵',desc:'ใส่รายได้รวมต่อเดือน',type:'single',field:'income'},
   {id:'debt',title:'รายจ่ายหนี้ต่อเดือน',icon:'💳',desc:'ยอดผ่อน/ชำระหนี้รวมต่อเดือน',type:'single',field:'debt'},
   {id:'expenses',title:'รายจ่ายประจำ (แยกหมวด)',icon:'🛒',desc:'กรอกค่าใช้จ่ายแต่ละหมวด/เดือน',type:'multiple'}
 ];
 
+const attitudeQuestions = [
+  { id:'saveFirst', q:'ได้เงินเดือน ทำอะไรเป็นอย่างแรก?', opts:[
+      {t:'ออมก่อน (Pay Yourself First)', ok:true},{t:'จ่ายหนี้ก่อน', ok:false},{t:'ใช้ก่อน ค่อยออม', ok:false}
+    ], tipOK:'ดีมาก! รักษานิสัยออมก่อนต่อไปนะ', tipNG:'ตั้งโอนอัตโนมัติวันเงินเดือนออก 10–20% เพื่อให้ “ออมเกิดขึ้นจริง”' },
+  { id:'longPlan', q:'มีแผนการเงินระยะยาวไหม?', opts:[
+      {t:'มีและทบทวนสม่ำเสมอ', ok:true},{t:'มีคร่าวๆ', ok:false},{t:'ไม่มี', ok:false}
+    ], tipOK:'สุดยอด! แผน + ติดตาม = ถึงเป้าหมายเร็ว', tipNG:'ตั้งเป้าหมาย 1–3 เรื่อง (เช่น ฉุกเฉิน 6 เดือน) แล้วทบทวนทุกสิ้นเดือน' },
+  { id:'bonusUse', q:'ได้โบนัส/เงินพิเศษ ใช้อย่างไร?', opts:[
+      {t:'ออม/ลงทุนเป็นหลัก', ok:true},{t:'ซื้อของที่อยากได้', ok:false},{t:'ครึ่งหนึ่งออม ครึ่งหนึ่งใช้', ok:false}
+    ], tipOK:'ดีมาก! เงินพิเศษช่วยดันเป้าหมายไวขึ้น', tipNG:'กัน 70–80% เข้าฉุกเฉิน/ลงทุน ใช้ได้เล็กน้อย' },
+  { id:'tracking', q:'ติดตามรายรับรายจ่ายแค่ไหน?', opts:[
+      {t:'บันทึกและวิเคราะห์', ok:true},{t:'บันทึกบ้าง', ok:false},{t:'ไม่บันทึก', ok:false}
+    ], tipOK:'เยี่ยม! “รู้ว่าเงินไปไหน” คือพลัง', tipNG:'จดสั้นๆ วันละ 1 นาที หรือใช้แอป/ชีต สรุปสัปดาห์ละครั้ง' },
+  { id:'sale', q:'เจอโปรลดราคา ตัดสินใจอย่างไร?', opts:[
+      {t:'ดูความจำเป็นก่อน', ok:true},{t:'รีบซื้อเพราะคุ้ม', ok:false},{t:'ซื้อเก็บไว้ก่อน', ok:false}
+    ], tipOK:'ดีมาก! ซื้อเพราะ “ต้องใช้จริง”', tipNG:'ถาม 2 ข้อ: ต้องใช้ตอนนี้ไหม? ถ้าไม่ลด จะซื้อไหม?' }
+];
+
+/* ===== progress ===== */
 function setProgress(i,total){
   const p=Math.max(0,Math.min(100,Math.round(i/total*100)));
   $('progressBar').style.width=p+'%'; $('progressText').textContent=p+'%';
 }
 
+/* ===== flow: start & questions ===== */
 function start(){
   $('welcomeScreen').classList.add('hidden');
   $('progressContainer').classList.remove('hidden');
   $('questionScreen').classList.remove('hidden');
   step=0; renderQuestion();
 }
-
 function moneyInput(id){
   return `<input id="${id}" data-money class="w-full px-4 py-3 border rounded-xl text-right mono" inputmode="decimal" placeholder="0">`;
 }
-
 function renderQuestion(){
-  const q=questions[step]; setProgress(step+1,questions.length);
+  const total = questions.length + attitudeQuestions.length;
+  const q=questions[step]; setProgress(step+1,total);
+
   if(q.type==='single'){
     $('questionContent').innerHTML=`
       <div class="text-center mb-5">
         <div class="inline-block p-5 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-2xl mb-3"><div class="text-5xl">${q.icon}</div></div>
-        <h2 class="text-2xl font-bold mb-1 text-gray-800">${q.title}</h2>
-        <p class="text-gray-600">${q.desc}</p>
+        <h2 class="text-2xl sm:text-3xl font-bold mb-1 text-gray-800 text-balance break-any">${q.title}</h2>
+        <p class="text-gray-600 text-sm sm:text-base">${q.desc}</p>
       </div>
       <div class="mb-5">${moneyInput('money_single')}</div>
       <div class="flex gap-3">
         ${step>0?'<button id="btnPrev" class="px-5 py-3 rounded-xl bg-gray-100 font-semibold">← ย้อนกลับ</button>':''}
-        <button id="btnNext" class="btn flex-1 px-6 py-3 rounded-xl text-white font-bold"
-          style="background:linear-gradient(135deg,var(--primary),var(--secondary))">ถัดไป →</button>
+        <button id="btnNext" class="btn flex-1 px-6 py-3 rounded-xl text-white font-bold" style="background:linear-gradient(135deg,var(--primary),var(--secondary))">ถัดไป →</button>
       </div>`;
     const el=$('money_single'); const init=Number(def(user[q.field],0)); if(init>0){ el.value=thb(init); el.dataset.raw=String(init); }
     $('btnPrev')&&$('btnPrev').addEventListener('click',()=>{ step--; renderQuestion(); });
@@ -162,14 +190,13 @@ function renderQuestion(){
     $('questionContent').innerHTML=`
       <div class="text-center mb-4">
         <div class="inline-block p-5 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-2xl mb-3"><div class="text-5xl">${q.icon}</div></div>
-        <h2 class="text-2xl font-bold mb-1 text-gray-800">${q.title}</h2>
-        <p class="text-gray-600">${q.desc}</p>
+        <h2 class="text-2xl sm:text-3xl font-bold mb-1 text-gray-800 text-balance break-any">${q.title}</h2>
+        <p class="text-gray-600 text-sm sm:text-base">${q.desc}</p>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">${rows}</div>
       <div class="flex gap-3">
         <button id="btnPrev" class="px-5 py-3 rounded-xl bg-gray-100 font-semibold">← ย้อนกลับ</button>
-        <button id="btnNext" class="btn flex-1 px-6 py-3 rounded-xl text-white font-bold"
-          style="background:linear-gradient(135deg,var(--primary),var(--secondary))">ถัดไป →</button>
+        <button id="btnNext" class="btn flex-1 px-6 py-3 rounded-xl text-white font-bold" style="background:linear-gradient(135deg,var(--primary),var(--secondary))">ถัดไป →</button>
       </div>`;
     expenseCategories.forEach(c=>{
       const v=Number(def(user.expenses[c.key],0));
@@ -177,35 +204,64 @@ function renderQuestion(){
     });
     $('btnPrev').addEventListener('click',()=>{ step--; renderQuestion(); });
     $('btnNext').addEventListener('click',()=>{
-      expenseCategories.forEach(c=>{
-        user.expenses[c.key]=parseMoneyInput($('ex_'+c.key));
-      });
+      expenseCategories.forEach(c=>{ user.expenses[c.key]=parseMoneyInput($('ex_'+c.key)); });
       step++; compute();
     });
   }
 }
 
-/* ---------- compute ---------- */
-function safeDiv(a,b){ return b>0 ? (a/b) : 0; }
-
+/* ===== core compute ===== */
+function safeDiv(a,b){ return b>0?(a/b):0; }
 function compute(){
-  const inc = Number(def(user.income,0));
-  const debt = Number(def(user.debt,0));
-  const spend = expenseCategories.reduce((s,c)=> s + Number(def(user.expenses[c.key],0)), 0);
-  const totalExp = debt + spend;
-  const dti = safeDiv(debt,inc)*100;
-  const liquidity = inc - totalExp;
+  const inc=Number(def(user.income,0));
+  const debt=Number(def(user.debt,0));
+  const spend=expenseCategories.reduce((s,c)=> s + Number(def(user.expenses[c.key],0)),0);
+  const totalExp=debt+spend;
+  const dti=safeDiv(debt,inc)*100;
+  const liquidity=inc-totalExp;
 
-  user.results = {inc,debt,spend,totalExp,dti,liquidity,offenders:expenseCategories.map(c=>({
+  user.results={inc,debt,spend,totalExp,dti,liquidity,offenders:expenseCategories.map(c=>({
     key:c.key,label:c.label,need:c.need,v:Number(def(user.expenses[c.key],0))
   })).filter(x=>x.v>0).sort((a,b)=>b.v-a.v)};
 
-  renderFinal();
+  // ไปส่วนวัดทัศนคติ
+  $('questionScreen').classList.add('hidden');
+  $('attitudeScreen').classList.remove('hidden');
+  attStep=0; user.attitudeAnswers=[];
+  renderAttitude();
 }
 
-/* ---------- final + editor + sim ---------- */
+/* ===== attitude ===== */
+function renderAttitude(){
+  const total=questions.length + attitudeQuestions.length;
+  const q=attitudeQuestions[attStep]; setProgress(questions.length + attStep + 1, total);
+  const opts=q.opts.map((o,i)=>`
+    <button class="btn w-full text-left px-5 py-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-200 hover:border-indigo-400 font-semibold text-gray-800"
+      data-ans="${i}">
+      <span class="flex items-center gap-3"><span class="text-xl">•</span><span class="break-any">${o.t}</span></span>
+    </button>`).join('');
+  $('attitudeContent').innerHTML=`
+    <div class="text-center mb-5">
+      <div class="inline-block p-5 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-2xl mb-3" aria-hidden="true"><div class="text-5xl">🤔</div></div>
+      <div class="inline-block px-3 py-1 bg-purple-100 rounded-full mb-3 text-purple-700 text-xs sm:text-sm font-bold">
+        คำถามที่ ${attStep+1}/${attitudeQuestions.length}
+      </div>
+      <p class="text-lg sm:text-xl text-gray-800 font-bold leading-relaxed max-w-xl mx-auto text-balance break-any">${q.q}</p>
+    </div>
+    <div class="grid gap-3">${opts}</div>`;
+  $('attitudeContent').querySelectorAll('[data-ans]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const sel=q.opts[Number(b.dataset.ans)];
+      user.attitudeAnswers.push({ id:q.id, q:q.q, a:sel.t, ok:sel.ok, tip: sel.ok ? q.tipOK : q.tipNG });
+      attStep++;
+      if(attStep<attitudeQuestions.length){ renderAttitude(); } else { renderFinal(); }
+    });
+  });
+}
+
+/* ===== final + editor + simulator ===== */
 function ring(el,pct,color,label,valTxt){
-  const R=54, C=2*Math.PI*R, p=Math.max(0,Math.min(100,pct));
+  const R=54,C=2*Math.PI*R,p=Math.max(0,Math.min(100,pct));
   el.innerHTML=`
     <div class="p-4 rounded-2xl bg-white/90 border border-white/60 shadow text-center">
       <svg width="140" height="140" viewBox="0 0 140 140" class="mx-auto block" role="img" aria-label="${label} ${valTxt}">
@@ -218,7 +274,6 @@ function ring(el,pct,color,label,valTxt){
     </div>`;
   requestAnimationFrame(()=>{ el.querySelectorAll('circle')[1].style.strokeDashoffset=C*(1-p/100); });
 }
-
 function editableTable(initCaps,data){
   const rows = expenseCategories
     .filter(c=> Number(def(data.expenses[c.key],0))>0 || Number(def(initCaps[c.key],0))>0 )
@@ -228,7 +283,7 @@ function editableTable(initCaps,data){
       return `<tr class="text-sm">
         <td class="py-2">${c.icon} ${c.label}${c.need?'<span class="text-[10px] ml-2 px-2 py-[2px] rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">จำเป็น</span>':''}</td>
         <td class="py-2 text-right mono">${thb(now)}</td>
-        <td class="py-2 text-right"><input data-money data-cap="${c.key}" class="w-28 px-2 py-1 rounded-lg border text-right" value="${thb(rec)}"></td>
+        <td class="py-2 text-right"><input data-money data-cap="${c.key}" class="w-28 px-2 py-1 rounded-lg border text-right" value="${thb(rec)}" aria-label="ปรับ ${c.label}"></td>
         <td class="py-2 text-right mono" id="diff_${c.key}"></td>
       </tr>`;
     }).join('');
@@ -240,9 +295,8 @@ function editableTable(initCaps,data){
     <p class="text-xs text-gray-500 mt-2">หมายเหตุ: ค่อยๆ ลด 10–20% ในหมวดที่ไม่จำเป็นก่อน</p>
     <div id="planSummary" class="mt-3 text-sm p-3 rounded-xl border bg-white" aria-live="polite"></div>`;
 }
-
 function renderFinal(){
-  $('questionScreen').classList.add('hidden');
+  $('attitudeScreen').classList.add('hidden');
   $('progressContainer').classList.add('hidden');
   $('finalScreen').classList.remove('hidden');
 
@@ -252,16 +306,28 @@ function renderFinal(){
   const initCaps={};
   expenseCategories.forEach(c=>{
     const now=Number(def(user.expenses[c.key],0));
-    if(now<=0){ initCaps[c.key]=0; return; }
-    initCaps[c.key]=Math.round(now*0.8);
+    initCaps[c.key]= now>0 ? Math.round(now*0.8) : 0;
   });
 
+  // รวมทิปทัศนคติแบบย่อ (อ่านง่าย)
+  const attTips = user.attitudeAnswers.slice(0,5).map(v=>{
+    return `<li class="${v.ok?'text-emerald-700':'text-amber-700'}"><span class="font-semibold">${v.a}</span> — ${v.tip}</li>`;
+  }).join('');
+
   $('finalContent').innerHTML=`
+    <div class="text-center mb-2">
+      <div class="inline-block p-5 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl mb-3" aria-hidden="true"><div class="text-5xl">✨</div></div>
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-balance break-any" style="background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+        สรุปผลของคุณ (อ่านง่าย ทำได้จริง)
+      </h2>
+      <p class="text-gray-500 text-sm">ตัวเลขทั้งหมดคำนวณจากข้อมูลของคุณ</p>
+    </div>
+
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-3" id="ringRow"></div>
 
     <div class="bg-white rounded-2xl p-5 border">
       <div class="flex items-center gap-2 mb-2">
-        <span class="text-2xl" aria-hidden="true">🧭</span><h3 class="text-lg font-bold">ปรับรายจ่ายรายหมวด (ให้กรอกเอง)</h3>
+        <span class="text-2xl">🧭</span><h3 class="text-lg font-bold text-balance break-any">ปรับรายจ่ายรายหมวด (ให้กรอกเอง)</h3>
       </div>
       ${editableTable(initCaps,user)}
     </div>
@@ -286,18 +352,24 @@ function renderFinal(){
         </div>
       </div>
       <div id="simResult" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4"></div>
-      <div id="simAdvice" class="text-sm text-gray-700 leading-relaxed mt-3"></div>
+      <div id="simAdvice" class="text-sm text-gray-700 leading-relaxed mt-3 break-any"></div>
+    </div>
+
+    <div class="bg-white rounded-2xl p-5 border mt-4">
+      <h3 class="text-lg font-bold mb-2">ทัศนคติการเงิน (สรุปสั้น)</h3>
+      <ul class="list-disc list-inside space-y-1 text-sm">${attTips}</ul>
     </div>
   `;
 
-  // rings (DTI ใช้ค่าปัจจุบันจริง)
+  // rings — DTI ตามจริง / EF ประมาณจาก totalExp / LIQ จาก inc-totalExp
   const row=$('ringRow'); const a=document.createElement('div'), b=document.createElement('div'), c=document.createElement('div'); row.append(a,b,c);
   const dtiPct=Math.min(100,R.dti);
-  const efMonths = (R.totalExp>0)? (Number(def(user.savings,0))/R.totalExp) : 0;
+  const efMonths = safeDiv(0, R.totalExp); // ไม่ได้นำยอดออมสะสมมาในฟอร์มนี้ → 0 เดือน
   const efPct = Math.min(100,(efMonths/6)*100);
   const liqPct = R.liquidity<=0?0:Math.min(100,(R.liquidity/Math.max(1,R.inc))*100);
-  ring(a,dtiPct, R.dti<=35?'#10b981':(R.dti<=45?'#f59e0b':'#ef4444'),'DTI', R.dti.toFixed(1)+'%');
-  ring(b,efPct, '#10b981','เงินฉุกเฉิน', efMonths.toFixed(1)+'ด.');
+  const dtiColor = R.dti<=35?'#10b981':(R.dti<=45?'#f59e0b':'#ef4444');
+  ring(a,dtiPct,dtiColor,'DTI', R.dti.toFixed(1)+'%');
+  ring(b,efPct,'#10b981','เงินฉุกเฉิน', efMonths.toFixed(1)+'ด.');
   ring(c,liqPct, R.liquidity<0?'#ef4444':'#10b981','สภาพคล่อง/รายได้', liqPct.toFixed(0)+'%');
 
   // editable plan
@@ -334,7 +406,7 @@ function renderFinal(){
   function syncLabels(){
     simCutVal.textContent=simCut.value+'%';
     simEFVal.textContent=simEF.value+'%';
-    simEFBaht.textContent=thb(user.results.inc*(Number(simEF.value)/100));
+    simEFBaht.textContent=thb(R.inc*(Number(simEF.value)/100));
   }
   function clampDebtTarget(){
     const t=parseMoneyInput(simDebtNew);
@@ -346,6 +418,7 @@ function renderFinal(){
     const cutPct=Number(simCut.value)/100;
     const debtTarget=clampDebtTarget();
     const reduceDebt=R.debt - debtTarget;
+
     let spendNew=R.spend;
     const top3 = user.results.offenders.filter(x=>!x.need).slice(0,3);
     for(let i=0;i<top3.length;i++){ spendNew -= top3[i].v*cutPct; }
@@ -354,12 +427,12 @@ function renderFinal(){
     const debtNew=R.debt - reduceDebt;
     const totalNew=spendNew + debtNew;
 
-    const minReduceToZero = Math.max(0, (R.spend + R.debt) - R.inc); // ขั้นต่ำเพื่อให้สภาพคล่องไม่ติดลบ (ไม่รวมตั้งออม)
+    const minReduceToZero = Math.max(0, (R.spend + R.debt) - R.inc); // ขั้นต่ำให้สภาพคล่องไม่ติดลบ (ก่อนกันออม)
     needReduce.textContent = thb(minReduceToZero);
 
     const dtiNew=safeDiv(debtNew,R.inc)*100;
     const saveEF = R.inc*(Number(simEF.value)/100);
-    const needTo6m=Math.max(0, 6*totalNew - 0); // ไม่มีเงินออมตั้งต้นในตัวอย่างนี้
+    const needTo6m=Math.max(0, 6*totalNew - 0);
     const efMonthly=Math.min(saveEF,needTo6m);
     const liqNew=R.inc - totalNew - efMonthly;
     const efMonthsNew=safeDiv(efMonthly,totalNew);
@@ -381,7 +454,7 @@ function renderFinal(){
         <div class="bg-white rounded-lg p-3 border">
           <div class="font-semibold mb-1">เป้าหมาย DTI 35%</div>
           ${dtiNew<=35 ? '<div class="text-sm text-green-700">✅ แตะ ≤35% แล้ว</div>' :
-            '<div class="text-sm">ยังต้องลดค่างวดอีก <span class="mono font-bold">'+thb((R.inc*0.35)-debtNew).replace('-','')+'</span> ฿/เดือน</div>'}
+            '<div class="text-sm">ต้องลดค่างวดอีก <span class="mono font-bold">'+thb((debtNew - (R.inc*0.35)))+'</span> ฿/เดือน</div>'}
         </div>
         <div class="bg-white rounded-lg p-3 border">
           <div class="font-semibold mb-1">ทำให้สภาพคล่อง ≥ 0</div>
@@ -399,7 +472,7 @@ function renderFinal(){
   syncLabels(); runSim();
 }
 
-/* ---------- init ---------- */
+/* ===== init ===== */
 document.addEventListener('DOMContentLoaded', ()=>{
   $('btnStart').addEventListener('click', start);
 });
