@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>ตรวจสุขภาพการเงิน • Simple & Personal (Only-Filled Cuts)</title>
+  <title>ตรวจสุขภาพการเงิน • Simple & Personal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
   <style>
@@ -141,13 +141,13 @@
         {t:'ออมก่อน (Pay Yourself First)', ok:true},
         {t:'จ่ายหนี้ก่อน', ok:false},
         {t:'ใช้ก่อน ค่อยออม', ok:false}
-      ], tipOK:'ดีมาก! รักษานิสัยออมก่อนต่อไปนะ', tipNG:'ตั้งโอนอัตโนมัติวันเงินเดือนออก 10–20% เพื่อให้ “ออมเกิดขึ้นจริง”' },
+      ], tipOK:'ดีมาก! รักษานิสัยออมก่อนต่อไปนะ', tipNG:'ลองตั้งโอนอัตโนมัติวันเงินเดือนออก 10–20% เพื่อให้ “ออมเกิดขึ้นจริง”' },
 
       { id:'longPlan',  q:'มีแผนการเงินระยะยาวไหม?', opts:[
         {t:'มีและทบทวนสม่ำเสมอ', ok:true},
         {t:'มีคร่าวๆ', ok:false},
         {t:'ไม่มี', ok:false}
-      ], tipOK:'เยี่ยม! แผน + ติดตาม = ถึงเป้าหมายเร็ว', tipNG:'ตั้งเป้าหมาย 1–3 เรื่อง (เช่น ฉุกเฉิน 6 เดือน) แล้วทบทวนทุกสิ้นเดือน' },
+      ], tipOK:'สุดยอด! แผน + ติดตาม = ถึงเป้าหมายเร็ว', tipNG:'ตั้งเป้าหมาย 1–3 เรื่อง (เช่น ฉุกเฉิน 6 เดือน) แล้วทบทวนทุกสิ้นเดือน' },
 
       { id:'bonusUse',  q:'ได้โบนัส/เงินพิเศษ ใช้อย่างไร?', opts:[
         {t:'ออม/ลงทุนเป็นหลัก', ok:true},
@@ -159,7 +159,7 @@
         {t:'บันทึกและวิเคราะห์', ok:true},
         {t:'บันทึกบ้าง', ok:false},
         {t:'ไม่บันทึก', ok:false}
-      ], tipOK:'สุดยอด! “รู้ว่าเงินไปไหน” คือพลัง', tipNG:'จดสั้นๆ วันละ 1 นาที หรือใช้แอป/ชีต สรุปสัปดาห์ละครั้ง' },
+      ], tipOK:'เยี่ยม! “รู้ว่าเงินไปไหน” คือพลัง', tipNG:'จดสั้นๆ วันละ 1 นาที หรือใช้แอป/ชีต สรุปสัปดาห์ละครั้ง' },
 
       { id:'sale',  q:'เจอโปรลดราคา ตัดสินใจอย่างไร?', opts:[
         {t:'ดูความจำเป็นก่อน', ok:true},
@@ -274,11 +274,9 @@
       const needTo3m = Math.max(0, 3*totalExp - sav);
       const needTo6m = Math.max(0, 6*totalExp - sav);
 
-      // Top 3 รายจ่าย (เฉพาะที่กรอกจริง)
-      const offenders = Object.entries(userData.expenses)
-                        .map(([k,v])=>({k,v, label:(expenseCategories.find(c=>c.key===k)||{}).label||k}))
-                        .filter(x=>x.v>0)
-                        .sort((a,b)=>b.v-a.v);
+      // Top 3 รายจ่าย
+      const offenders = Object.entries(userData.expenses).map(([k,v])=>({k,v, label:(expenseCategories.find(c=>c.key===k)||{}).label||k}))
+                        .sort((a,b)=>b.v-a.v).filter(x=>x.v>0);
 
       // สถานะ + สี
       const dtiStatus = dti<=35?'ดีมาก': dti<=45?'ระวัง':'อันตราย';
@@ -288,7 +286,7 @@
       const liqStatus = liquidity<0?'ติดลบ':'ดี';
       const liqColor  = liquidity<0?'#ef4444':'#10b981';
 
-      // คำแนะนำแบบอ่านง่าย
+      // คำแนะนำแบบ “เข้าใจง่าย”
       const adviceDTI = (()=> {
         if(dti<=35) return [
           `DTI = ${dti.toFixed(1)}% → ใช้หนี้ได้สบาย`,
@@ -331,7 +329,7 @@
           const cuts = offenders.slice(0,3).map((e,i)=>`${i+1}. ${e.label} ลด 15% (~${thb(e.v*0.15)}฿)`).join(' • ');
           return [
             `สภาพคล่องติดลบ ~${thb(gap)}฿/เดือน`,
-            offenders.length ? `เริ่มตัด (เฉพาะที่คุณกรอกจริง): ${cuts}` : `ตัดรายจ่ายไม่จำเป็น 10–20% ชั่วคราว`,
+            offenders.length ? `เริ่มตัด: ${cuts}` : `ตัดรายจ่ายไม่จำเป็น 10–20% ชั่วคราว`,
             dti>45 ? `ควบคู่: ลดหนี้รายเดือนตามแผน DTI` : `เสริมรายได้พิเศษถ้าเป็นไปได้`
           ];
         }
@@ -354,7 +352,7 @@
       renderAttitude();
     }
 
-    /* ===== Attitude ===== */
+    /* ===== Attitude (กลับมาแล้ว พร้อมคำแนะนำเฉพาะ) ===== */
     function renderAttitude(){
       $('questionScreen').classList.add('hidden');
       $('attitudeScreen').classList.remove('hidden');
@@ -384,7 +382,7 @@
       buzz();
     }
 
-    /* ===== Final + Rings + What-if ===== */
+    /* ===== Final + Rings + What-if (ข้อความอ่านง่าย) ===== */
     function ring(el, pct, color, label, valueText){
       const R=54, C=2*Math.PI*R, p=Math.max(0,Math.min(100,pct));
       el.innerHTML = `
@@ -402,28 +400,8 @@
 
     function bList(lines){ return `<ul class="list-disc list-inside text-gray-700 leading-relaxed">${lines.map(x=>`<li>${x}</li>`).join('')}</ul>`; }
 
-    // ✅ ตารางเพดาน: แสดงทุกหมวดได้ แต่จะ “ชี้แนะ/เน้นสี” เฉพาะหมวดที่ผู้ใช้กรอกจริง
-    function capTable(caps, data){
-      const rows = expenseCategories.map(c=>{
-        const cap=caps[c.key]||0, now=data.expenses[c.key]||0;
-        const diff = now>0 ? (cap-now) : 0; // ถ้าไม่ได้กรอก (now=0) ไม่ต้องแสดงส่วนต่างเชิงคำแนะนำ
-        const color = now>0 ? (diff>=0?'#10b981':'#ef4444') : '#94a3b8'; // grey สำหรับไม่กรอก
-        const diffText = now>0 ? ( (diff>=0?'+':'') + thb(diff) ) : '—'; // ไม่กรอก ⇒ แสดง —
-        const dim = now>0 ? '' : 'opacity-60';
-        return `<tr class="text-sm ${dim}">
-          <td class="py-2">${c.icon} ${c.label}</td>
-          <td class="py-2 text-right mono">${thb(now)}</td>
-          <td class="py-2 text-right mono">${thb(cap)}</td>
-          <td class="py-2 text-right mono" style="color:${color}">${diffText}</td>
-        </tr>`;
-      }).join('');
-      return `<table class="w-full"><thead>
-        <tr class="text-xs text-gray-500 border-b"><th class="py-2 text-left">หมวด</th><th class="py-2 text-right">ตอนนี้</th><th class="py-2 text-right">เพดานแนะนำ</th><th class="py-2 text-right">ส่วนต่าง</th></tr>
-      </thead><tbody>${rows}</tbody></table>
-      <div class="text-xs text-gray-500 mt-2">หมายเหตุ: ระบบแนะนำปรับลดเฉพาะหมวดที่คุณกรอกตัวเลขจริงเท่านั้น</div>`;
-    }
-
     function attitudeAdviceHTML(){
+      // สร้าง “คำแนะนำจากทัศนคติ” แบบสั้นๆ ต่อข้อ
       const items = userData.attitudeAnswers.map((a,idx)=>`
         <div class="rounded-xl border p-3 bg-white">
           <div class="flex items-center justify-between mb-1">
@@ -437,38 +415,42 @@
       return `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">${items}</div>`;
     }
 
+    function capTable(caps, data){
+      const rows = expenseCategories.map(c=>{
+        const cap=caps[c.key]||0, now=data.expenses[c.key]||0, diff=cap-now;
+        const color = diff>=0?'#10b981':'#ef4444';
+        return `<tr class="text-sm">
+          <td class="py-2">${c.icon} ${c.label}</td>
+          <td class="py-2 text-right mono">${thb(now)}</td>
+          <td class="py-2 text-right mono">${thb(cap)}</td>
+          <td class="py-2 text-right mono" style="color:${color}">${diff>=0?'+':''}${thb(diff)}</td>
+        </tr>`;
+      }).join('');
+      return `<table class="w-full"><thead>
+        <tr class="text-xs text-gray-500 border-b"><th class="py-2 text-left">หมวด</th><th class="py-2 text-right">ตอนนี้</th><th class="py-2 text-right">เพดานแนะนำ</th><th class="py-2 text-right">ส่วนต่าง</th></tr>
+      </thead><tbody>${rows}</tbody></table>`;
+    }
+
     function renderFinal(){
       $('attitudeScreen').classList.add('hidden');
       $('progressContainer').classList.add('hidden');
       $('finalScreen').classList.remove('hidden');
 
       const R=userData.results;
-      const correct=userData.attitudeAnswers.filter(a=>a.ok).length;
+      const correct=userData.attitudeAnswers.filter(a=>a.ok).length, total=attitudeQuestions.length;
+      const attColor = correct/total>=.8?'#10b981': correct/total>=.6?'#3b82f6':'#f59e0b';
 
-      // สร้างเพดานเฉพาะคุณ (เหมือนเดิม)
+      // เพดานรายจ่ายรายหมวดแบบง่าย: ใช้ 55% ของรายได้ตามสัดส่วนเบสิค
       const base = { food:.15, transport:.10, household:.06, utilities:.07, entertainment:.05, clothing:.03, internet:.03, other:.06 };
       const baseSum = Object.values(base).reduce((a,b)=>a+b,0);
       const scale = Math.min(.65, Math.max(.45, (R.spend/R.inc) || .55));
       const caps={}; Object.entries(base).forEach(([k,v])=> caps[k]=Math.round(R.inc*(v/baseSum)*scale));
 
-      // ✅ “แผนปรับลดตามหมวด” เฉพาะที่ผู้ใช้กรอก และ “เกินเพดาน”
-      const overCaps = expenseCategories.map(c=>{
-        const now=userData.expenses[c.key]||0, cap=caps[c.key]||0;
-        const over = Math.max(0, now-cap);
-        return { key:c.key, label:c.label, now, cap, over };
-      }).filter(x=> x.now>0 && x.over>0)
-        .sort((a,b)=> b.over - a.over);
-
-      // ring UI
-      const dtiPct = Math.max(0, 100 - Math.min(100, R.dti));
-      const efPct  = Math.min(100, (R.efMonths/6)*100);
-      const liqPct = R.liquidity<=0 ? 0 : Math.min(100, (R.liquidity / (R.inc||1))*100);
-
       $('finalContent').innerHTML = `
         <div class="text-center mb-2">
           <div class="inline-block p-5 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl mb-3"><div class="text-5xl">✨</div></div>
           <h2 class="text-2xl sm:text-3xl font-extrabold" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent">
-            สรุปผลของคุณ (ทำได้จริง และแนะนำเฉพาะที่กรอก)
+            สรุปผลของคุณ (อ่านง่าย ทำได้จริง)
           </h2>
           <p class="text-gray-500">ตัวเลขทั้งหมดคำนวณจากข้อมูลของคุณ</p>
         </div>
@@ -506,50 +488,40 @@
             ${bList(R.advice.liq)}
           </div>
 
-          <!-- Start Today (ปรับข้อความให้ชัดว่า “เฉพาะที่กรอก”) -->
+          <!-- Start Today -->
           <div class="bg-white rounded-2xl p-5 border">
             <div class="flex items-center gap-2 mb-2"><span class="text-2xl">🏁</span><h3 class="text-lg font-bold">เริ่มวันนี้ (3 ข้อสั้นๆ)</h3></div>
             ${bList([
               (R.efMonths<3?`ตั้งโอนอัตโนมัติ ${thb(Math.max(1000,Math.round((R.needTo3m/6)/100)*100))}฿/เดือน เข้า “ฉุกเฉิน”`:`คงฉุกเฉิน ≥3–6 เดือน แล้วค่อยลงทุน`),
               (R.dti>45?`โทรหาเจ้าหนี้เพื่อ “ปรับโครงสร้าง/รีไฟแนนซ์” ลดจ่าย/เดือน ลงอย่างน้อย ~${thb(R.needTo45)}฿`:
                R.dti>35?`เพิ่มค่างวด/เดือนให้แตะ DTI ≤35% (ลด ~${thb(R.needTo35)}฿)`:`ล็อกออม 20% ของรายได้ทุกเดือน`),
-              (R.offenders.length>0?`ตัด Top3 ที่คุณกรอกจริงอย่างละ ~15% (ลดรวมราว ${thb(R.offenders.slice(0,3).reduce((s,x)=>s+x.v*0.15,0))}฿/เดือน)`:`เริ่มบันทึกค่าใช้จ่าย เพื่อหาเป้าตัดที่ชัดเจน`)
+              (R.liquidity<0?`ตัด Top3 รายจ่ายอย่างละ 15% (รวม ~${thb(Math.min(R.spend, R.offenders.slice(0,3).reduce((s,x)=>s+x.v*0.15,0)))}฿/เดือน)`:`ตั้งงบใช้จ่ายรายสัปดาห์คงที่`)
             ])}
           </div>
 
-          <!-- Attitude Advice -->
+          <!-- Attitude Advice (กลับมาแล้ว) -->
           <div class="bg-white rounded-2xl p-5 border">
             <div class="flex items-center gap-2 mb-2">
               <span class="text-2xl">🎯</span>
               <h3 class="text-lg font-bold">คำแนะนำจากทัศนคติของคุณ</h3>
             </div>
-            <div class="text-sm text-gray-600 mb-3">ตอบถูก ${correct}/${attitudeQuestions.length} ข้อ</div>
+            <div class="text-sm text-gray-600 mb-3">สรุปจากคำถาม 5 ข้อ: ถูก ${userData.attitudeAnswers.filter(a=>a.ok).length}/${attitudeQuestions.length} ข้อ</div>
             ${attitudeAdviceHTML()}
           </div>
 
-          <!-- เพดานรายจ่ายรายหมวด -->
+          <!-- เพดานรายจ่ายรายหมวด (อ่านง่าย) -->
           <div class="bg-white rounded-2xl p-5 border">
             <div class="flex items-center gap-2 mb-2"><span class="text-2xl">📦</span><h3 class="text-lg font-bold">เพดานรายจ่ายรายหมวด (เฉพาะคุณ)</h3></div>
             ${capTable(caps, userData)}
           </div>
-
-          <!-- ✅ แผนปรับลดตามหมวด (เฉพาะที่กรอก + เกินเพดาน) -->
-          <div class="bg-white rounded-2xl p-5 border">
-            <div class="flex items-center gap-2 mb-2"><span class="text-2xl">✂️</span><h3 class="text-lg font-bold">แผนปรับลดตามหมวด (เฉพาะที่กรอก)</h3></div>
-            ${
-              overCaps.length
-              ? bList(overCaps.slice(0,6).map(x=>`ลด “${x.label}” อย่างน้อย ${thb(x.over)}฿/เดือน เพื่อไม่ให้เกินเพดาน (ตอนนี้ ${thb(x.now)}฿ | เพดาน ${thb(x.cap)}฿)`))
-              : '<div class="text-sm text-gray-600">ยังไม่มีหมวดไหนเกินเพดานจากที่คุณกรอก</div>'
-            }
-          </div>
         </div>
 
-        <!-- What-if (คำนวณจากเฉพาะหมวดที่กรอกใน Top3 อยู่แล้ว) -->
+        <!-- What-if Simulator (ฉบับอ่านง่าย) -->
         <div class="bg-white/90 border rounded-2xl p-5 shadow mt-4">
           <div class="flex items-center gap-2 mb-2"><span class="text-2xl">🧪</span><h3 class="text-lg font-bold">ลองขยับ แล้วดูผลทันที</h3></div>
           <div class="grid-auto">
             <div>
-              <label class="block text-sm font-semibold mb-1">ลดรายจ่าย Top 3 (ที่คุณกรอก)</label>
+              <label class="block text-sm font-semibold mb-1">ลดรายจ่าย Top 3 รวม</label>
               <input id="simCut" type="range" min="0" max="40" step="1" value="15" class="w-full">
               <div class="text-xs text-gray-600">ตอนนี้: <span id="simCutVal" class="mono">15%</span></div>
             </div>
@@ -578,6 +550,9 @@
 
       // วงแหวน
       const row=$('ringRow'); const a=document.createElement('div'), b=document.createElement('div'), c=document.createElement('div'); row.append(a,b,c);
+      const dtiPct = Math.max(0, 100 - Math.min(100, R.dti));
+      const efPct  = Math.min(100, (R.efMonths/6)*100);
+      const liqPct = R.liquidity<=0 ? 0 : Math.min(100, (R.liquidity / (R.inc||1))*100);
       ring(a, dtiPct, R.dtiColor, 'DTI (ยิ่งมากยิ่งดี)', `${dtiPct.toFixed(0)}%`);
       ring(b, efPct,  R.efColor, 'เงินฉุกเฉิน', `${R.efMonths.toFixed(1)}ด.`);
       ring(c, liqPct, R.liqColor, 'สภาพคล่อง/รายได้', `${liqPct.toFixed(0)}%`);
@@ -599,14 +574,14 @@
         const saveEF  = R.inc * (Number(simEF.value)/100);
 
         let spendNew = R.spend;
-        const top3 = [...R.offenders].slice(0,3); // เฉพาะที่กรอกจริง
+        const top3 = [...R.offenders].slice(0,3);
         top3.forEach(t=> spendNew -= t.v * cutPct);
         spendNew = Math.max(0, spendNew);
 
-        const debtNew = Math.max(0, R.debt - addDebt);
+        const debtNew = Math.max(0, R.debt - addDebt); // อนุรักษ์นิยม: โปะ = ภาระต่อเดือนลดลงตามจำนวนที่เพิ่ม
         const totalNew = spendNew + debtNew;
         const dtiNew = R.inc>0 ? (debtNew/R.inc)*100 : 0;
-        const liqNew = R.inc - totalNew - saveEF;
+        const liqNew = R.inc - totalNew - saveEF; // กันฉุกเฉินก่อน
         const efMonthsNew = (R.sav + saveEF) / (totalNew>0? totalNew:1);
 
         const card = (label,val,sub,color)=>`
@@ -635,8 +610,8 @@
                `<div class="text-sm">คาด ~<span class="chip mono">${monthsTo3m} เดือน</span> หากออมเดือนละ <span class="chip mono">${thb(saveEF)}฿</span></div>`}
             </div>
             <div class="bg-white rounded-lg p-3 border"><div class="font-semibold mb-1">ผลจากการลดรายจ่าย</div>
-              <div class="text-sm">ตัด Top3 (เฉพาะที่คุณกรอก) ~<span class="chip mono">${simCut.value}%</span> 
-              → ลดรวม ~<span class="chip mono">${thb(top3.reduce((s,x)=>s+x.v*(cutPct),0))}฿/เดือน</span></div>
+              <div class="text-sm">ตัด Top3 หมวดละ ~<span class="chip mono">${simCut.value}%</span> 
+              → ลดรวม ~<span class="chip mono">${thb(R.offenders.slice(0,3).reduce((s,x)=>s+x.v*(cutPct),0))}฿/เดือน</span></div>
             </div>
           </div>`;
         userData.sim = { cutPct, addDebt, saveEF, dtiNew, efMonthsNew, liqNew };
