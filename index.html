@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>ตรวจสุขภาพการเงิน • Simple & Personal</title>
   <meta name="color-scheme" content="light only">
-  <meta name="description" content="กรอกตัวเลขจริง แล้วรับสรุปสุขภาพการเงินพร้อมตัวช่วยปรับแผนที่ทำได้จริง">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
   <style>
@@ -26,7 +25,6 @@
     .mono{ font-variant-numeric:tabular-nums }
     .grid-auto{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:.75rem }
     .ring-anim{ transition:stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1) }
-    @view-transition{ navigation:auto }
     @media (prefers-reduced-motion:reduce){
       *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important }
     }
@@ -69,9 +67,6 @@
             <p class="text-gray-600 mb-3 sm:mb-4 text-base sm:text-lg font-medium max-w-md mx-auto">
               กรอกตัวเลขจริง แล้วรับสรุปสั้นๆ ชัดๆ พร้อมแผนปรับที่ทำได้จริง
             </p>
-            <p class="text-xs text-gray-400 max-w-md mx-auto mb-6">
-              ข้อควรระวัง: ผลลัพธ์นี้เป็นคำแนะนำทั่วไป ไม่ใช่คำแนะนำการลงทุนเฉพาะบุคคล
-            </p>
             <div class="grid gap-3 sm:gap-4">
               <button id="btnStart" class="btn px-6 py-4 sm:px-10 sm:py-5 rounded-2xl text-white font-bold text-base sm:text-lg shadow-xl"
                       style="background:linear-gradient(135deg,var(--primary),var(--secondary))">เริ่มต้น →</button>
@@ -109,6 +104,9 @@
     const thb = n => moneyFmt.format(Math.round(Number.isFinite(n) ? n : 0));
     const buzz = (ms=12)=> (navigator.vibrate && navigator.vibrate(ms));
     const $ = id => document.getElementById(id);
+
+    // ใช้ตัวเดียวทั้งไฟล์ (แก้บั๊กชื่อซ้ำ)
+    function efLabel(m){ return m<3?'ไม่พอ':(m<=6?'พอ':'เกินเป้า'); }
 
     function toast(msg, type='info'){
       const root = $('toastRoot'); const el = document.createElement('div');
@@ -157,19 +155,19 @@
     const attitudeQuestions = [
       { id:'saveFirst', q:'ได้เงินเดือน ทำอะไรเป็นอย่างแรก?', opts:[
         {t:'ออมก่อน (Pay Yourself First)', ok:true},{t:'จ่ายหนี้ก่อน', ok:false},{t:'ใช้ก่อน ค่อยออม', ok:false}
-      ], tipOK:'ดีมาก! รักษานิสัยออมก่อนต่อไปนะ', tipNG:'ตั้งโอนอัตโนมัติวันเงินเดือนออก 10–20% เพื่อให้ “ออมเกิดขึ้นจริง”' },
+      ] },
       { id:'longPlan', q:'มีแผนการเงินระยะยาวไหม?', opts:[
         {t:'มีและทบทวนสม่ำเสมอ', ok:true},{t:'มีคร่าวๆ', ok:false},{t:'ไม่มี', ok:false}
-      ], tipOK:'สุดยอด! แผน + ติดตาม = ถึงเป้าหมายเร็ว', tipNG:'ตั้งเป้าหมาย 1–3 เรื่อง (เช่น ฉุกเฉิน 6 เดือน) แล้วทบทวนทุกสิ้นเดือน' },
+      ] },
       { id:'bonusUse', q:'ได้โบนัส/เงินพิเศษ ใช้อย่างไร?', opts:[
         {t:'ออม/ลงทุนเป็นหลัก', ok:true},{t:'ซื้อของที่อยากได้', ok:false},{t:'ครึ่งหนึ่งออม ครึ่งหนึ่งใช้', ok:false}
-      ], tipOK:'ดีมาก! เงินพิเศษช่วยดันเป้าหมายไวขึ้น', tipNG:'กัน 70–80% เข้าฉุกเฉิน/ลงทุน ใช้ได้เล็กน้อย' },
+      ] },
       { id:'tracking', q:'ติดตามรายรับรายจ่ายแค่ไหน?', opts:[
         {t:'บันทึกและวิเคราะห์', ok:true},{t:'บันทึกบ้าง', ok:false},{t:'ไม่บันทึก', ok:false}
-      ], tipOK:'เยี่ยม! “รู้ว่าเงินไปไหน” คือพลัง', tipNG:'จดสั้นๆ วันละ 1 นาที หรือใช้แอป/ชีต สรุปสัปดาห์ละครั้ง' },
+      ] },
       { id:'sale', q:'เจอโปรลดราคา ตัดสินใจอย่างไร?', opts:[
         {t:'ดูความจำเป็นก่อน', ok:true},{t:'รีบซื้อเพราะคุ้ม', ok:false},{t:'ซื้อเก็บไว้ก่อน', ok:false}
-      ], tipOK:'ดีมาก! ซื้อเพราะ “ต้องใช้จริง”', tipNG:'ถาม 2 ข้อ: ต้องใช้ตอนนี้ไหม? ถ้าไม่ลด จะซื้อไหม?' }
+      ] }
     ];
 
     const questions = [
@@ -439,7 +437,7 @@
           <div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-5 shadow" style="border-color:${R.dtiColor}">
             <div class="flex items-center justify-between mb-2">
               <h3 class="text-lg font-bold">ภาระหนี้ (DTI)</h3>
-              <span class="px-3 py-1 text-xs rounded-full text-white" style="background:${R.dtiColor}">${R.dtiStatus}</span>
+              <span class="px-3 py-1 text-xs rounded-full text-white" style="background:${R.dtiColor}">${R.dti<=35?'ดีมาก':R.dti<=45?'ระวัง':'อันตราย'}</span>
             </div>
             <div class="text-3xl font-extrabold mb-1" style="color:${R.dtiColor}">${R.dti.toFixed(1)}%</div>
             ${ul([
@@ -456,26 +454,15 @@
               <span class="px-3 py-1 text-xs rounded-full text-white" style="background:${R.efColor}">${efLabel(R.efMonths)}</span>
             </div>
             <div class="text-3xl font-extrabold mb-1" style="color:${R.efColor}">${R.efMonths.toFixed(1)} เดือน</div>
-            ${ul([
-              R.liquidity<0?`สภาพคล่องติดลบ ยังไม่ตั้งออมอัตโนมัติ ให้ทำให้ ≥ 0 ก่อน`:
-              (R.efMonths<3?`ตั้งออมสม่ำเสมอเพื่อไปให้ถึง 3 เดือน`:
-               R.efMonths<=6?`รักษา 3–6 เดือน ส่วนเกินค่อยลงทุน`:`ส่วนเกิน 6 เดือน โยกไปลงทุนได้`)
-            ])}
           </div>
 
           <!-- LIQ -->
           <div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-5 shadow" style="border-color:${R.liqColor}">
             <div class="flex items-center justify-between mb-2">
               <h3 class="text-lg font-bold">สภาพคล่อง/เดือน</h3>
-              <span class="px-3 py-1 text-xs rounded-full text-white" style="background:${R.liqColor}">${R.liqStatus}</span>
+              <span class="px-3 py-1 text-xs rounded-full text-white" style="background:${R.liqColor}">${R.liquidity<0?'ติดลบ':'ดี'}</span>
             </div>
             <div class="text-3xl font-extrabold mb-1" style="color:${R.liqColor}">${thb(R.liquidity)} ฿</div>
-            ${ul(R.liquidity<0?[
-              `ตัดรายจ่ายไม่จำเป็น 10–20% ชั่วคราว`,
-              R.dti>45?`เจรจาปรับโครงสร้างหนี้เพื่อลดค่างวด/เดือน`:`ลองหารายได้เสริมถ้าเป็นไปได้`
-            ]:[
-              `กันส่วนเกินไปเติมฉุกเฉินก่อน แล้วค่อยลงทุน`
-            ])}
           </div>
 
           <!-- Editable caps -->
@@ -519,7 +506,7 @@
         </div>
       `;
 
-      // ===== Rings (แสดงค่าจริง ไม่กลับด้าน) =====
+      // ===== Rings =====
       const row=$('ringRow'); const a=document.createElement('div'), b=document.createElement('div'), c=document.createElement('div'); row.append(a,b,c);
       const dtiPct = Math.min(100, R.dti);
       const efPct  = Math.min(100, (R.efMonths/6)*100);
@@ -536,12 +523,11 @@
           const inp = document.querySelector(`[data-cap="${c.key}"]`);
           let t = now;
           if(inp){ t = parseMoneyInput(inp); }
-          // ไม่อนุญาตให้เพิ่มจากตอนนี้
-          t = Math.max(0, Math.min(now, t));
+          t = Math.max(0, Math.min(now, t)); // ไม่ให้เพิ่ม
           targets[c.key]=t; newSpend+=t;
           const diffEl = $('diff_'+c.key);
           if(diffEl){
-            const diff = t - now; // new - now (เช่น 7000 - 9000 = -2000)
+            const diff = t - now; // new - now
             diffEl.style.color = diff<=0 ? '#10b981' : '#ef4444';
             diffEl.textContent = (diff<=0?'':'+') + thb(diff);
           }
@@ -549,12 +535,11 @@
 
         const newTotal = newSpend + R.debt;
         const newLiq   = R.inc - newTotal;
-        const box = $('planSummary');
         const stillNeg = newLiq < 0;
-        box.innerHTML = `
+        $('planSummary').innerHTML = `
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <div><div class="text-xs text-gray-500">รายจ่ายใหม่ (รวมหมวด)</div><div class="mono font-extrabold">${thb(newSpend)} ฿</div></div>
-            <div><div class="text-xs text-gray-500">DTI (เท่าเดิม หากไม่ลดค่างวด)</div><div class="mono font-extrabold">${Number.isFinite(R.dti)?R.dti.toFixed(1):'–'}%</div></div>
+            <div><div class="text-xs text-gray-500">DTI (หากไม่ลดค่างวด)</div><div class="mono font-extrabold">${R.dti.toFixed(1)}%</div></div>
             <div><div class="text-xs text-gray-500">สภาพคล่องคาดการณ์</div><div class="mono font-extrabold" style="color:${stillNeg?'#ef4444':'#10b981'}">${thb(newLiq)} ฿</div></div>
           </div>
           <div class="mt-2 ${stillNeg?'text-rose-700':'text-emerald-700'} text-sm">
@@ -563,7 +548,6 @@
         userData.planTargets=targets; userData.planLiq=newLiq; debounce();
       }
       document.querySelectorAll('[data-cap]').forEach(el=>{
-        // ตั้งค่า dataset.raw ให้ตรงกับค่าเริ่ม เพื่อป้องกัน parse ผิด
         el.dataset.raw = (el.value||'').replace(/,/g,'');
         el.addEventListener('input', recalcPlan);
       });
@@ -573,8 +557,6 @@
       const simCut=$('simCut'), simDebtNew=$('simDebtNew'), simEF=$('simEF');
       const simCutVal=$('simCutVal'), simEFVal=$('simEFVal'), simEFBaht=$('simEFBaht'), needReduce=$('needReduce');
 
-      function efLabel(m){ return m<3?'ไม่พอ':(m<=6?'พอ':'เกินเป้า'); }
-
       function syncLabels(){
         simCutVal.textContent = simCut.value+'%';
         simEFVal.textContent   = simEF.value+'%';
@@ -582,7 +564,6 @@
       }
 
       function clampDebtTarget(){
-        // ไม่ให้เป้าค่างวดใหม่เกินยอดปัจจุบัน และไม่ติดลบ
         const raw = parseMoneyInput(simDebtNew);
         const clamped = Math.max(0, Math.min(R.debt, raw));
         simDebtNew.dataset.raw = String(clamped);
@@ -605,8 +586,8 @@
         const debtNew     = R.debt - reduceDebt;
         const totalNew    = spendNew + debtNew;
 
-        // คำนวน “ต้องลดอย่างน้อยเท่าไหร่ให้สภาพคล่อง ≥ 0” (ไม่รวมออมฉุกเฉิน)
-        const needReduceAmt = Math.max(0, (R.totalExp ?? (R.debt+R.spend)) - R.inc); // ส่วนที่เกินรายได้ปัจจุบัน
+        // ส่วนต้องลดขั้นต่ำเพื่อให้สภาพคล่อง >= 0 (ไม่รวมตั้งออม)
+        const needReduceAmt = Math.max(0, (R.totalExp ?? (R.debt+R.spend)) - R.inc);
         needReduce.textContent = thb(needReduceAmt);
 
         const dtiNew      = safeDiv(debtNew, R.inc) * 100;
@@ -646,8 +627,6 @@
         userData.sim = { cutPct, debtTarget, efMonthly, dtiNew, efMonthsNew, liqNew }; debounce();
       }
 
-      function efLabel(m){ return m<3?'ไม่พอ':(m<=6?'พอ':'เกินเป้า'); }
-
       [simCut,simEF,simDebtNew].forEach(el=> el.addEventListener('input', ()=>{ syncLabels(); runSim(); }));
       syncLabels(); runSim();
 
@@ -662,7 +641,8 @@
     /* ================= Init ================= */
     document.addEventListener('DOMContentLoaded', ()=>{
       const has = loadState();
-      $('btnStart').addEventListener('click', ()=>{ start(); });
+      const startBtn = $('btnStart');
+      if(startBtn){ startBtn.addEventListener('click', start); }
       const btnResume = $('btnResume');
       if(has){ btnResume.classList.remove('hidden');
         btnResume.addEventListener('click', ()=>{
