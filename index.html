@@ -33,7 +33,6 @@
     }
     input[data-money]{ outline:none }
     td input{ text-align:right }
-    /* small utility for accessible hidden labels */
     .sr{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0 }
   </style>
 </head>
@@ -75,9 +74,14 @@
               ข้อควรระวัง: ผลลัพธ์นี้เป็นคำแนะนำทั่วไป ไม่ใช่คำแนะนำการลงทุนเฉพาะบุคคล
             </p>
             <div class="grid gap-3 sm:gap-4">
-              <button id="btnStart" class="btn px-6 py-4 sm:px-10 sm:py-5 rounded-2xl text-white font-bold text-base sm:text-lg shadow-xl"
+              <!-- inline fallback + global handler -->
+              <button id="btnStart"
+                      onclick="window.startApp && window.startApp()"
+                      class="btn px-6 py-4 sm:px-10 sm:py-5 rounded-2xl text-white font-bold text-base sm:text-lg shadow-xl"
                       style="background:linear-gradient(135deg,var(--primary),var(--secondary))">เริ่มต้น →</button>
-              <button id="btnResume" class="btn px-6 py-4 rounded-2xl font-semibold text-gray-800 bg-white border border-gray-200 hidden">
+              <button id="btnResume"
+                      onclick="window.resumeApp && window.resumeApp()"
+                      class="btn px-6 py-4 rounded-2xl font-semibold text-gray-800 bg-white border border-gray-200 hidden">
                 ▶️ ต่อจากครั้งก่อน
               </button>
             </div>
@@ -489,11 +493,9 @@
 
       const R = userData.results;
 
-      // เพดานตั้งต้น “จริงจังได้ในชีวิตจริง”:
-      //   - อิงสัดส่วนเบสิค 55% ของรายได้สำหรับค่าใช้จ่าย (ไม่บังคับเพิ่มหมวดที่เดิม=0)
-      //   - มี floor ขั้นต่ำบางหมวด และ limit step ลดไม่เกิน -20% ในรอบแรก
+      // เพดานตั้งต้น “จริงจังได้ในชีวิตจริง”
       const baseShare = { food:.15, transport:.10, household:.06, utilities:.07, entertainment:.05, clothing:.03, internet:.03, other:.06 };
-      const floors   = { food:3000, transport:800, utilities:500 }; // สมมติฐานมนุษย์จริง
+      const floors   = { food:3000, transport:800, utilities:500 };
       const spendShareNow = (R.inc>0) ? (R.spend/R.inc) : .55;
       const targetSpendShare = Math.min(.65, Math.max(.50, spendShareNow||.55)); // 50–65% ของรายได้
       const initCaps = {};
@@ -604,7 +606,7 @@
           const inp = document.querySelector(`[data-cap="${c.key}"]`);
           let t = now;
           if(inp){ t = parseMoneyInput(inp); }
-          // ไม่อนุญาต “เพิ่ม” (เป้าหมายคือฟื้นสภาพคล่อง) — ใส่มากกว่าปัจจุบันจะปัดลงเท่าปัจจุบัน
+          // ไม่อนุญาต “เพิ่ม” — ใส่มากกว่าปัจจุบันจะปัดลงเท่าปัจจุบัน
           t = Math.max(0, Math.min(now, t));
           targets[c.key]=t; newSpend+=t;
           const diffEl = $('diff_'+c.key);
@@ -662,7 +664,7 @@
 
         // กันออมฉุกเฉิน “ไม่เกินที่ขาดไปถึง 6 เดือน”
         const needTo6mNew = Math.max(0, 6*totalNew - R.sav);
-        const efMonthly   = Math.min(saveEF, needTo6mNew); // ไม่กันเกินจำเป็น
+        const efMonthly   = Math.min(saveEF, needTo6mNew);
         const liqNew      = R.inc - totalNew - efMonthly;
         const efMonthsNew = safeDiv(R.sav + efMonthly, totalNew);
 
@@ -712,18 +714,32 @@
       $('btnShare').onclick = shareResult;
     }
 
-    /* ================= Init ================= */
+    /* ================= Init + Robust Fallbacks ================= */
+    // safe globals for inline fallback clicks
+    window.startApp = function(){
+      try{
+        document.getElementById('progressContainer')?.classList.remove('hidden');
+        start();
+      }catch(e){ console.error('startApp error:', e); toast('เกิดข้อผิดพลาดในการเริ่มต้น','error'); }
+    };
+    window.resumeApp = function(){
+      try{
+        const hasResults = !!(userData && userData.results);
+        if(hasResults){ renderFinal(); }
+        else { window.startApp(); toast('โหลดข้อมูลครั้งก่อนแล้ว','success'); }
+      }catch(e){ console.error('resumeApp error:', e); window.startApp(); }
+    };
+
     document.addEventListener('DOMContentLoaded', ()=>{
-      const has = loadState();
-      $('btnStart').addEventListener('click', ()=>{ $('progressContainer').classList.remove('hidden'); start(); });
-      const btnResume = $('btnResume');
-      if(has){ btnResume.classList.remove('hidden');
-        btnResume.addEventListener('click', ()=>{
-          if(userData.results){ renderFinal(); }
-          else { $('progressContainer').classList.remove('hidden'); start(); }
-          toast('โหลดข้อมูลครั้งก่อนแล้ว','success');
-        });
-      }
+      try{
+        const has = loadState();
+        $('btnStart')?.addEventListener('click', window.startApp);
+        const btnResume = $('btnResume');
+        if(has && btnResume){
+          btnResume.classList.remove('hidden');
+          btnResume.addEventListener('click', window.resumeApp);
+        }
+      }catch(e){ console.error('Init error:', e); }
     });
   </script>
 </body>
