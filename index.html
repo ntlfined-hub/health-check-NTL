@@ -92,21 +92,20 @@
       setTimeout(function(){ root.removeChild(el); },2200);
     }
 
-    // แก้ดีเลย์: อ่านจาก value เสมอ (ไม่พึ่ง dataset.raw)
+    // อ่านค่าจาก value เสมอ (ไม่พึ่ง dataset) และรองรับช่องว่าง = 0
     function parseMoneyInput(el){
       if(!el) return 0;
       var raw = (el.value||'').toString().replace(/,/g,'').trim();
+      if(raw==='') return 0;
       var n = Number(raw);
       return (isFinite(n) && n>=0) ? n : 0;
     }
 
-    // formatter + เก็บ raw ไว้เฉยๆ แต่ compute จาก value โดยตรง
+    // formatter
     document.addEventListener('input', function(e){
       var t=e.target;
       if(t && t.matches && t.matches('input[data-money]')){
         var cleaned = t.value.replace(/[^\d.]/g,'').replace(/(\..*?)\..*/,'$1');
-        if(!t.dataset) t.dataset={};
-        t.dataset.raw = cleaned;
         if(cleaned===''){ t.value=''; return; }
         var parts = cleaned.split('.');
         parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -209,7 +208,6 @@
         $('questionContent').innerHTML =
           '<div class="text-center mb-6">'+
             '<div class="inline-block p-5 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-2xl mb-4" aria-hidden="true"><div class="text-5xl">'+q.icon+'</div></div>'+
-// headings
             '<h2 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-800">'+q.title+'</h2>'+
             '<p class="text-gray-600 font-medium">'+q.desc+'</p>'+
           '</div>'+
@@ -497,7 +495,6 @@
         '</div>';
 
       var row=$('ringRow'); var a=document.createElement('div'), b=document.createElement('div'), c=document.createElement('div'); row.appendChild(a); row.appendChild(b); row.appendChild(c);
-      // วงแหวน DTI = ค่าปัจจุบัน (ไม่กลับด้าน)
       var dtiPct=Math.min(100, R.dti);
       var efPct=Math.min(100,(R.efMonths/6)*100);
       var liqPct=R.liquidity<=0?0:Math.min(100,(R.liquidity/Math.max(1,R.inc))*100);
@@ -510,22 +507,33 @@
         expenseCategories.forEach(function(c){
           var now=userData.expenses[c.key]||0;
           var inp=document.querySelector('[data-cap="'+c.key+'"]');
-          var t=now; if(inp){ t=parseMoneyInput(inp); }
-          t=Math.max(0, Math.min(now,t));
+
+          // ถ้าเว้นว่าง = ถือว่า "ไม่ปรับ" ใช้ค่าเดิม
+          var isBlank = !inp || (inp.value||'').toString().replace(/,/g,'').trim()==='';
+          var t = isBlank ? now : parseMoneyInput(inp);
+          t = Math.max(0, Math.min(now, t)); // ไม่ให้เกินค่าปัจจุบัน
+
           targets[c.key]=t; newSpend+=t;
-          // ส่วนต่าง = ปรับใหม่ - ตอนนี้ (โชว์ + ถ้าบวก)
+
           var diffEl=$('diff_'+c.key);
           if(diffEl){
-            var diff=t-now;
-            var sign = diff>0 ? '+' : '';
-            diffEl.style.color= diff>0 ? '#ef4444' : '#10b981';
-            diffEl.textContent= sign + thb(diff);
+            if(isBlank){
+              diffEl.textContent = '';         // ยังไม่ปรับ → ไม่แสดง
+              diffEl.style.color = '#111827';
+            }else{
+              var diff=t-now;                  // ส่วนต่าง = ปรับใหม่ - ตอนนี้
+              var sign = diff>0 ? '+' : '';
+              diffEl.style.color= diff>0 ? '#ef4444' : (diff<0 ? '#10b981' : '#111827');
+              diffEl.textContent= sign + thb(diff);
+            }
           }
         });
+
         var debt=R.debt, inc=R.inc;
         var newTotal=newSpend+debt;
         var newLiq=inc-newTotal;
         var newDTI=safeDiv(debt,inc)*100;
+
         var box=$('planSummary'); var stillNeg=newLiq<0;
         box.innerHTML =
           '<div class="grid grid-cols-1 sm:grid-cols-3 gap-2">'+
@@ -536,6 +544,7 @@
           '<div class="mt-2 '+(stillNeg?'text-rose-700':'text-emerald-700')+' text-sm">'+
             (stillNeg?'ยังติดลบอยู่ → พิจารณา “ลดค่างวดหนี้/เดือน” (เจรจาปรับโครงสร้าง/รีไฟแนนซ์) หรือปรับหมวดอื่นเพิ่มเติม':'ดีขึ้นแล้ว → เริ่มกันเงินฉุกเฉินตามกำลังได้')+
           '</div>';
+
         userData.planTargets=targets; userData.planLiq=newLiq; debounce();
       }
       var caps=document.querySelectorAll('[data-cap]'); for(var i=0;i<caps.length;i++){ caps[i].addEventListener('input', recalcPlan); }
@@ -550,7 +559,6 @@
         simDebtVal.textContent = simDebt.value+'%';
         simEFVal.textContent   = simEF.value+'%';
 
-        // ใช้ยอดหนี้จริง
         simDebtBaht.textContent = thb(R.debt * (simDebt.value/100));
         simEFBaht.textContent   = thb(R.inc  * (simEF.value/100));
 
@@ -566,7 +574,7 @@
 
       function runSim(){
         var cutPct   = Number(simCut.value)/100;
-        var reduceDebt = R.debt * (Number(simDebt.value)/100); // อิงยอดหนี้จริง
+        var reduceDebt = R.debt * (Number(simDebt.value)/100);
         var saveEF     = R.inc  * (Number(simEF.value)/100);
 
         var spendNew=R.spend;
