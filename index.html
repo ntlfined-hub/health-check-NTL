@@ -482,7 +482,7 @@
           '<div class="flex items-center gap-2 mb-2"><span class="text-2xl" aria-hidden="true">🧪</span><h3 class="text-lg font-bold">ลองขยับ แล้วดูผลทันที</h3></div>'+
           '<div class="grid-auto">'+
             '<div><label class="block text-sm font-semibold mb-1" for="simCut">ลดรายจ่าย Top 3 (หมวดไม่จำเป็น)</label><input id="simCut" type="range" min="0" max="40" step="1" value="15" class="w-full"><div class="text-xs text-gray-600">ตอนนี้: <span id="simCutVal" class="mono">15%</span></div></div>'+
-            '<div><label class="block text-sm font-semibold mb-1" for="simDebt">ลดค่างวดหนี้/เดือน (เจรจา/รีไฟแนนซ์)</label><input id="simDebt" type="range" min="0" max="50" step="1" value="10" class="w-full"><div class="text-xs text-gray-600">ตอนนี้: <span id="simDebtVal" class="mono">10%</span> ของรายได้ (<span id="simDebtBaht" class="mono"></span>฿)</div></div>'+
+            '<div><label class="block text-sm font-semibold mb-1" for="simDebtNew">ค่างวด “เป้าหมายใหม่” / เดือน (≤ '+thb(R.debt)+'฿)</label><input id="simDebtNew" data-money class="w-full px-3 py-2 border rounded-xl mono" value="'+thb(R.debt)+'"><div class="text-xs text-gray-600 mt-1">ต้องลดขั้นต่ำเพื่อให้สภาพคล่อง ≥ 0: <span id="needReduce" class="mono">'+thb(Math.max(0,(R.spend+R.debt)-R.inc))+'</span> ฿</div></div>'+
             '<div><label class="block text-sm font-semibold mb-1" for="simEF">ออมฉุกเฉินต่อเดือน</label><input id="simEF" type="range" min="0" max="30" step="1" value="10" class="w-full"><div class="text-xs text-gray-600">ตอนนี้: <span id="simEFVal" class="mono">10%</span> ของรายได้ (<span id="simEFBaht" class="mono"></span>฿)</div></div>'+
           '</div>'+
           '<div id="simResult" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4"></div>'+
@@ -493,11 +493,12 @@
           '<button id="btnShare" class="btn px-6 py-4 rounded-2xl font-semibold bg-white border">🔗 แชร์ผลลัพธ์</button>'+
         '</div>';
 
+      // rings — แสดง DTI เป็น “ค่าจริง”
       var row=$('ringRow'); var a=document.createElement('div'), b=document.createElement('div'), c=document.createElement('div'); row.appendChild(a); row.appendChild(b); row.appendChild(c);
-      var dtiPct=Math.max(0, 100 - Math.min(100, R.dti));
+      var dtiPct=Math.min(100, R.dti);
       var efPct=Math.min(100,(R.efMonths/6)*100);
       var liqPct=R.liquidity<=0?0:Math.min(100,(R.liquidity/Math.max(1,R.inc))*100);
-      ring(a,dtiPct,R.dtiColor,'DTI (ยิ่งมากยิ่งดี)', dtiPct.toFixed(0)+'%');
+      ring(a,dtiPct,R.dtiColor,'DTI (ยิ่งน้อยยิ่งดี)', R.dti.toFixed(1)+'%');
       ring(b,efPct,R.efColor,'เงินฉุกเฉิน', R.efMonths.toFixed(1)+'ด.');
       ring(c,liqPct,R.liqColor,'สภาพคล่อง/รายได้', liqPct.toFixed(0)+'%');
 
@@ -531,22 +532,26 @@
       var caps=document.querySelectorAll('[data-cap]'); for(var i=0;i<caps.length;i++){ caps[i].addEventListener('input', recalcPlan); }
       recalcPlan();
 
-      var simCut=$('simCut'), simDebt=$('simDebt'), simEF=$('simEF');
-      var simCutVal=$('simCutVal'), simDebtVal=$('simDebtVal'), simEFVal=$('simEFVal');
-      var simDebtBaht=$('simDebtBaht'), simEFBaht=$('simEFBaht');
+      // ===== Simulator (อิงค่าที่ user กรอกจริง) =====
+      var simCut=$('simCut'), simEF=$('simEF'), simDebtNew=$('simDebtNew');
+      var simCutVal=$('simCutVal'), simEFVal=$('simEFVal'), simEFBaht=$('simEFBaht'), needReduce=$('needReduce');
 
       function syncLabels(){
         simCutVal.textContent = simCut.value+'%';
-        simDebtVal.textContent = simDebt.value+'%';
         simEFVal.textContent   = simEF.value+'%';
-        simDebtBaht.textContent= thb(R.inc * (simDebt.value/100));
         simEFBaht.textContent  = thb(R.inc * (simEF.value/100));
       }
-
+      function clampDebtTarget(){
+        var t=parseMoneyInput(simDebtNew);
+        var max=R.debt; var clamped = t>max?max:(t<0?0:t);
+        simDebtNew.dataset.raw=String(clamped); simDebtNew.value=thb(clamped);
+        return clamped;
+      }
       function runSim(){
         var cutPct=Number(simCut.value)/100;
-        var reduceDebt= R.inc * (Number(simDebt.value)/100);
-        var saveEF= R.inc * (Number(simEF.value)/100);
+        var debtTarget=clampDebtTarget();
+        var reduceDebt = Math.max(0, R.debt - debtTarget);
+        needReduce.textContent = thb(Math.max(0,(R.spend+R.debt)-R.inc)); // ขั้นต่ำให้ LIQ ≥ 0 (ก่อนออม)
 
         var spendNew=R.spend;
         var top3=R.offenders.filter(function(e){return !e.need;}).slice(0,3);
@@ -557,6 +562,7 @@
         var totalNew=spendNew + debtNew;
         var dtiNew=safeDiv(debtNew,R.inc)*100;
 
+        var saveEF= R.inc * (Number(simEF.value)/100);
         var needTo6mNew=Math.max(0, 6*totalNew - R.sav);
         var efMonthly=Math.min(saveEF, needTo6mNew);
         var liqNew= R.inc - totalNew - efMonthly;
@@ -593,12 +599,10 @@
               '<div class="text-sm">ตัด Top3 (หมวดไม่จำเป็น) ~<span class="chip mono">'+simCut.value+'%</span> → ลดรวม ~<span class="chip mono">'+thb(top3.reduce(function(s,x){return s+x.v*cutPct;},0))+'฿/เดือน</span></div>'+
             '</div>'+
           '</div>';
-        userData.sim={cutPct:cutPct, reduceDebt:reduceDebt, efMonthly:efMonthly, dtiNew:dtiNew, efMonthsNew:efMonthsNew, liqNew:liqNew}; debounce();
+        userData.sim={cutPct:cutPct, debtTarget:debtTarget, efMonthly:efMonthly, dtiNew:dtiNew, efMonthsNew:efMonthsNew, liqNew:liqNew}; debounce();
       }
 
-      simCut.addEventListener('input', function(){ syncLabels(); runSim(); });
-      simDebt.addEventListener('input', function(){ syncLabels(); runSim(); });
-      simEF.addEventListener('input', function(){ syncLabels(); runSim(); });
+      [simCut,simEF,simDebtNew].forEach(function(el){ el.addEventListener('input', function(){ syncLabels(); runSim(); }); });
       syncLabels(); runSim();
 
       $('btnRestart').addEventListener('click', function(){
@@ -621,10 +625,8 @@
 
     document.addEventListener('DOMContentLoaded', function(){
       var has=loadState();
-      // global delegation (กัน inline ถูกบล็อก)
       document.body.addEventListener('click', function(e){
         var t=e.target;
-        // เผื่อคลิกไอคอน/child ในปุ่ม
         if(t && !t.dataset.action && t.closest){ var b=t.closest('[data-action]'); if(b) t=b; }
         if(t && t.dataset && t.dataset.action==='start'){ e.preventDefault(); startApp(); }
         if(t && t.dataset && t.dataset.action==='resume'){ e.preventDefault(); resumeApp(); }
