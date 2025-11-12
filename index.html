@@ -22,32 +22,18 @@
     @media (prefers-reduced-motion:reduce){ *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important } }
     input[data-money]{ outline:none } td input{ text-align:right }
     .sr{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0 }
-
-    /* ===== Print styles for clean PDF ===== */
-    .no-print{ }
-    @media print{
-      body{ background:#fff !important; }
-      #progressContainer, #welcomeScreen, #questionScreen, #toastRoot { display:none !important; }
-      #finalScreen{ display:block !important; }
-      .no-print{ display:none !important; }
-      .glass{ background:#fff !important; border:0 !important; backdrop-filter:none !important; box-shadow:none !important; }
-      .print-container{ box-shadow:none !important; }
-      *{-webkit-print-color-adjust:exact; print-color-adjust:exact}
-      .page-break-avoid{ break-inside:avoid; }
-      .page-break{ page-break-before:always; }
-    }
   </style>
 </head>
 <body class="min-h-full">
   <!-- decorations -->
-  <div aria-hidden="true" class="pointer-events-none select-none no-print">
+  <div aria-hidden="true" class="pointer-events-none select-none">
     <div class="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply blur-3xl opacity-20"></div>
     <div class="absolute top-40 right-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply blur-3xl opacity-20"></div>
     <div class="absolute -bottom-20 left-1/2 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply blur-3xl opacity-20"></div>
   </div>
 
   <main class="relative z-10 min-h-full flex items-center justify-center p-4">
-    <div class="w-full max-w-3xl print-container">
+    <div class="w-full max-w-3xl">
       <!-- Progress -->
       <div id="progressContainer" class="mb-6 hidden" aria-live="polite">
         <div class="flex justify-between items-center mb-2">
@@ -78,6 +64,8 @@
 
         <!-- Questions -->
         <section id="questionScreen" class="hidden" aria-live="polite"><div id="questionContent"></div></section>
+        <!-- Attitude -->
+        <section id="attitudeScreen" class="hidden" aria-live="polite"><div id="attitudeContent"></div></section>
         <!-- Final -->
         <section id="finalScreen" class="hidden"><div id="finalContent"></div></section>
       </div>
@@ -85,7 +73,7 @@
   </main>
 
   <!-- Toast -->
-  <div id="toastRoot" class="fixed left-1/2 -translate-x-1/2 bottom-6 z-[9999] no-print" aria-live="assertive" aria-atomic="true"></div>
+  <div id="toastRoot" class="fixed left-1/2 -translate-x-1/2 bottom-6 z-[9999]" aria-live="assertive" aria-atomic="true"></div>
 
   <script>
     /* ===== Helpers ===== */
@@ -96,8 +84,7 @@
 
     function toast(msg, type){
       if(type===void 0) type='info';
-      var root=$('toastRoot'); if(!root) return;
-      var el=document.createElement('div');
+      var root=$('toastRoot'); var el=document.createElement('div');
       el.className='px-4 py-3 rounded-xl text-white shadow-lg mb-2';
       el.style.background= type==='success'?'#10b981': type==='warn'?'#f59e0b': type==='error'?'#ef4444':'#6366f1';
       el.textContent= String(msg); root.appendChild(el);
@@ -105,7 +92,7 @@
       setTimeout(function(){ root.removeChild(el); },2200);
     }
 
-    // อ่านค่าจาก value เสมอ (รองรับช่องว่าง = 0)
+    // อ่านค่าจาก value เสมอ (ไม่พึ่ง dataset) และรองรับช่องว่าง = 0
     function parseMoneyInput(el){
       if(!el) return 0;
       var raw = (el.value||'').toString().replace(/,/g,'').trim();
@@ -127,8 +114,8 @@
     });
 
     /* ===== Data ===== */
-    var currentStep=0;
-    var userData = { income:0, debtExpense:0, expenses:{}, savings:0 };
+    var currentStep=0, currentAttitudeQuestion=0;
+    var userData = { income:0, debtExpense:0, expenses:{}, savings:0, attitudeAnswers:[] };
 
     var expenseCategories = [
       { key:'food', label:'ค่าอาหาร', icon:'🍜', need:true },
@@ -141,6 +128,24 @@
       { key:'other', label:'อื่นๆ', icon:'📝', need:false }
     ];
 
+    var attitudeQuestions = [
+      { id:'saveFirst', q:'ได้เงินเดือน ทำอะไรเป็นอย่างแรก?', opts:[
+        {t:'ออมก่อน (Pay Yourself First)', ok:true},{t:'จ่ายหนี้ก่อน', ok:false},{t:'ใช้ก่อน ค่อยออม', ok:false}
+      ], tipOK:'ดีมาก! รักษานิสัยออมก่อนต่อไปนะ', tipNG:'ตั้งโอนอัตโนมัติวันเงินเดือนออก 10–20% เพื่อให้ “ออมเกิดขึ้นจริง”' },
+      { id:'longPlan', q:'มีแผนการเงินระยะยาวไหม?', opts:[
+        {t:'มีและทบทวนสม่ำเสมอ', ok:true},{t:'มีคร่าวๆ', ok:false},{t:'ไม่มี', ok:false}
+      ], tipOK:'สุดยอด! แผน + ติดตาม = ถึงเป้าหมายเร็ว', tipNG:'ตั้งเป้าหมาย 1–3 เรื่อง (เช่น ฉุกเฉิน 6 เดือน) แล้วทบทวนทุกสิ้นเดือน' },
+      { id:'bonusUse', q:'ได้โบนัส/เงินพิเศษ ใช้อย่างไร?', opts:[
+        {t:'ออม/ลงทุนเป็นหลัก', ok:true},{t:'ซื้อของที่อยากได้', ok:false},{t:'ครึ่งหนึ่งออม ครึ่งหนึ่งใช้', ok:false}
+      ], tipOK:'ดีมาก! เงินพิเศษช่วยดันเป้าหมายไวขึ้น', tipNG:'กัน 70–80% เข้าฉุกเฉิน/ลงทุน ใช้ได้เล็กน้อย' },
+      { id:'tracking', q:'ติดตามรายรับรายจ่ายแค่ไหน?', opts:[
+        {t:'บันทึกและวิเคราะห์', ok:true},{t:'บันทึกบ้าง', ok:false},{t:'ไม่บันทึก', ok:false}
+      ], tipOK:'เยี่ยม! “รู้ว่าเงินไปไหน” คือพลัง', tipNG:'จดสั้นๆ วันละ 1 นาที หรือใช้แอป/ชีต สรุปสัปดาห์ละครั้ง' },
+      { id:'sale', q:'เจอโปรลดราคา ตัดสินใจอย่างไร?', opts:[
+        {t:'ดูความจำเป็นก่อน', ok:true},{t:'รีบซื้อเพราะคุ้ม', ok:false},{t:'ซื้อเก็บไว้ก่อน', ok:false}
+      ], tipOK:'ดีมาก! ซื้อเพราะ “ต้องใช้จริง”', tipNG:'ถาม 2 ข้อ: ต้องใช้ตอนนี้ไหม? ถ้าไม่ลด จะซื้อไหม?' }
+    ];
+
     var questions = [
       { id:'income',   title:'รายได้รวมต่อเดือน', icon:'💵', desc:'กรอก “รายได้รวม” ต่อเดือน', type:'single', field:'income' },
       { id:'debt',     title:'รายจ่ายหนี้ต่อเดือน', icon:'💳', desc:'กรอกยอดผ่อน/ชำระหนี้รวมต่อเดือน', type:'single', field:'debtExpense' },
@@ -149,7 +154,7 @@
     ];
 
     /* ===== Autosave ===== */
-    var SAVE_KEY='finhealth:simple:v3'; var qs=new URLSearchParams(location.search);
+    var SAVE_KEY='finhealth:simple:v2'; var qs=new URLSearchParams(location.search);
     function loadState(){
       try{
         if(qs.get('s')){ userData = JSON.parse(decodeURIComponent(atob(qs.get('s')))); return true; }
@@ -160,11 +165,23 @@
     function persist(){
       var minimal = {
         income:userData.income, debtExpense:userData.debtExpense, expenses:userData.expenses,
-        savings:userData.savings, results:userData.results||null, planTargets:userData.planTargets||null
+        savings:userData.savings, attitudeAnswers:userData.attitudeAnswers,
+        results:userData.results||null, sim:userData.sim||null, planTargets:userData.planTargets||null
       };
       try{ localStorage.setItem(SAVE_KEY, JSON.stringify(minimal)); }catch(e){}
     }
     var debounce=(function(fn){ var t; return function(){ clearTimeout(t); t=setTimeout(fn,300); }; })(persist);
+
+    function shareResult(){
+      if(!userData.results){ toast('ยังไม่มีผลลัพธ์','warn'); return; }
+      var s=btoa(encodeURIComponent(JSON.stringify(userData)));
+      var url=(location.origin||'')+(location.pathname||'')+'?s='+s;
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(function(){ toast('คัดลอกลิงก์ผลแล้ว','success'); });
+      }else{
+        prompt('คัดลอกลิงก์นี้', url);
+      }
+    }
 
     /* ===== Flow ===== */
     function setProgress(i,total){
@@ -183,7 +200,7 @@
 
     function renderQuestion(){
       var q=questions[currentStep];
-      var totalSteps=questions.length; // ไม่มีทัศนคติแล้ว
+      var totalSteps=questions.length+attitudeQuestions.length;
       setProgress(currentStep+1,totalSteps);
       var qsEl=$('questionScreen'); if(qsEl) qsEl.classList.remove('hidden');
 
@@ -350,14 +367,45 @@
         advice:{ dti:adviceDTI, ef:adviceEF, liq:adviceLIQ }
       };
       debounce();
-      renderFinal();
+      renderAttitude();
     }
 
-    /* ===== Final + Plan + Emergency Fund Simulator ===== */
+    /* ===== Attitude ===== */
+    function renderAttitude(){
+      var qs=$('questionScreen'); if(qs) qs.classList.add('hidden');
+      var as=$('attitudeScreen'); if(as) as.classList.remove('hidden');
+      currentAttitudeQuestion=0; userData.attitudeAnswers=[];
+      showAttitudeQ();
+    }
+    function setProgressAtt(){ setProgress(questions.length + currentAttitudeQuestion + 1, questions.length + attitudeQuestions.length); }
+    function showAttitudeQ(){
+      var q=attitudeQuestions[currentAttitudeQuestion]; setProgressAtt();
+      var opts = q.opts.map(function(o,i){
+        return '<button class="btn w-full text-left px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-200 hover:border-indigo-400 font-semibold text-gray-800 shadow-sm" data-ans="'+i+'">'+
+               '<span class="flex items-center gap-3"><span class="text-2xl" aria-hidden="true">•</span><span>'+o.t+'</span></span></button>';
+      }).join('');
+      $('attitudeContent').innerHTML =
+        '<div class="text-center mb-6">'+
+          '<div class="inline-block p-5 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-2xl mb-4" aria-hidden="true"><div class="text-5xl">🤔</div></div>'+
+          '<div class="inline-block px-3 py-1 bg-purple-100 rounded-full mb-3 text-purple-700 text-sm font-bold">คำถามที่ '+(currentAttitudeQuestion+1)+'/'+attitudeQuestions.length+'</div>'+
+          '<p class="text-xl text-gray-800 font-bold leading-relaxed max-w-lg mx-auto">'+q.q+'</p>'+
+        '</div><div class="grid gap-3">'+opts+'</div>';
+      var btns = $('attitudeContent').querySelectorAll('[data-ans]');
+      for(var i=0;i<btns.length;i++){ (function(b){ b.addEventListener('click', function(){ selectAtt(parseInt(b.getAttribute('data-ans'),10)); }); })(btns[i]); }
+    }
+    function selectAtt(i){
+      var q=attitudeQuestions[currentAttitudeQuestion], sel=q.opts[i];
+      userData.attitudeAnswers.push({ id:q.id, q:q.q, a:sel.t, ok:sel.ok, tip: sel.ok ? q.tipOK : q.tipNG });
+      currentAttitudeQuestion++;
+      if(currentAttitudeQuestion<attitudeQuestions.length){ showAttitudeQ(); } else { renderFinal(); }
+      buzz();
+    }
+
+    /* ===== Final + Plan + Simulator ===== */
     function ring(el, pct, color, label, valueText){
       var R=54, C=2*Math.PI*R, p=Math.max(0,Math.min(100,pct));
       el.innerHTML =
-        '<div class="p-4 rounded-2xl bg-white/90 border border-white/60 shadow text-center page-break-avoid">'+
+        '<div class="p-4 rounded-2xl bg-white/90 border border-white/60 shadow text-center">'+
           '<svg width="140" height="140" viewBox="0 0 140 140" class="mx-auto block" role="img" aria-label="'+label+' '+valueText+'">'+
             '<circle cx="70" cy="70" r="'+R+'" stroke="var(--ring)" stroke-width="14" fill="none"></circle>'+
             '<circle cx="70" cy="70" r="'+R+'" stroke="'+color+'" stroke-linecap="round" stroke-width="14" fill="none" class="ring-anim" style="stroke-dasharray:'+C+';stroke-dashoffset:'+C+';transform:rotate(-90deg);transform-origin:50% 50%"></circle>'+
@@ -374,7 +422,7 @@
       var visibleCats = expenseCategories.filter(function(c){ return (data.expenses[c.key]||0)>0 || (initCaps[c.key]||0)>0; });
       var rows = visibleCats.map(function(c){
         var now=data.expenses[c.key]||0; var rec=(initCaps[c.key]!==undefined?initCaps[c.key]:now);
-        return '<tr class="text-sm page-break-avoid">'+
+        return '<tr class="text-sm">'+
           '<td class="py-2">'+c.icon+' '+c.label+(c.need?'<span class="text-[10px] ml-2 px-2 py-[2px] rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">จำเป็น</span>':'')+'</td>'+
           '<td class="py-2 text-right mono">'+thb(now)+'</td>'+
           '<td class="py-2 text-right"><input data-money data-cap="'+c.key+'" class="w-28 px-2 py-1 rounded-lg border text-right" value="'+thb(rec)+'" aria-label="ปรับ '+c.label+'"></td>'+
@@ -383,52 +431,18 @@
       }).join('');
       return '<table class="w-full"><thead>'+
         '<tr class="text-xs text-gray-500 border-b"><th class="py-2 text-left">หมวด</th><th class="py-2 text-right">ตอนนี้</th><th class="py-2 text-right">ปรับใหม่ (ใส่เอง)</th><th class="py-2 text-right">ส่วนต่าง</th></tr></thead>'+
-        '<tbody>'+rows+'</tbody></table>';
-    }
-
-    function incomeDebtTable(R){
-      return ''+
-      '<div class="grid gap-4">'+
-        '<div class="rounded-2xl border p-4 bg-white page-break-avoid">'+
-          '<div class="font-semibold mb-2 flex items-center gap-2"><span class="text-xl">💵</span>หมวดรายรับ</div>'+
-          '<table class="w-full">'+
-            '<thead><tr class="text-xs text-gray-500 border-b"><th class="py-2 text-left">รายการ</th><th class="py-2 text-right">ตอนนี้</th><th class="py-2 text-right">ปรับใหม่ (ใส่เอง)</th><th class="py-2 text-right">ส่วนต่าง</th></tr></thead>'+
-            '<tbody>'+
-              '<tr class="text-sm">'+
-                '<td class="py-2">รายรับรวม/เดือน</td>'+
-                '<td class="py-2 text-right mono">'+thb(R.inc)+'</td>'+
-                '<td class="py-2 text-right"><input data-money id="new_income" class="w-32 px-2 py-1 rounded-lg border text-right" placeholder="'+thb(R.inc)+'" aria-label="ปรับรายรับรวม"></td>'+
-                '<td class="py-2 text-right mono" id="diff_income"></td>'+
-              '</tr>'+
-            '</tbody>'+
-          '</table>'+
-          '<p class="text-xs text-gray-500 mt-2">ปล่อยว่างไว้ = ใช้รายรับเท่าเดิม</p>'+
-        '</div>'+
-        '<div class="rounded-2xl border p-4 bg-white page-break-avoid">'+
-          '<div class="font-semibold mb-2 flex items-center gap-2"><span class="text-xl">💳</span>หมวดจ่ายหนี้</div>'+
-          '<table class="w-full">'+
-            '<thead><tr class="text-xs text-gray-500 border-b"><th class="py-2 text-left">รายการ</th><th class="py-2 text-right">ตอนนี้</th><th class="py-2 text-right">ปรับใหม่ (ใส่เอง)</th><th class="py-2 text-right">ส่วนต่าง</th></tr></thead>'+
-            '<tbody>'+
-              '<tr class="text-sm">'+
-                '<td class="py-2">ค่างวดหนี้รวม/เดือน</td>'+
-                '<td class="py-2 text-right mono">'+thb(R.debt)+'</td>'+
-                '<td class="py-2 text-right"><input data-money id="new_debt" class="w-32 px-2 py-1 rounded-lg border text-right" placeholder="'+thb(R.debt)+'" aria-label="ปรับค่างวดหนี้รวม"></td>'+
-                '<td class="py-2 text-right mono" id="diff_debt"></td>'+
-              '</tr>'+
-            '</tbody>'+
-          '</table>'+
-          '<p class="text-xs text-gray-500 mt-2">ปล่อยว่างไว้ = ใช้ค่างวดหนี้เท่าเดิม</p>'+
-        '</div>'+
-      '</div>';
+        '<tbody>'+rows+'</tbody></table>'+
+        '<p class="text-xs text-gray-500 mt-2">หมายเหตุ: ค่อยๆ ลด 10–20% ในหมวดที่ไม่จำเป็นก่อน ไม่หักค่าใช้จ่ายจำเป็นแรงจนเกินจริง</p>'+
+        '<div class="mt-3 text-sm p-3 rounded-xl border bg-white" id="planSummary" aria-live="polite"></div>';
     }
 
     function renderFinal(){
+      var as=$('attitudeScreen'); if(as) as.classList.add('hidden');
       var pc=$('progressContainer'); if(pc) pc.classList.add('hidden');
       var fs=$('finalScreen'); if(fs) fs.classList.remove('hidden');
 
       var R=userData.results;
 
-      // สร้างค่าแนะนำตั้งต้นรายจ่าย
       var baseShare={ food:.15, transport:.10, household:.06, utilities:.07, entertainment:.05, clothing:.03, internet:.03, other:.06 };
       var floors={ food:3000, transport:800, utilities:500 };
       var spendShareNow=(R.inc>0)?(R.spend/R.inc):.55;
@@ -443,66 +457,43 @@
         initCaps[k]=Math.min(now, Math.max(cap, stepFloor));
       });
 
-      // หัวกระดาษ (ติดไปกับ PDF)
-      var today = new Date();
-      var stamp = today.toLocaleDateString('th-TH', { year:'numeric', month:'short', day:'numeric' });
-
       $('finalContent').innerHTML =
         '<div class="text-center mb-2">'+
           '<div class="inline-block p-5 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl mb-3" aria-hidden="true"><div class="text-5xl">✨</div></div>'+
           '<h2 class="text-2xl sm:text-3xl font-extrabold" style="background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent">สรุปผลของคุณ (อ่านง่าย ทำได้จริง)</h2>'+
-          '<p class="text-gray-500">ตัวเลขทั้งหมดคำนวณจากข้อมูลของคุณ • สร้างเมื่อ '+stamp+'</p>'+
+          '<p class="text-gray-500">ตัวเลขทั้งหมดคำนวณจากข้อมูลของคุณ</p>'+
         '</div>'+
         '<div id="ringRow" class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-4"></div>'+
         '<div class="grid gap-4">'+
-          '<div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-5 shadow page-break-avoid" style="border-color:'+R.dtiColor+'">'+
+          '<div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-5 shadow" style="border-color:'+R.dtiColor+'">'+
             '<div class="flex items-center justify-between mb-2"><h3 class="text-lg font-bold">ภาระหนี้ (DTI)</h3><span class="px-3 py-1 text-xs rounded-full text-white" style="background:'+R.dtiColor+'">'+R.dtiStatus+'</span></div>'+
             '<div class="text-3xl font-extrabold mb-1" style="color:'+R.dtiColor+'">'+R.dti.toFixed(1)+'%</div>'+ ul(R.advice.dti) +
           '</div>'+
-          '<div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-5 shadow page-break-avoid" style="border-color:'+R.efColor+'">'+
+          '<div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-5 shadow" style="border-color:'+R.efColor+'">'+
             '<div class="flex items-center justify-between mb-2"><h3 class="text-lg font-bold">เงินฉุกเฉิน</h3><span class="px-3 py-1 text-xs rounded-full text-white" style="background:'+R.efColor+'">'+R.efStatus+'</span></div>'+
             '<div class="text-3xl font-extrabold mb-1" style="color:'+R.efColor+'">'+R.efMonths.toFixed(1)+' เดือน</div>'+ ul(R.advice.ef) +
           '</div>'+
-          '<div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-5 shadow page-break-avoid" style="border-color:'+R.liqColor+'">'+
+          '<div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-5 shadow" style="border-color:'+R.liqColor+'">'+
             '<div class="flex items-center justify-between mb-2"><h3 class="text-lg font-bold">สภาพคล่อง/เดือน</h3><span class="px-3 py-1 text-xs rounded-full text-white" style="background:'+R.liqColor+'">'+R.liqStatus+'</span></div>'+
             '<div class="text-3xl font-extrabold mb-1" style="color:'+R.liqColor+'">'+thb(R.liquidity)+' ฿</div>'+ ul(R.advice.liq) +
           '</div>'+
-
-          <!-- ตัวช่วยคำนวณเงินฉุกเฉิน -->
-          '<div class="bg-white rounded-2xl p-5 border page-break-avoid">'+
-            '<div class="flex items-center gap-2 mb-3"><span class="text-2xl">🧮</span><h3 class="text-lg font-bold">ตัวช่วยคำนวณเงินฉุกเฉิน (3–6 เท่าค่าใช้จ่าย/เดือน)</h3></div>'+
-            '<div class="grid gap-3 sm:grid-cols-2">'+
-              '<div class="rounded-xl border p-3 bg-gray-50">'+
-                '<div class="text-sm text-gray-600">จะออมเพิ่มต่อเดือน</div>'+
-                '<input data-money id="ef_extra" class="mt-1 w-full px-4 py-3 rounded-xl border bg-white text-right font-bold mono" placeholder="'+thb(Math.max(1000,Math.round((R.needTo3m/6)/100)*100))+'">'+
-                '<div class="text-xs text-gray-500 mt-1">ปล่อยว่าง = ยังไม่คำนวณ</div>'+
-              '</div>'+
-              '<div class="rounded-xl border p-3 bg-white">'+
-                '<div class="text-sm text-gray-600 mb-1">สถานะเป้าหมาย</div>'+
-                '<div class="text-sm">ต้องการ 3 เท่า: <span class="font-bold mono">'+thb(3*R.totalExp)+'</span> ฿ • ขาดอยู่ ~ <span class="font-bold mono">'+thb(Math.max(0,3*R.totalExp - R.sav))+'</span> ฿</div>'+
-                '<div class="text-sm">ต้องการ 6 เท่า: <span class="font-bold mono">'+thb(6*R.totalExp)+'</span> ฿ • ขาดอยู่ ~ <span class="font-bold mono">'+thb(Math.max(0,6*R.totalExp - R.sav))+'</span> ฿</div>'+
-              '</div>'+
-            '</div>'+
-            '<div id="ef_result" class="mt-3 p-3 rounded-xl border bg-white text-sm" aria-live="polite"></div>'+
-          '</div>'+
-
-          '<div class="bg-white rounded-2xl p-5 border page-break-avoid">'+
-            '<div class="flex items-center gap-2 mb-2"><span class="text-2xl" aria-hidden="true">🧭</span><h3 class="text-lg font-bold">ปรับรายรับ / จ่ายหนี้ / รายจ่าย (ให้กรอกเอง)</h3></div>'+
-            incomeDebtTable(R)+
-            '<div class="mt-4 rounded-2xl border p-4 bg-white">'+
-              '<div class="font-semibold mb-2">ปรับรายจ่ายรายหมวด</div>'+
-              editableCapTable(initCaps,userData)+
-              '<p class="text-xs text-gray-500 mt-2">หมายเหตุ: ค่อยๆ ลด 10–20% ในหมวดที่ไม่จำเป็นก่อน ไม่หักค่าใช้จ่ายจำเป็นแรงจนเกินจริง</p>'+
-              '<div class="mt-3 text-sm p-3 rounded-xl border bg-white" id="planSummary" aria-live="polite"></div>'+
-            '</div>'+
-          '</div>'+
+          '<div class="bg-white rounded-2xl p-5 border"><div class="flex items-center gap-2 mb-2"><span class="text-2xl" aria-hidden="true">🧭</span><h3 class="text-lg font-bold">ปรับรายจ่ายรายหมวด (ให้กรอกเอง)</h3></div>'+ editableCapTable(initCaps,userData) +'</div>'+
         '</div>'+
-        '<div class="grid gap-3 sm:grid-cols-2 mt-5 no-print">'+
+        '<div class="bg-white/90 border rounded-2xl p-5 shadow mt-4">'+
+          '<div class="flex items-center gap-2 mb-2"><span class="text-2xl" aria-hidden="true">🧪</span><h3 class="text-lg font-bold">ลองขยับ แล้วดูผลทันที</h3></div>'+
+          '<div class="grid-auto">'+
+            '<div><label class="block text-sm font-semibold mb-1" for="simCut">ลดรายจ่าย Top 3 (หมวดไม่จำเป็น)</label><input id="simCut" type="range" min="0" max="40" step="1" value="15" class="w-full"><div class="text-xs text-gray-600">ตอนนี้: <span id="simCutVal" class="mono">15%</span></div></div>'+
+            '<div><label class="block text-sm font-semibold mb-1" for="simDebt">ลดค่างวดหนี้/เดือน (เจรจา/รีไฟแนนซ์)</label><input id="simDebt" type="range" min="0" max="100" step="1" value="10" class="w-full"><div class="text-xs text-gray-600">ตอนนี้: <span id="simDebtVal" class="mono">10%</span> ของรายจ่ายหนี้ (<span id="simDebtBaht" class="mono"></span>฿)</div></div>'+
+            '<div><label class="block text-sm font-semibold mb-1" for="simEF">ออมฉุกเฉินต่อเดือน</label><input id="simEF" type="range" min="0" max="30" step="1" value="10" class="w-full"><div class="text-xs text-gray-600">ตอนนี้: <span id="simEFVal" class="mono">10%</span> ของรายได้ (<span id="simEFBaht" class="mono"></span>฿)</div></div>'+
+          '</div>'+
+          '<div id="simResult" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4"></div>'+
+          '<div id="simAdvice" class="text-sm text-gray-700 leading-relaxed mt-3"></div>'+
+        '</div>'+
+        '<div class="grid gap-3 sm:grid-cols-2 mt-5">'+
           '<button id="btnRestart" class="btn px-6 py-4 rounded-2xl text-white font-bold" style="background:linear-gradient(135deg,var(--primary),var(--secondary))">🔄 เริ่มใหม่</button>'+
-          '<button id="btnSavePdf" class="btn px-6 py-4 rounded-2xl font-semibold bg-white border">🖨️ บันทึกเป็น PDF</button>'+
+          '<button id="btnShare" class="btn px-6 py-4 rounded-2xl font-semibold bg-white border">🔗 แชร์ผลลัพธ์</button>'+
         '</div>';
 
-      // วงแหวนสรุป
       var row=$('ringRow'); var a=document.createElement('div'), b=document.createElement('div'), c=document.createElement('div'); row.appendChild(a); row.appendChild(b); row.appendChild(c);
       var dtiPct=Math.min(100, R.dti);
       var efPct=Math.min(100,(R.efMonths/6)*100);
@@ -511,149 +502,140 @@
       ring(b,efPct,R.efColor,'เงินฉุกเฉิน', R.efMonths.toFixed(1)+'ด.');
       ring(c,liqPct,R.liqColor,'สภาพคล่อง/รายได้', liqPct.toFixed(0)+'%');
 
-      // ===== Emergency Fund Simulator =====
-      function monthsToText(m){
-        if(!isFinite(m) || m<=0) return '0 เดือน';
-        var mm = Math.ceil(m);
-        var y = Math.floor(mm/12), mo = mm%12;
-        var parts=[];
-        if(y>0) parts.push(y+' ปี');
-        if(mo>0) parts.push(mo+' เดือน');
-        return parts.join(' ');
-      }
-      function addMonths(date, m){
-        var d=new Date(date.getTime());
-        var day=d.getDate();
-        d.setMonth(d.getMonth()+m);
-        if(d.getDate()<day){ d.setDate(0); } // handle month-end
-        return d;
-      }
-      function formatThai(d){
-        return d.toLocaleDateString('th-TH',{year:'numeric',month:'short'});
-      }
-      function efSimRecalc(){
-        var extraEl = $('ef_extra');
-        var extra = (extraEl && extraEl.value.trim()!=='') ? parseMoneyInput(extraEl) : 0;
-        var box = $('ef_result');
-        var short3 = Math.max(0, 3*R.totalExp - R.sav);
-        var short6 = Math.max(0, 6*R.totalExp - R.sav);
-
-        if(extra<=0){
-          box.innerHTML = '<div class="text-gray-600">กรอกจำนวน “ออมเพิ่มต่อเดือน” เพื่อคำนวณระยะเวลาไปถึง 3x และ 6x</div>';
-          return;
-        }
-        var m3 = short3<=0 ? 0 : (short3/extra);
-        var m6 = short6<=0 ? 0 : (short6/extra);
-        var now=new Date();
-        var done3 = short3<=0 ? 'ครบแล้ว' : monthsToText(m3)+' • ประมาณ '+formatThai(addMonths(now, Math.ceil(m3)));
-        var done6 = short6<=0 ? 'ครบแล้ว' : monthsToText(m6)+' • ประมาณ '+formatThai(addMonths(now, Math.ceil(m6)));
-
-        box.innerHTML =
-          '<div class="grid gap-2 sm:grid-cols-2">'+
-            '<div class="rounded-lg border p-3 bg-emerald-50">'+
-              '<div class="text-xs text-emerald-700">ไปให้ถึง 3 เท่า</div>'+
-              '<div class="font-extrabold mono text-emerald-800">'+done3+'</div>'+
-              '<div class="text-xs text-emerald-700">ขาดอยู่ ~ '+thb(short3)+' ฿</div>'+
-            '</div>'+
-            '<div class="rounded-lg border p-3 bg-indigo-50">'+
-              '<div class="text-xs text-indigo-700">ไปให้ถึง 6 เท่า</div>'+
-              '<div class="font-extrabold mono text-indigo-800">'+done6+'</div>'+
-              '<div class="text-xs text-indigo-700">ขาดอยู่ ~ '+thb(short6)+' ฿</div>'+
-            '</div>'+
-          '</div>';
-      }
-
-      var extraEl=$('ef_extra'); if(extraEl){ extraEl.addEventListener('input', efSimRecalc); }
-
-      // คำนวณแบบเรียลไทม์เมื่อมีการปรับแผน
       function recalcPlan(){
         var targets={}, newSpend=0;
-
         expenseCategories.forEach(function(c){
           var now=userData.expenses[c.key]||0;
           var inp=document.querySelector('[data-cap="'+c.key+'"]');
+
+          // ถ้าเว้นว่าง = ถือว่า "ไม่ปรับ" ใช้ค่าเดิม
           var isBlank = !inp || (inp.value||'').toString().replace(/,/g,'').trim()==='';
           var t = isBlank ? now : parseMoneyInput(inp);
-          t = Math.max(0, Math.min(now, t));
+          t = Math.max(0, Math.min(now, t)); // ไม่ให้เกินค่าปัจจุบัน
+
           targets[c.key]=t; newSpend+=t;
 
           var diffEl=$('diff_'+c.key);
           if(diffEl){
-            if(isBlank){ diffEl.textContent=''; diffEl.style.color='#111827'; }
-            else{
-              var diff=t-now; var sign= diff>0?'+':'';
+            if(isBlank){
+              diffEl.textContent = '';         // ยังไม่ปรับ → ไม่แสดง
+              diffEl.style.color = '#111827';
+            }else{
+              var diff=t-now;                  // ส่วนต่าง = ปรับใหม่ - ตอนนี้
+              var sign = diff>0 ? '+' : '';
               diffEl.style.color= diff>0 ? '#ef4444' : (diff<0 ? '#10b981' : '#111827');
               diffEl.textContent= sign + thb(diff);
             }
           }
         });
 
-        var incNow=userData.results.inc, debtNow=userData.results.debt;
-        var incInp=$('new_income'), debtInp=$('new_debt');
-
-        var incBlank = !incInp || (incInp.value||'').toString().replace(/,/g,'').trim()==='';
-        var debtBlank= !debtInp|| (debtInp.value||'').toString().replace(/,/g,'').trim()==='';
-
-        var newInc   = incBlank  ? incNow  : Math.max(0, parseMoneyInput(incInp));
-        var newDebt  = debtBlank ? debtNow : Math.max(0, parseMoneyInput(debtInp));
-
-        var di=$('diff_income'); if(di){
-          if(incBlank){ di.textContent=''; di.style.color='#111827'; }
-          else{ var d=newInc-incNow; di.textContent=(d>0?'+':'')+thb(d); di.style.color=d>=0?'#10b981':'#ef4444'; }
-        }
-        var dd=$('diff_debt'); if(dd){
-          if(debtBlank){ dd.textContent=''; dd.style.color='#111827'; }
-          else{ var d2=newDebt-debtNow; dd.textContent=(d2>0?'+':'')+thb(d2); dd.style.color=d2>0?'#ef4444':'#10b981'; }
-        }
-
-        var newTotal = newDebt + newSpend;
-        var newLiq   = newInc - newTotal;
-        var newDTI   = safeDiv(newDebt,newInc)*100;
+        var debt=R.debt, inc=R.inc;
+        var newTotal=newSpend+debt;
+        var newLiq=inc-newTotal;
+        var newDTI=safeDiv(debt,inc)*100;
 
         var box=$('planSummary'); var stillNeg=newLiq<0;
         box.innerHTML =
-          '<div class="grid grid-cols-1 sm:grid-cols-4 gap-2">'+
-            '<div><div class="text-xs text-gray-500">รายรับใหม่</div><div class="mono font-extrabold">'+thb(newInc)+' ฿</div></div>'+
+          '<div class="grid grid-cols-1 sm:grid-cols-3 gap-2">'+
             '<div><div class="text-xs text-gray-500">รายจ่ายใหม่ (รวมหมวด)</div><div class="mono font-extrabold">'+thb(newSpend)+' ฿</div></div>'+
-            '<div><div class="text-xs text-gray-500">DTI ใหม่</div><div class="mono font-extrabold">'+(isFinite(newDTI)?newDTI.toFixed(1):'–')+'%</div></div>'+
+            '<div><div class="text-xs text-gray-500">DTI (เท่าเดิม หากไม่ลดค่างวด)</div><div class="mono font-extrabold">'+(isFinite(newDTI)?newDTI.toFixed(1):'–')+'%</div></div>'+
             '<div><div class="text-xs text-gray-500">สภาพคล่องคาดการณ์</div><div class="mono font-extrabold" style="color:'+(stillNeg?'#ef4444':'#10b981')+'">'+thb(newLiq)+' ฿</div></div>'+
           '</div>'+
           '<div class="mt-2 '+(stillNeg?'text-rose-700':'text-emerald-700')+' text-sm">'+
-            (stillNeg?'ยังติดลบอยู่ → พิจารณา “เพิ่มรายรับ/ลดค่างวดหนี้” ร่วมกับการปรับรายจ่าย':'ดีขึ้นแล้ว → เริ่มกันเงินฉุกเฉินตามกำลังได้')+
+            (stillNeg?'ยังติดลบอยู่ → พิจารณา “ลดค่างวดหนี้/เดือน” (เจรจาปรับโครงสร้าง/รีไฟแนนซ์) หรือปรับหมวดอื่นเพิ่มเติม':'ดีขึ้นแล้ว → เริ่มกันเงินฉุกเฉินตามกำลังได้')+
           '</div>';
 
-        userData.planTargets=targets;
-        userData.planNewIncome=newInc;
-        userData.planNewDebt=newDebt;
-        userData.planLiq=newLiq;
-        debounce();
-
-        // อัปเดตกล่อง EF ถ้าผู้ใช้กรอกจำนวนออม (แม้เราใช้ฐาน totalExp เดิม)
-        efSimRecalc();
+        userData.planTargets=targets; userData.planLiq=newLiq; debounce();
       }
-
       var caps=document.querySelectorAll('[data-cap]'); for(var i=0;i<caps.length;i++){ caps[i].addEventListener('input', recalcPlan); }
-      var incInp=$('new_income'), debtInp=$('new_debt');
-      if(incInp) incInp.addEventListener('input', recalcPlan);
-      if(debtInp) debtInp.addEventListener('input', recalcPlan);
-      // ค่าเริ่มต้นของ EF result
-      efSimRecalc();
       recalcPlan();
 
+      var simCut=$('simCut'), simDebt=$('simDebt'), simEF=$('simEF');
+      var simCutVal=$('simCutVal'), simDebtVal=$('simDebtVal'), simEFVal=$('simEFVal');
+      var simDebtBaht=$('simDebtBaht'), simEFBaht=$('simEFBaht');
+
+      function syncLabels(){
+        simCutVal.textContent  = simCut.value+'%';
+        simDebtVal.textContent = simDebt.value+'%';
+        simEFVal.textContent   = simEF.value+'%';
+
+        simDebtBaht.textContent = thb(R.debt * (simDebt.value/100));
+        simEFBaht.textContent   = thb(R.inc  * (simEF.value/100));
+
+        if(R.debt <= 0){
+          simDebt.value = 0;
+          simDebt.disabled = true;
+          simDebtVal.textContent = '0%';
+          simDebtBaht.textContent = '0';
+        }else{
+          simDebt.disabled = false;
+        }
+      }
+
+      function runSim(){
+        var cutPct   = Number(simCut.value)/100;
+        var reduceDebt = R.debt * (Number(simDebt.value)/100);
+        var saveEF     = R.inc  * (Number(simEF.value)/100);
+
+        var spendNew=R.spend;
+        var top3=R.offenders.filter(function(e){return !e.need;}).slice(0,3);
+        top3.forEach(function(t){ spendNew -= t.v*cutPct; });
+        if(spendNew<0) spendNew=0;
+
+        var debtNew=Math.max(0, R.debt - reduceDebt);
+        var totalNew=spendNew + debtNew;
+        var dtiNew=safeDiv(debtNew,R.inc)*100;
+
+        var needTo6mNew=Math.max(0, 6*totalNew - R.sav);
+        var efMonthly=Math.min(saveEF, needTo6mNew);
+        var liqNew= R.inc - totalNew - efMonthly;
+        var efMonthsNew= safeDiv(R.sav + efMonthly, totalNew);
+
+        function card(label,val,sub,color){
+          return '<div class="rounded-xl border p-4 text-center" style="border-color:'+color+'">'+
+                   '<div class="text-xs text-gray-500 mb-1">'+label+'</div>'+
+                   '<div class="text-2xl font-extrabold mono" style="color:'+color+'">'+val+'</div>'+
+                   '<div class="text-xs text-gray-500 mt-1">'+sub+'</div>'+
+                 '</div>';
+        }
+        $('simResult').innerHTML = [
+          card('DTI ใหม่', isFinite(dtiNew)?dtiNew.toFixed(1)+'%':'–', 'เปลี่ยนแปลง: '+(isFinite(dtiNew)?(R.dti-dtiNew).toFixed(1):'–')+' จุด', '#6366f1'),
+          card('ฉุกเฉิน (เดือน)', isFinite(efMonthsNew)?efMonthsNew.toFixed(1)+' ด.':'–', 'ออม/เดือน: '+thb(efMonthly)+'฿', '#10b981'),
+          card('สภาพคล่องสุทธิ', thb(liqNew)+'฿', 'หลังกันฉุกเฉิน '+thb(efMonthly)+'฿', liqNew>=0?'#10b981':'#ef4444')
+        ].join('');
+
+        var needTo35New=Math.max(0, debtNew - (R.inc*0.35));
+        var monthsTo3m=(R.needTo3m>0 && efMonthly>0)? Math.ceil(R.needTo3m / efMonthly) : 0;
+
+        $('simAdvice').innerHTML =
+          '<div class="grid-auto mt-1">'+
+            '<div class="bg-white rounded-lg p-3 border"><div class="font-semibold mb-1">เป้าหมาย DTI 35%</div>'+
+              (needTo35New<=0 ? '<div class="text-sm text-green-700">✅ แตะ ≤35% แล้ว</div>' :
+               '<div class="text-sm">ยังต้องลดค่างวดอีก <span class="chip mono">'+thb(needTo35New)+'฿/เดือน</span></div>')+
+            '</div>'+
+            '<div class="bg-white rounded-lg p-3 border"><div class="font-semibold mb-1">ฉุกเฉิน 3 เดือน</div>'+
+              (R.needTo3m<=0 ? '<div class="text-sm text-green-700">✅ ครบ ≥3 เดือนแล้ว</div>' :
+               (efMonthly<=0 ? '<div class="text-sm text-amber-700">ตั้งออมต่อเดือนก่อน</div>' :
+                '<div class="text-sm">คาด ~<span class="chip mono">'+monthsTo3m+' เดือน</span> หากออมเดือนละ <span class="chip mono">'+thb(efMonthly)+'฿</span></div>'))+
+            '</div>'+
+            '<div class="bg-white rounded-lg p-3 border"><div class="font-semibold mb-1">ผลจากการลดรายจ่าย</div>'+
+              '<div class="text-sm">ตัด Top3 (หมวดไม่จำเป็น) ~<span class="chip mono">'+simCut.value+'%</span> → ลดรวม ~<span class="chip mono">'+thb(top3.reduce(function(s,x){return s+x.v*cutPct;},0))+'฿/เดือน</span></div>'+
+            '</div>'+
+          '</div>';
+        userData.sim={cutPct:cutPct, reduceDebt:reduceDebt, efMonthly:efMonthly, dtiNew:dtiNew, efMonthsNew:efMonthsNew, liqNew:liqNew}; debounce();
+      }
+
+      simCut.addEventListener('input', function(){ syncLabels(); runSim(); });
+      simDebt.addEventListener('input', function(){ syncLabels(); runSim(); });
+      simEF.addEventListener('input', function(){ syncLabels(); runSim(); });
+      syncLabels(); runSim();
+
       $('btnRestart').addEventListener('click', function(){
-        userData={ income:0, debtExpense:0, expenses:{}, savings:0 };
+        userData={ income:0, debtExpense:0, expenses:{}, savings:0, attitudeAnswers:[] };
         currentStep=0; var fs=$('finalScreen'); if(fs) fs.classList.add('hidden'); var ws=$('welcomeScreen'); if(ws) ws.classList.remove('hidden');
         var pb=$('progressBar'); if(pb) pb.style.width='0%'; persist();
       });
-
-      // ปุ่มบันทึกเป็น PDF
-      var saveBtn = $('btnSavePdf');
-      if(saveBtn){
-        saveBtn.addEventListener('click', function(){
-          window.scrollTo({ top: 0, behavior: 'instant' });
-          setTimeout(function(){ window.print(); }, 60);
-        });
-      }
+      $('btnShare').addEventListener('click', shareResult);
     }
 
     /* ===== Init + robust start/resume ===== */
