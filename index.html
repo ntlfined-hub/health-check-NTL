@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>ตรวจสุขภาพการเงิน • Simple & Personal</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Noto+Sans+Thai:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
   <style>
     :root{
       --from:#0f0c29; --mid:#302b63; --to:#24243e;
@@ -25,7 +25,6 @@
     .mono{ font-variant-numeric: tabular-nums; }
     .grid-auto{ display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:.75rem }
     @view-transition { navigation: auto; }
-    .help{ font-size:.85rem; color:#64748b }
   </style>
 </head>
 <body class="min-h-full">
@@ -39,12 +38,12 @@
   <main class="relative z-10 min-h-full flex items-center justify-center p-4">
     <div class="w-full max-w-3xl">
       <!-- Progress -->
-      <div id="progressContainer" class="mb-6 hidden" aria-hidden="true">
+      <div id="progressContainer" class="mb-6 hidden">
         <div class="flex justify-between items-center mb-2">
           <span class="text-white/80 text-sm font-medium">ความคืบหน้า</span>
           <span id="progressText" class="text-white text-sm font-bold">0%</span>
         </div>
-        <div class="bg-white/15 rounded-full h-2 overflow-hidden backdrop-blur" aria-label="ความคืบหน้าการตอบ">
+        <div class="bg-white/15 rounded-full h-2 overflow-hidden backdrop-blur">
           <div id="progressBar" class="h-2 rounded-full" style="width:0%; background:linear-gradient(90deg,var(--primary),var(--secondary))"></div>
         </div>
       </div>
@@ -54,22 +53,19 @@
         <section id="welcomeScreen">
           <div class="text-center">
             <div class="inline-block p-6 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl mb-6 shadow-2xl">
-              <div class="text-6xl" aria-hidden="true">💰</div>
+              <div class="text-6xl">💰</div>
             </div>
             <h1 class="text-4xl sm:text-5xl font-extrabold mb-3" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent">ตรวจสุขภาพการเงิน</h1>
-            <p class="text-gray-600 mb-3 sm:mb-4 text-base sm:text-lg font-medium max-w-md mx-auto">
+            <p class="text-gray-500 mb-8 sm:mb-10 text-base sm:text-lg font-medium max-w-md mx-auto">
               กรอกตัวเลขจริง แล้วรับคำแนะนำสั้นๆ ชัดๆ ที่ทำได้เลย
             </p>
-            <p class="help max-w-md mx-auto">
-              ℹ️ ข้อมูลเก็บแค่ในเครื่องคุณ (localStorage) • แชร์ลิงก์ได้เฉพาะตัวเลขสรุป ไม่มีชื่อ/เลขบัญชี
-            </p>
 
-            <div class="grid gap-3 sm:gap-4 mt-6">
+            <div class="grid gap-3 sm:gap-4">
               <button id="btnStart" class="btn px-6 py-4 sm:px-10 sm:py-5 rounded-2xl text-white font-bold text-base sm:text-lg shadow-xl"
-                style="background:linear-gradient(135deg,var(--primary),var(--secondary))" aria-label="เริ่มต้นทำแบบประเมิน">
+                style="background:linear-gradient(135deg,var(--primary),var(--secondary))">
                 เริ่มต้น →
               </button>
-              <button id="btnResume" class="btn px-6 py-4 rounded-2xl font-semibold text-gray-800 bg-white border border-gray-200 hidden" aria-label="ดูผลครั้งก่อน">
+              <button id="btnResume" class="btn px-6 py-4 rounded-2xl font-semibold text-gray-800 bg-white border border-gray-200 hidden">
                 ▶️ ต่อจากครั้งก่อน
               </button>
             </div>
@@ -77,12 +73,12 @@
         </section>
 
         <!-- Questions -->
-        <section id="questionScreen" class="hidden" aria-live="polite">
+        <section id="questionScreen" class="hidden">
           <div id="questionContent"></div>
         </section>
 
         <!-- Attitude -->
-        <section id="attitudeScreen" class="hidden" aria-live="polite">
+        <section id="attitudeScreen" class="hidden">
           <div id="attitudeContent"></div>
         </section>
 
@@ -95,7 +91,7 @@
   </main>
 
   <!-- Toast -->
-  <div id="toastRoot" class="fixed left-1/2 -translate-x-1/2 bottom-6 z-[9999]" role="status" aria-live="polite"></div>
+  <div id="toastRoot" class="fixed left-1/2 -translate-x-1/2 bottom-6 z-[9999]"></div>
 
   <script>
     /* ===== Helpers ===== */
@@ -130,18 +126,15 @@
     let userData = { income:0, debtExpense:0, expenses:{}, savings:0, attitudeAnswers:[] };
 
     const expenseCategories = [
-      { key:'food', label:'ค่าอาหาร', icon:'🍜' },
-      { key:'transport', label:'เดินทาง/น้ำมัน', icon:'🚗' },
-      { key:'household', label:'ของใช้ในบ้าน', icon:'🏠' },
-      { key:'utilities', label:'ค่าน้ำ/ไฟ', icon:'💡' },
-      { key:'entertainment', label:'สังสรรค์/บันเทิง', icon:'🎉' },
-      { key:'clothing', label:'เสื้อผ้า/เครื่องประดับ', icon:'👔' },
-      { key:'internet', label:'เน็ต/โทรศัพท์', icon:'📱' },
-      { key:'other', label:'อื่นๆ', icon:'📝' }
+      { key:'food', label:'ค่าอาหาร', icon:'🍜', need:true },           // NEW need flag
+      { key:'transport', label:'เดินทาง/น้ำมัน', icon:'🚗', need:true }, // NEW
+      { key:'household', label:'ของใช้ในบ้าน', icon:'🏠', need:false },
+      { key:'utilities', label:'ค่าน้ำ/ไฟ', icon:'💡', need:true },      // NEW
+      { key:'entertainment', label:'สังสรรค์/บันเทิง', icon:'🎉', need:false },
+      { key:'clothing', label:'เสื้อผ้า/เครื่องประดับ', icon:'👔', need:false },
+      { key:'internet', label:'เน็ต/โทรศัพท์', icon:'📱', need:true },   // อาจจำเป็นสำหรับงาน/เรียน
+      { key:'other', label:'อื่นๆ', icon:'📝', need:false }
     ];
-
-    // หมวดที่ถือเป็น "รายจ่ายจำเป็น" สำหรับ EF
-    const essentialKeys = new Set(['food','transport','household','utilities','internet','other']);
 
     const attitudeQuestions = [
       { id:'saveFirst',  q:'ได้เงินเดือน ทำอะไรเป็นอย่างแรก?', opts:[
@@ -176,18 +169,14 @@
     ];
 
     const questions = [
-      { id:'income',   title:'รายได้สุทธิรวมต่อเดือน', icon:'💵', desc:'กรอก “รายได้สุทธิ” ต่อเดือน (หลังหักภาษี/ประกันสังคม)', type:'single', field:'income',
-        help:'ℹ️ ใช้รายได้สุทธิ เพื่อสะท้อนความสามารถในการจ่ายจริง' },
-      { id:'debt',     title:'รายจ่ายหนี้ต่อเดือน', icon:'💳', desc:'กรอกยอดผ่อน/ชำระหนี้รวมต่อเดือน (ขั้นต่ำหรือค่างวดจริง)', type:'single', field:'debt',
-        help:'ℹ️ รวมทุกหนี้: บัตรเครดิต ผ่อนรถ ผ่อนบ้าน ฯลฯ' },
-      { id:'expenses', title:'รายจ่ายประจำ (แยกหมวด)', icon:'🛒', desc:'กรอกค่าใช้จ่ายแต่ละหมวดต่อเดือน', type:'multiple', field:'expenses',
-        help:'ℹ️ หมวดจำเป็นใช้คำนวณเงินฉุกเฉิน (EF) – ไม่รวมค่างวดหนี้' },
-      { id:'savings',  title:'เงินออมฉุกเฉินที่มี', icon:'🏦', desc:'กรอกเงินออม/เงินสดสำรองที่พร้อมใช้ (สภาพคล่องสูง)', type:'single', field:'savings',
-        help:'ℹ️ ควรเก็บ 3–6 เท่าของ “รายจ่ายจำเป็นต่อเดือน”' }
+      { id:'income',   title:'รายได้รวมต่อเดือน', icon:'💵', desc:'กรอก “รายได้รวม” ต่อเดือน', type:'single', field:'income' },
+      { id:'debt',     title:'รายจ่ายหนี้ต่อเดือน', icon:'💳', desc:'กรอกยอดผ่อน/ชำระหนี้รวมต่อเดือน', type:'single', field:'debtExpense' },
+      { id:'expenses', title:'รายจ่ายประจำ (แยกหมวด)', icon:'🛒', desc:'กรอกค่าใช้จ่ายแต่ละหมวดต่อเดือน', type:'multiple', field:'expenses' },
+      { id:'savings',  title:'เงินออมปัจจุบัน', icon:'🏦', desc:'กรอกเงินออมสะสมที่มีอยู่', type:'single', field:'savings' }
     ];
 
     /* ===== Autosave / Deep link ===== */
-    const SAVE_KEY='finhealth:simple:v2', qs=new URLSearchParams(location.search);
+    const SAVE_KEY='finhealth:simple:v1', qs=new URLSearchParams(location.search);
     function loadState(){ try{
       if(qs.get('s')){ userData=JSON.parse(decodeURIComponent(atob(qs.get('s')))); return true; }
       const raw=localStorage.getItem(SAVE_KEY); if(raw){ userData=JSON.parse(raw); return true; }
@@ -201,23 +190,15 @@
       if(!userData.results){ toast('ยังไม่มีผลลัพธ์','warn'); return; }
       const s=btoa(encodeURIComponent(JSON.stringify(userData)));
       const url=`${location.origin}${location.pathname}?s=${s}`;
-      navigator.clipboard?.writeText(url).then(()=>{
-        toast('คัดลอกลิงก์ผลแล้ว (มีเฉพาะตัวเลข ไม่รวมข้อมูลส่วนตัว)','success')
-      });
-    }
-    function clearAll(){
-      localStorage.removeItem(SAVE_KEY);
-      userData = { income:0, debtExpense:0, expenses:{}, savings:0, attitudeAnswers:[] };
-      toast('ล้างข้อมูลในเครื่องแล้ว','success');
-      location.href = location.pathname;
+      navigator.clipboard?.writeText(url).then(()=>toast('คัดลอกลิงก์ผลแล้ว','success'));
     }
 
     /* ===== Flow ===== */
     const $ = id => document.getElementById(id);
-    function setProgress(i, total){ const p=Math.round(i/Math.max(total,1)*100); $('progressBar').style.width=p+'%'; $('progressText').textContent=p+'%'; }
+    function setProgress(i, total){ const p=Math.round(i/total*100); $('progressBar').style.width=p+'%'; $('progressText').textContent=p+'%'; }
     function start(){ $('welcomeScreen').classList.add('hidden'); $('progressContainer').classList.remove('hidden'); currentStep=0; renderQuestion(); }
     function prev(){ if(currentStep>0){ currentStep--; renderQuestion(); debounce(); } }
-    function inputMoney(id, placeholder='0'){ return `<input type="text" id="${id}" data-money class="w-full px-6 py-4 border-0 rounded-2xl text-xl font-semibold text-gray-800 mono" placeholder="${placeholder}" inputmode="decimal" aria-label="จำนวนเงิน">`; }
+    function inputMoney(id, placeholder='0'){ return `<input type="text" id="${id}" data-money class="w-full px-6 py-4 border-0 rounded-2xl text-xl font-semibold text-gray-800 mono" placeholder="${placeholder}" inputmode="decimal">`; }
 
     function renderQuestion(){
       const q = questions[currentStep];
@@ -228,34 +209,32 @@
       if(q.type==='single'){
         $('questionContent').innerHTML = `
           <div class="text-center mb-6">
-            <div class="inline-block p-5 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-2xl mb-4"><div class="text-5xl" aria-hidden="true">${q.icon}</div></div>
+            <div class="inline-block p-5 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-2xl mb-4"><div class="text-5xl">${q.icon}</div></div>
             <h2 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-800">${q.title}</h2>
-            <p class="text-gray-600 font-medium">${q.desc}</p>
-            ${q.help?`<p class="help mt-2">${q.help}</p>`:''}
+            <p class="text-gray-500 font-medium">${q.desc}</p>
           </div>
           <div class="mb-6">${inputMoney('money_single')}</div>
           <div class="flex gap-3">
-            ${currentStep>0?'<button id="btnPrev" class="flex-1 px-6 py-4 bg-gray-100 text-gray-700 font-bold rounded-2xl" aria-label="ย้อนกลับ">← ย้อนกลับ</button>':''}
-            <button id="btnNext" class="btn flex-1 px-6 py-4 text-white font-bold rounded-2xl shadow-lg" style="background:linear-gradient(135deg,var(--primary),var(--secondary))" aria-label="ถัดไป">ถัดไป →</button>
+            ${currentStep>0?'<button id="btnPrev" class="flex-1 px-6 py-4 bg-gray-100 text-gray-700 font-bold rounded-2xl">← ย้อนกลับ</button>':''}
+            <button id="btnNext" class="btn flex-1 px-6 py-4 text-white font-bold rounded-2xl shadow-lg" style="background:linear-gradient(135deg,var(--primary),var(--secondary))">ถัดไป →</button>
           </div>`;
-        const el=$('money_single'); const val=(q.field==='debt'?userData.debtExpense:userData[q.field])||0; if(val){ el.value=thb(val); el.dataset.raw=val }
+        const el=$('money_single'); const val=userData[q.field]||0; if(val){ el.value=thb(val); el.dataset.raw=val }
       } else {
         const fields = expenseCategories.map(c=>`
           <div>
-            <label class="block text-sm font-bold mb-1 text-gray-700 flex items-center gap-2"><span class="text-2xl" aria-hidden="true">${c.icon}</span>${c.label}</label>
+            <label class="block text-sm font-bold mb-1 text-gray-700 flex items-center gap-2"><span class="text-2xl">${c.icon}</span>${c.label}${c.need?'<span class="text-[10px] ml-2 px-2 py-[2px] rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">จำเป็น</span>':''}</label>
             ${inputMoney('ex_'+c.key)}
           </div>`).join('');
         $('questionContent').innerHTML = `
           <div class="text-center mb-5">
-            <div class="inline-block p-5 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-2xl mb-4"><div class="text-5xl" aria-hidden="true">${q.icon}</div></div>
+            <div class="inline-block p-5 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-2xl mb-4"><div class="text-5xl">${q.icon}</div></div>
             <h2 class="text-2xl sm:text-3xl font-bold mb-2 text-gray-800">${q.title}</h2>
-            <p class="text-gray-600 font-medium">${q.desc}</p>
-            ${q.help?`<p class="help mt-2">${q.help}</p>`:''}
+            <p class="text-gray-500 font-medium">${q.desc}</p>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">${fields}</div>
           <div class="flex gap-3">
-            <button id="btnPrev" class="flex-1 px-6 py-4 bg-gray-100 text-gray-700 font-bold rounded-2xl" aria-label="ย้อนกลับ">← ย้อนกลับ</button>
-            <button id="btnNext" class="btn flex-1 px-6 py-4 text-white font-bold rounded-2xl shadow-lg" style="background:linear-gradient(135deg,var(--primary),var(--secondary))" aria-label="ถัดไป">ถัดไป →</button>
+            <button id="btnPrev" class="flex-1 px-6 py-4 bg-gray-100 text-gray-700 font-bold rounded-2xl">← ย้อนกลับ</button>
+            <button id="btnNext" class="btn flex-1 px-6 py-4 text-white font-bold rounded-2xl shadow-lg" style="background:linear-gradient(135deg,var(--primary),var(--secondary))">ถัดไป →</button>
           </div>`;
         expenseCategories.forEach(c=>{ const el=$('ex_'+c.key); const v=userData.expenses[c.key]||0; if(v){ el.value=thb(v); el.dataset.raw=v }});
       }
@@ -268,7 +247,7 @@
       if(q.type==='single'){
         const val=parseMoneyInput($('money_single'));
         if(val<0 || isNaN(val)){ toast('กรุณากรอกจำนวนเงินที่ถูกต้อง','warn'); return; }
-        if(q.field==='debt'){ userData.debtExpense=val; } else { userData[q.field]=val; }
+        userData[q.field]=val;
       } else {
         expenseCategories.forEach(c=>{ const el=$('ex_'+c.key); userData.expenses[c.key]=el?parseMoneyInput(el):0; });
       }
@@ -277,36 +256,29 @@
       buzz();
     }
 
-    /* ===== Core calculations (อัปเดต EF ด้วย “จำเป็น”) ===== */
-    function sumEssential(expenses, offendersCut=0){
-      // หากส่ง offendersCut > 0 คือสัดส่วนลดบน top offenders (คำนวณแยกใน simulator)
-      return Object.entries(expenses||{})
-        .filter(([k])=> essentialKeys.has(k))
-        .reduce((a,[,v])=> a + (v||0), 0);
-    }
-
+    /* ===== Core calculations ===== */
     function computeCore(){
-      const inc=userData.income||0;
-      const debt=userData.debtExpense||0;
+      const inc=userData.income||0, debt=userData.debtExpense||0;
       const spend=Object.values(userData.expenses||{}).reduce((a,b)=>a+(b||0),0);
+      const totalExp=debt+spend;
       const sav=userData.savings||0;
 
-      const essentialExp = sumEssential(userData.expenses||{});
-      const totalExp=debt+spend;
-
       const dti = inc>0 ? (debt/inc)*100 : 0;
-      const efMonths = essentialExp>0 ? sav/essentialExp : 0;
+      const efMonths = totalExp>0 ? sav/totalExp : 0;
       const liquidity = inc-totalExp;
 
+      // เป้าหมายพื้นฐาน
       const dti35 = inc*0.35, dti45=inc*0.45;
       const needTo35 = Math.max(0, debt - dti35);
       const needTo45 = Math.max(0, debt - dti45);
-      const needTo3m = Math.max(0, 3*essentialExp - sav);
-      const needTo6m = Math.max(0, 6*essentialExp - sav);
+      const needTo3m = Math.max(0, 3*totalExp - sav);
+      const needTo6m = Math.max(0, 6*totalExp - sav);
 
-      const offenders = Object.entries(userData.expenses).map(([k,v])=>({k,v, label:(expenseCategories.find(c=>c.key===k)||{}).label||k}))
+      // Top 3 รายจ่าย
+      const offenders = Object.entries(userData.expenses).map(([k,v])=>({k,v, label:(expenseCategories.find(c=>c.key===k)||{}).label||k, need:(expenseCategories.find(c=>c.key===k)||{}).need}))
                         .sort((a,b)=>b.v-a.v).filter(x=>x.v>0);
 
+      // สถานะ + สี
       const dtiStatus = dti<=35?'ดีมาก': dti<=45?'ระวัง':'อันตราย';
       const dtiColor  = dti<=35?'#10b981': dti<=45?'#f59e0b':'#ef4444';
       const efStatus  = efMonths<3?'ไม่พอ': efMonths<=6?'พอ':'เกินเป้า';
@@ -314,12 +286,12 @@
       const liqStatus = liquidity<0?'ติดลบ':'ดี';
       const liqColor  = liquidity<0?'#ef4444':'#10b981';
 
+      // คำแนะนำ (มี guard สภาพคล่อง) // NEW
       const adviceDTI = (()=> {
-        if(inc<=0) return ['กรอก “รายได้สุทธิ” ก่อนเพื่อประเมิน DTI','ถ้ามีหนี้ดอกสูง โปะตัวดอกแพงสุดก่อน (Avalanche)'];
         if(dti<=35) return [
           `DTI = ${dti.toFixed(1)}% → ใช้หนี้ได้สบาย`,
           `กันออม/ลงทุนอย่างน้อย 20% ของรายได้ (~${thb(inc*0.20)}฿/เดือน)`,
-          `ถ้ามีหนี้ดอกสูง โปะตัวดอกแพงสุดก่อน (Avalanche) หรือยอดเล็กก่อน (Snowball) เพื่อสร้างโมเมนตัม`
+          `ถ้ามีหนี้ดอกสูง ให้โปะตัวที่ดอกแพงสุดก่อน`
         ];
         if(dti<=45) return [
           `DTI = ${dti.toFixed(1)}% (เริ่มตึง)`,
@@ -333,20 +305,27 @@
         ];
       })();
 
-      const adviceEF = (()=> {
+      const adviceEF = (()=> { // NEW guard liquidity
+        if(liquidity<0){
+          return [
+            `สภาพคล่องติดลบ ~${thb(Math.abs(liquidity))}฿/เดือน`,
+            `ยังไม่ตั้งออมอัตโนมัติ ให้แก้สภาพคล่องให้ ≥ 0 ก่อน`,
+            `ลดรายจ่ายไม่จำเป็น/คุยเจ้าหนี้เพื่อลดค่างวด แล้วจึงค่อยเริ่มสะสมฉุกเฉิน`
+          ];
+        }
         if(efMonths<3) return [
-          `เงินฉุกเฉิน ${efMonths.toFixed(1)} เดือน (ยังไม่พอ) — อิง “รายจ่ายจำเป็น” เท่านั้น`,
+          `เงินฉุกเฉิน ${efMonths.toFixed(1)} เดือน (ยังไม่พอ)`,
           `ตั้งโอนอัตโนมัติอย่างน้อย ${thb(Math.max(1000, Math.round((needTo3m/6)/100)*100))}฿/เดือน`,
           `ถึง 3 เดือนไว้ก่อน แล้วค่อยไต่ไป 6 เดือน (ขาด ~${thb(needTo6m)}฿)`
         ];
         if(efMonths<=6) return [
           `เงินฉุกเฉิน ${efMonths.toFixed(1)} เดือน (พอใช้)`,
-          `รักษาระดับ 3–6 เดือนในบัญชีดอกเบี้ยสูง/ถอนง่าย`,
+          `รักษาระดับ 3–6 เดือนในบัญชีดอกเบี้ยสูง`,
           `ส่วนเกินค่อยโยกไปลงทุนแบบรายเดือน (DCA)`
         ];
         return [
           `เงินฉุกเฉิน ${efMonths.toFixed(1)} เดือน (เกินเป้า)`,
-          `ส่วนเกิน ~${thb(Math.max(0, sav-6*essentialExp))}฿ → ลงทุนตามความเสี่ยงที่รับได้`,
+          `ส่วนเกิน ~${thb(Math.max(0, sav-6*totalExp))}฿ → ลงทุนตามความเสี่ยงที่รับได้`,
           `คงเงินฉุกเฉินไว้ ~6 เดือนก็พอ`
         ];
       })();
@@ -354,14 +333,15 @@
       const adviceLIQ = (()=> {
         if(liquidity<0){
           const gap=Math.abs(liquidity);
-          const cuts = offenders.slice(0,3).map((e,i)=>`${i+1}. ${e.label} ลด 15% (~${thb(e.v*0.15)}฿)`).join(' • ');
+          // ตัดเฉพาะหมวดไม่จำเป็นก่อน และจำกัดแรงตัดในรอบแรก // NEW
+          const cuts = offenders.filter(e=>!e.need).slice(0,3).map((e,i)=>`${i+1}. ${e.label} ลด 10–15% (~${thb(e.v*0.10)}–${thb(e.v*0.15)}฿)`).join(' • ');
           return [
             `สภาพคล่องติดลบ ~${thb(gap)}฿/เดือน`,
-            offenders.length ? `เริ่มตัด: ${cuts}` : `ตัดรายจ่ายไม่จำเป็น 10–20% ชั่วคราว`,
+            offenders.length ? (cuts || `เริ่มตัดรายจ่ายไม่จำเป็น 10–15% ชั่วคราว`) : `ตัดรายจ่ายไม่จำเป็น 10–15% ชั่วคราว`,
             dti>45 ? `ควบคู่: ลดหนี้รายเดือนตามแผน DTI` : `เสริมรายได้พิเศษถ้าเป็นไปได้`
           ];
         }
-        const to6m = Math.max(0, 6*essentialExp - sav);
+        const to6m = Math.max(0, 6*totalExp - sav);
         const efAlloc = Math.min(liquidity, to6m);
         const investAlloc = Math.max(0, liquidity - efAlloc);
         return [
@@ -371,8 +351,8 @@
         ];
       })();
 
-      userData.results = { inc, debt, spend, essentialExp, totalExp, sav, dti, efMonths, liquidity,
-        dtiStatus, dtiColor, efStatus, efColor, liqStatus, liqColor,
+      userData.results = { inc, debt, spend, totalExp, sav, dti, efMonths, liquidity, 
+        dtiStatus, dtiColor, efStatus, efColor, liqStatus, liqColor, 
         needTo35, needTo45, needTo3m, needTo6m, offenders,
         advice:{ dti:adviceDTI, ef:adviceEF, liq:adviceLIQ }
       };
@@ -390,11 +370,11 @@
     function setProgressAtt(){ setProgress(questions.length + currentAttitudeQuestion + 1, questions.length + attitudeQuestions.length); }
     function showAttitudeQ(){
       const q = attitudeQuestions[currentAttitudeQuestion]; setProgressAtt();
-      const opts = q.opts.map((o,i)=>`<button class="btn w-full text-left px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-200 hover:border-indigo-400 font-semibold text-gray-800 shadow-sm" data-ans="${i}" aria-label="${o.t}">
-        <span class="flex items-center gap-3"><span class="text-2xl" aria-hidden="true">•</span><span>${o.t}</span></span></button>`).join('');
+      const opts = q.opts.map((o,i)=>`<button class="btn w-full text-left px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-200 hover:border-indigo-400 font-semibold text-gray-800 shadow-sm" data-ans="${i}">
+        <span class="flex items-center gap-3"><span class="text-2xl">•</span><span>${o.t}</span></span></button>`).join('');
       $('attitudeContent').innerHTML = `
         <div class="text-center mb-6">
-          <div class="inline-block p-5 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-2xl mb-4"><div class="text-5xl" aria-hidden="true">🤔</div></div>
+          <div class="inline-block p-5 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-2xl mb-4"><div class="text-5xl">🤔</div></div>
           <div class="inline-block px-3 py-1 bg-purple-100 rounded-full mb-3 text-purple-700 text-sm font-bold">คำถามที่ ${currentAttitudeQuestion+1}/${attitudeQuestions.length}</div>
           <p class="text-xl text-gray-800 font-bold leading-relaxed max-w-lg mx-auto">${q.q}</p>
         </div>
@@ -415,7 +395,7 @@
       const R=54, C=2*Math.PI*R, p=Math.max(0,Math.min(100,pct));
       el.innerHTML = `
         <div class="p-4 rounded-2xl bg-white/90 border border-white/60 shadow text-center">
-          <svg width="140" height="140" viewBox="0 0 140 140" class="mx-auto block" role="img" aria-label="${label} ${valueText}">
+          <svg width="140" height="140" viewBox="0 0 140 140" class="mx-auto block">
             <circle cx="70" cy="70" r="${R}" stroke="#e5e7eb" stroke-width="14" fill="none"/>
             <circle cx="70" cy="70" r="${R}" stroke="${color}" stroke-linecap="round" stroke-width="14" fill="none"
               class="ring" style="stroke-dasharray:${C};stroke-dashoffset:${C};transform:rotate(-90deg);transform-origin:50% 50%"/>
@@ -443,19 +423,23 @@
     }
 
     function capTable(caps, data){
-      const rows = expenseCategories.map(c=>{
-        const cap=caps[c.key]||0, now=data.expenses[c.key]||0, diff=cap-now;
-        const color = diff>=0?'#10b981':'#ef4444';
-        return `<tr class="text-sm">
-          <td class="py-2">${c.icon} ${c.label}</td>
-          <td class="py-2 text-right mono">${thb(now)}</td>
-          <td class="py-2 text-right mono">${thb(cap)}</td>
-          <td class="py-2 text-right mono" style="color:${color}">${diff>=0?'+':''}${thb(diff)}</td>
-        </tr>`;
-      }).join('');
+      // โชว์เฉพาะหมวดที่ผู้ใช้มีค่าใช้จ่ายจริง หรือมี cap > 0 // NEW
+      const rows = expenseCategories
+        .filter(c => (data.expenses[c.key]||0) > 0 || (caps[c.key]||0) > 0)
+        .map(c=>{
+          const cap=caps[c.key]||0, now=data.expenses[c.key]||0, diff=cap-now;
+          const color = diff>=0?'#10b981':'#ef4444';
+          return `<tr class="text-sm">
+            <td class="py-2">${c.icon} ${c.label}${c.need?'<span class="text-[10px] ml-2 px-2 py-[2px] rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">จำเป็น</span>':''}</td>
+            <td class="py-2 text-right mono">${thb(now)}</td>
+            <td class="py-2 text-right mono">${cap?thb(cap):'-'}</td>
+            <td class="py-2 text-right mono" style="color:${color}">${diff>=0?'+':''}${thb(diff)}</td>
+          </tr>`;
+        }).join('');
       return `<table class="w-full"><thead>
         <tr class="text-xs text-gray-500 border-b"><th class="py-2 text-left">หมวด</th><th class="py-2 text-right">ตอนนี้</th><th class="py-2 text-right">เพดานแนะนำ</th><th class="py-2 text-right">ส่วนต่าง</th></tr>
-      </thead><tbody>${rows}</tbody></table>`;
+      </thead><tbody>${rows}</tbody></table>
+      <p class="text-xs text-gray-500 mt-2">หมายเหตุ: รอบแรกแนะนำ “ค่อยๆ ลด” 10–20% ของค่าเดิมในหมวดที่ไม่จำเป็นก่อน ไม่หักดิบ</p>`;
     }
 
     function renderFinal(){
@@ -464,28 +448,36 @@
       $('finalScreen').classList.remove('hidden');
 
       const R=userData.results;
-      const correct=userData.attitudeAnswers.filter(a=>a.ok).length;
-      const attColor = correct/attitudeQuestions.length>=.8?'#10b981': correct/attitudeQuestions.length>=.6?'#3b82f6':'#f59e0b';
+      const correct=userData.attitudeAnswers.filter(a=>a.ok).length, total=attitudeQuestions.length;
+      const attColor = correct/total>=.8?'#10b981': correct/total>=.6?'#3b82f6':'#f59e0b';
 
-      // Caps แบบง่าย: needs/wants/savings 60/25/15 (ปรับได้)
-      const needShare=.60, wantShare=.25;
-      const needKeys = essentialKeys;
-      const totalNeeds = Array.from(needKeys).length;
-      const base = { food:.15, transport:.12, household:.08, utilities:.10, entertainment:.06, clothing:.04, internet:.05, other:.10 };
-      const sumBase = Object.entries(base).reduce((a,[,v])=>a+v,0);
+      /* ===== เพดานรายจ่ายแบบ “สมจริง” =====
+         - สร้างจากสัดส่วนฐาน แต่มี floor ต่อหมวดจำเป็น
+         - ไม่แนะนำหมวดที่ผู้ใช้ไม่มีค่าใช้จ่าย (cap=0)
+         - ค่อยๆ ลด: รอบแรกห้ามต่ำกว่า 80% ของค่าเดิม
+      */ // NEW
+      const baseShare = { food:.15, transport:.10, household:.06, utilities:.07, entertainment:.05, clothing:.03, internet:.03, other:.06 };
+      const floors = { food:3000, transport:800, utilities:500 }; // พื้นขั้นต่ำอนุรักษ์นิยม
       const caps={};
-      Object.entries(base).forEach(([k,v])=>{
-        const bucket = needKeys.has(k) ? needShare : wantShare;
-        caps[k] = Math.round((R.inc||0) * bucket * (v/sumBase));
+      const spendShareNow = (R.spend/R.inc) || .55;
+      const targetSpendShare = Math.min(.65, Math.max(.50, spendShareNow)); // ยืดหยุ่นตามสภาพจริง
+
+      Object.entries(baseShare).forEach(([k,v])=>{
+        const now = userData.expenses[k]||0;
+        let cap = Math.round(R.inc*(v/0.55)*targetSpendShare);
+        if(now===0){ caps[k]=0; return; }                  // ไม่มีค่าใช้จ่ายจริง → ไม่แนะนำ
+        if(floors[k]) cap = Math.max(cap, floors[k]);       // ใส่พื้นขั้นต่ำสำหรับหมวดจำเป็น
+        const stepFloor = Math.round(now*0.8);              // ค่อยๆ ลด ไม่ต่ำกว่า 80% รอบแรก
+        caps[k] = Math.min(now, Math.max(cap, stepFloor));  // cap จะไม่ “ต่ำเกินจริง”
       });
 
       $('finalContent').innerHTML = `
         <div class="text-center mb-2">
-          <div class="inline-block p-5 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl mb-3"><div class="text-5xl" aria-hidden="true">✨</div></div>
+          <div class="inline-block p-5 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl mb-3"><div class="text-5xl">✨</div></div>
           <h2 class="text-2xl sm:text-3xl font-extrabold" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip:text; -webkit-text-fill-color:transparent">
             สรุปผลของคุณ (อ่านง่าย ทำได้จริง)
           </h2>
-          <p class="text-gray-600">ตัวเลขทั้งหมดคำนวณจากข้อมูลของคุณ • ผลนี้เป็นข้อมูลทั่วไป ไม่ใช่คำแนะนำเฉพาะบุคคล</p>
+          <p class="text-gray-500">ตัวเลขทั้งหมดคำนวณจากข้อมูลของคุณ</p>
         </div>
 
         <div id="ringRow" class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-4"></div>
@@ -498,7 +490,6 @@
               <span class="px-3 py-1 text-xs rounded-full text-white" style="background:${R.dtiColor}">${R.dtiStatus}</span>
             </div>
             <div class="text-3xl font-extrabold mb-1" style="color:${R.dtiColor}">${R.dti.toFixed(1)}%</div>
-            <p class="help mb-2">ℹ️ DTI = ค่างวดหนี้ / รายได้สุทธิ (ยิ่งต่ำยิ่งดี)</p>
             ${bList(R.advice.dti)}
           </div>
 
@@ -509,7 +500,6 @@
               <span class="px-3 py-1 text-xs rounded-full text-white" style="background:${R.efColor}">${R.efStatus}</span>
             </div>
             <div class="text-3xl font-extrabold mb-1" style="color:${R.efColor}">${R.efMonths.toFixed(1)} เดือน</div>
-            <p class="help mb-2">ℹ️ อิง “รายจ่ายจำเป็น (ไม่รวมค่างวดหนี้/ฟุ่มเฟือย)”</p>
             ${bList(R.advice.ef)}
           </div>
 
@@ -517,7 +507,7 @@
           <div class="bg-gradient-to-br from-white to-gray-50 border-l-4 rounded-2xl p-5 shadow" style="border-color:${R.liqColor}">
             <div class="flex items-center justify-between mb-2">
               <h3 class="text-lg font-bold">สภาพคล่อง/เดือน</h3>
-              <span class="px-3 py-1 text-xs rounded-full text-white" style="background:${R.liqColor}">${R.liqStatus}</span>
+            <span class="px-3 py-1 text-xs rounded-full text-white" style="background:${R.liqColor}">${R.liqStatus}</span>
             </div>
             <div class="text-3xl font-extrabold mb-1" style="color:${R.liqColor}">${thb(R.liquidity)} ฿</div>
             ${bList(R.advice.liq)}
@@ -525,19 +515,31 @@
 
           <!-- Start Today -->
           <div class="bg-white rounded-2xl p-5 border">
-            <div class="flex items-center gap-2 mb-2"><span class="text-2xl" aria-hidden="true">🏁</span><h3 class="text-lg font-bold">เริ่มวันนี้ (3 ข้อสั้นๆ)</h3></div>
-            ${bList([
-              (R.efMonths<3?`ตั้งโอนอัตโนมัติ ${thb(Math.max(1000,Math.round((R.needTo3m/6)/100)*100))}฿/เดือน → “ฉุกเฉิน”`:`คงฉุกเฉิน ≥3–6 เดือน แล้วค่อยลงทุน`),
-              (R.dti>45?`โทรหาเจ้าหนี้เพื่อ “ปรับโครงสร้าง/รีไฟแนนซ์” ลดจ่าย/เดือน ~${thb(R.needTo45)}฿`:
-               R.dti>35?`เพิ่มค่างวด/เดือนให้แตะ DTI ≤35% (ลด ~${thb(R.needTo35)}฿)`:`ล็อกออม 20% ของรายได้ทุกเดือน`),
-              (R.liquidity<0?`ตัด Top3 รายจ่ายอย่างละ 15%`:`ตั้งงบใช้จ่ายรายสัปดาห์คงที่`)
-            ])}
+            <div class="flex items-center gap-2 mb-2"><span class="text-2xl">🏁</span><h3 class="text-lg font-bold">เริ่มวันนี้ (3 ข้อสั้นๆ)</h3></div>
+            ${(()=>{ // NEW: แยกกรณี
+              const items=[];
+              if(R.liquidity<0){
+                items.push(
+                  'ชะลอการตั้งโอนอัตโนมัติฉุกเฉินชั่วคราว (สภาพคล่องติดลบ)',
+                  `${R.offenders.filter(e=>!e.need).length? 'ตัดหมวดไม่จำเป็น 10–15% อย่างน้อย 2 หมวด':'ตัดรายจ่ายไม่จำเป็น 10–15%'} `,
+                  R.dti>45?`คุยเจ้าหนี้เพื่อปรับโครงสร้าง ลดจ่าย/เดือน ~${thb(R.needTo45)}฿`:`ตั้งงบรายสัปดาห์คงที่`
+                );
+              }else{
+                items.push(
+                  `ตั้งโอนอัตโนมัติ ${thb(Math.max(1000,Math.round((R.needTo3m/6)/100)*100))}฿/เดือน → “ฉุกเฉิน”`,
+                  (R.dti>45?`โทรหาเจ้าหนี้เพื่อปรับโครงสร้าง ลดจ่าย/เดือน ~${thb(R.needTo45)}฿`:
+                   R.dti>35?`เพิ่มค่างวด/เดือนให้แตะ DTI ≤35% (ลด ~${thb(R.needTo35)}฿)`:`ล็อกออม ≥20% ของรายได้`),
+                  `ตัด Top 2–3 หมวดที่ไม่จำเป็น อย่างละ 10–15%`
+                );
+              }
+              return bList(items);
+            })()}
           </div>
 
           <!-- Attitude Advice -->
           <div class="bg-white rounded-2xl p-5 border">
             <div class="flex items-center gap-2 mb-2">
-              <span class="text-2xl" aria-hidden="true">🎯</span>
+              <span class="text-2xl">🎯</span>
               <h3 class="text-lg font-bold">คำแนะนำจากทัศนคติของคุณ</h3>
             </div>
             <div class="text-sm text-gray-600 mb-3">สรุปจากคำถาม 5 ข้อ: ถูก ${userData.attitudeAnswers.filter(a=>a.ok).length}/${attitudeQuestions.length} ข้อ</div>
@@ -546,30 +548,28 @@
 
           <!-- เพดานรายจ่ายรายหมวด -->
           <div class="bg-white rounded-2xl p-5 border">
-            <div class="flex items-center gap-2 mb-2"><span class="text-2xl" aria-hidden="true">📦</span><h3 class="text-lg font-bold">เพดานรายจ่ายรายหมวด (เฉพาะคุณ)</h3></div>
-            <p class="help mb-2">ℹ️ แบ่งกลุ่มโดยประมาณ Needs/Wants 60/25 (ส่วนที่เหลือเป็นออม/ลงทุน)</p>
+            <div class="flex items-center gap-2 mb-2"><span class="text-2xl">📦</span><h3 class="text-lg font-bold">เพดานรายจ่ายรายหมวด (เฉพาะคุณ)</h3></div>
             ${capTable(caps, userData)}
           </div>
         </div>
 
-        <!-- What-if Simulator -->
+        <!-- What-if Simulator (ฉบับอ่านง่าย) -->
         <div class="bg-white/90 border rounded-2xl p-5 shadow mt-4">
-          <div class="flex items-center gap-2 mb-2"><span class="text-2xl" aria-hidden="true">🧪</span><h3 class="text-lg font-bold">ลองขยับ แล้วดูผลทันที</h3></div>
-          <p class="help mb-3">ℹ️ เป็นการประมาณแบบง่าย ผลจริงขึ้นกับดอกเบี้ย/วินัยการจ่าย</p>
+          <div class="flex items-center gap-2 mb-2"><span class="text-2xl">🧪</span><h3 class="text-lg font-bold">ลองขยับ แล้วดูผลทันที</h3></div>
           <div class="grid-auto">
             <div>
               <label class="block text-sm font-semibold mb-1">ลดรายจ่าย Top 3 รวม</label>
-              <input id="simCut" type="range" min="0" max="40" step="1" value="15" class="w-full" aria-label="ลดรายจ่าย Top3 (%)">
+              <input id="simCut" type="range" min="0" max="40" step="1" value="15" class="w-full">
               <div class="text-xs text-gray-600">ตอนนี้: <span id="simCutVal" class="mono">15%</span></div>
             </div>
             <div>
               <label class="block text-sm font-semibold mb-1">เพิ่มค่างวด/โปะหนี้ต่อเดือน</label>
-              <input id="simDebt" type="range" min="0" max="50" step="1" value="10" class="w-full" aria-label="เพิ่มจ่ายหนี้ต่อเดือน (%) ของรายได้">
+              <input id="simDebt" type="range" min="0" max="50" step="1" value="10" class="w-full">
               <div class="text-xs text-gray-600">ตอนนี้: <span id="simDebtVal" class="mono">10%</span> ของรายได้ (<span id="simDebtBaht" class="mono"></span>฿)</div>
             </div>
             <div>
               <label class="block text-sm font-semibold mb-1">ออมฉุกเฉินต่อเดือน</label>
-              <input id="simEF" type="range" min="0" max="30" step="1" value="10" class="w-full" aria-label="ออมฉุกเฉินต่อเดือน (%) ของรายได้">
+              <input id="simEF" type="range" min="0" max="30" step="1" value="10" class="w-full">
               <div class="text-xs text-gray-600">ตอนนี้: <span id="simEFVal" class="mono">10%</span> ของรายได้ (<span id="simEFBaht" class="mono"></span>฿)</div>
             </div>
           </div>
@@ -579,21 +579,18 @@
         </div>
 
         <!-- Actions -->
-        <div class="grid gap-3 sm:grid-cols-3 mt-5">
+        <div class="grid gap-3 sm:grid-cols-2 mt-5">
           <button id="btnRestart" class="btn px-6 py-4 rounded-2xl text-white font-bold" style="background:linear-gradient(135deg,var(--primary),var(--secondary))">🔄 เริ่มใหม่</button>
           <button id="btnShare" class="btn px-6 py-4 rounded-2xl font-semibold bg-white border">🔗 แชร์ผลลัพธ์</button>
-          <button id="btnClear" class="btn px-6 py-4 rounded-2xl font-semibold bg-white border">🧹 ล้างข้อมูลทั้งหมด</button>
         </div>
-
-        <p class="help mt-4">หมายเหตุ: ผลลัพธ์นี้ใช้เพื่อการศึกษาและการวางแผนทั่วไป หากมีหนี้เสีย/ค้างชำระ แนะนำให้ติดต่อเจ้าหนี้เพื่อปรับโครงสร้างทันที</p>
       `;
 
       // วงแหวน
       const row=$('ringRow'); const a=document.createElement('div'), b=document.createElement('div'), c=document.createElement('div'); row.append(a,b,c);
-      const dtiPct = Math.max(0, 100 - Math.min(100, R.dti));                       // ยิ่งน้อยยิ่งดี → แปลงเป็นเปอร์เซ็นต์ความดี
-      const efPct  = Math.min(100, (R.efMonths/6)*100);                              // 6 เดือน = 100%
-      const liqPct = R.liquidity<=0 ? 0 : Math.min(100, (R.liquidity / Math.max(R.inc,1))*100);
-      ring(a, dtiPct, R.dtiColor, 'DTI (ยิ่งน้อยยิ่งดี)', `${dtiPct.toFixed(0)}%`);
+      const dtiPct = Math.max(0, 100 - Math.min(100, R.dti));
+      const efPct  = Math.min(100, (R.efMonths/6)*100);
+      const liqPct = R.liquidity<=0 ? 0 : Math.min(100, (R.liquidity / (R.inc||1))*100);
+      ring(a, dtiPct, R.dtiColor, 'DTI (ยิ่งมากยิ่งดี)', `${dtiPct.toFixed(0)}%`);
       ring(b, efPct,  R.efColor, 'เงินฉุกเฉิน', `${R.efMonths.toFixed(1)}ด.`);
       ring(c, liqPct, R.liqColor, 'สภาพคล่อง/รายได้', `${liqPct.toFixed(0)}%`);
 
@@ -601,45 +598,28 @@
       const simCut=$('simCut'), simDebt=$('simDebt'), simEF=$('simEF');
       const simCutVal=$('simCutVal'), simDebtVal=$('simDebtVal'), simEFVal=$('simEFVal');
       const simDebtBaht=$('simDebtBaht'), simEFBaht=$('simEFBaht');
-
       function syncLabels(){
         simCutVal.textContent = simCut.value+'%';
         simDebtVal.textContent = simDebt.value+'%';
         simEFVal.textContent = simEF.value+'%';
-        simDebtBaht.textContent = thb((R.inc||0) * (Number(simDebt.value)/100));
-        simEFBaht.textContent = thb((R.inc||0) * (Number(simEF.value)/100));
+        simDebtBaht.textContent = thb(R.inc * (simDebt.value/100));
+        simEFBaht.textContent = thb(R.inc * (simEF.value/100));
       }
-
       function runSim(){
         const cutPct = Number(simCut.value)/100;
-        const addDebt = Math.min(R.debt, (R.inc||0) * (Number(simDebt.value)/100));   // guard: ห้ามเกินค่างวดหนี้
-        const saveEF  = (R.inc||0) * (Number(simEF.value)/100);                       // ออมฉุกเฉินรายเดือน
+        const addDebt = R.inc * (Number(simDebt.value)/100);
+        const saveEF  = R.inc * (Number(simEF.value)/100);
 
-        // ลดรายจ่ายจาก Top3
         let spendNew = R.spend;
-        const top3 = [...R.offenders].slice(0,3);
+        const top3 = [...R.offenders].filter(e=>!e.need).slice(0,3); // ตัดหมวดไม่จำเป็นก่อน // NEW
         top3.forEach(t=> spendNew -= t.v * cutPct);
         spendNew = Math.max(0, spendNew);
 
-        // หนี้ใหม่ (สมมติโปะแล้วค่างวดหนี้ลดลงตามจำนวนที่เพิ่ม)
-        const debtNew = Math.max(0, R.debt - addDebt);
+        const debtNew = Math.max(0, R.debt - addDebt); // อนุรักษ์นิยม: โปะ = ภาระต่อเดือนลดลงตามจำนวนที่เพิ่ม
         const totalNew = spendNew + debtNew;
-
-        // EF ใหม่: วัด "ปัจจุบัน" + เวลาไปถึงเป้าหมายด้วยการออมรายเดือน
-        const essentialNew = Object.entries(userData.expenses||{})
-          .filter(([k])=> essentialKeys.has(k))
-          .reduce((a,[k,v])=>{
-            const of = top3.find(t=>t.k===k)?.v || 0;
-            return a + Math.max(0, (v||0) - of*cutPct);
-          }, 0);
-
-        const efMonthsCurrent = essentialNew>0 ? ((R.sav||0)/essentialNew) : 0;
-        const target3 = 3*essentialNew, target6 = 6*essentialNew;
-        const monthsTo3 = (saveEF>0 && (R.sav||0)<target3) ? Math.ceil((target3 - (R.sav||0))/saveEF) : 0;
-        const monthsTo6 = (saveEF>0 && (R.sav||0)<target6) ? Math.ceil((target6 - (R.sav||0))/saveEF) : 0;
-
-        const dtiNew = (R.inc>0) ? (debtNew/R.inc)*100 : 0;
-        const liqNew = (R.inc||0) - totalNew - saveEF; // กันออมฉุกเฉินก่อน
+        const dtiNew = R.inc>0 ? (debtNew/R.inc)*100 : 0;
+        const liqNew = R.inc - totalNew - Math.min(saveEF, Math.max(0, 6*totalNew - (R.sav))); // กันฉุกเฉินแต่ไม่ทำให้ติดลบเพิ่ม
+        const efMonthsNew = (R.sav + saveEF) / (totalNew>0? totalNew:1);
 
         const card = (label,val,sub,color)=>`
           <div class="rounded-xl border p-4 text-center" style="border-color:${color}">
@@ -649,25 +629,29 @@
           </div>`;
         $('simResult').innerHTML = [
           card('DTI ใหม่', dtiNew.toFixed(1)+'%', `เปลี่ยนแปลง: ${(R.dti - dtiNew).toFixed(1)} จุด`, '#6366f1'),
-          card('ฉุกเฉิน (ปัจจุบัน)', efMonthsCurrent.toFixed(1)+' ด.', `ออม/เดือน: ${thb(saveEF)}฿`, '#10b981'),
+          card('ฉุกเฉิน (เดือน)', efMonthsNew.toFixed(1)+' ด.', `ออม/เดือน: ${thb(saveEF)}฿`, '#10b981'),
           card('สภาพคล่องสุทธิ', `${thb(liqNew)}฿`, `หลังกันฉุกเฉิน ${thb(saveEF)}฿`, liqNew>=0?'#10b981':'#ef4444')
         ].join('');
 
+        const needTo35New = Math.max(0, debtNew - (R.inc*0.35));
+        const monthsTo3m = R.needTo3m>0 && saveEF>0 ? Math.ceil(R.needTo3m / saveEF) : 0;
         $('simAdvice').innerHTML = `
           <div class="grid-auto mt-1">
             <div class="bg-white rounded-lg p-3 border"><div class="font-semibold mb-1">เป้าหมาย DTI 35%</div>
-              ${Math.max(0, debtNew - (R.inc*0.35))<=0 ? '<div class="text-sm text-green-700">✅ แตะ ≤35% แล้ว</div>' :
-               `<div class="text-sm">ยังต้องลดจ่ายหนี้/รีไฟแนนซ์อีก <span class="chip mono">${thb(Math.max(0, debtNew - (R.inc*0.35)))}฿/เดือน</span></div>`}
+              ${needTo35New<=0 ? '<div class="text-sm text-green-700">✅ แตะ ≤35% แล้ว</div>' :
+               `<div class="text-sm">ยังต้องลดจ่ายหนี้/รีไฟแนนซ์อีก <span class="chip mono">${thb(needTo35New)}฿/เดือน</span></div>`}
             </div>
-            <div class="bg-white rounded-lg p-3 border"><div class="font-semibold mb-1">ฉุกเฉิน 3–6 เดือน</div>
-              <div class="text-sm">3 เดือน: ${monthsTo3>0? `<span class="chip mono">~${monthsTo3} เดือน</span>`:'ครบแล้ว ✅'} • 6 เดือน: ${monthsTo6>0? `<span class="chip mono">~${monthsTo6} เดือน</span>`:'ครบแล้ว ✅'}</div>
+            <div class="bg-white rounded-lg p-3 border"><div class="font-semibold mb-1">ฉุกเฉิน 3 เดือน</div>
+              ${R.needTo3m<=0 ? '<div class="text-sm text-green-700">✅ ครบ ≥3 เดือนแล้ว</div>' :
+               saveEF<=0 ? '<div class="text-sm text-amber-700">ตั้งออมต่อเดือนก่อน</div>' :
+               `<div class="text-sm">คาด ~<span class="chip mono">${monthsTo3m} เดือน</span> หากออมเดือนละ <span class="chip mono">${thb(saveEF)}฿</span></div>`}
             </div>
             <div class="bg-white rounded-lg p-3 border"><div class="font-semibold mb-1">ผลจากการลดรายจ่าย</div>
-              <div class="text-sm">ตัด Top3 หมวดละ ~<span class="chip mono">${(Number(simCut.value))}%</span> 
-              → ลดรวม ~<span class="chip mono">${thb(R.offenders.slice(0,3).reduce((s,x)=>s+x.v*(cutPct),0))}฿/เดือน</span></div>
+              <div class="text-sm">ตัด Top3 (หมวดไม่จำเป็น) ~<span class="chip mono">${simCut.value}%</span> 
+              → ลดรวม ~<span class="chip mono">${thb(R.offenders.filter(e=>!e.need).slice(0,3).reduce((s,x)=>s+x.v*(cutPct),0))}฿/เดือน</span></div>
             </div>
           </div>`;
-        userData.sim = { cutPct, addDebt, saveEF, dtiNew, efMonthsCurrent, monthsTo3, monthsTo6, liqNew };
+        userData.sim = { cutPct, addDebt, saveEF, dtiNew, efMonthsNew, liqNew };
         debounce();
       }
       syncLabels(); runSim();
@@ -678,7 +662,6 @@
         currentStep=0; $('finalScreen').classList.add('hidden'); $('welcomeScreen').classList.remove('hidden'); $('progressBar').style.width='0%'; saveState();
       };
       $('btnShare').onclick = shareResult;
-      $('btnClear').onclick = clearAll;
     }
 
     /* ===== Init ===== */
