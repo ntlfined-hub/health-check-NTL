@@ -74,7 +74,6 @@
   <!-- Toast -->
   <div id="toastRoot" class="fixed left-1/2 -translate-x-1/2 bottom-6 z-[9999]" aria-live="assertive" aria-atomic="true"></div>
 
-  <!-- put script last + defer-style load -->
   <script defer>
   'use strict';
   /* ===== Helpers ===== */
@@ -100,6 +99,7 @@
     return (isFinite(n) && n>=0) ? n : 0;
   }
 
+  // ฟอร์แมตตัวเลข และอัปเดต dataset.raw ทุกครั้งที่พิมพ์
   document.addEventListener('input', function(e){
     var t=e.target;
     if(t && t.matches && t.matches('input[data-money]')){
@@ -304,7 +304,7 @@
       ];
       if(dti<=45) return [
         'DTI = '+dti.toFixed(1)+'% (เริ่มตึง)',
-        'เป้า: จ่ายหนี้/เดือน ≤ '+thb(dti35)+'฿ (ลด ~'+thb(needTo35)+'฿/เดือน)',
+        'เป้า: จ่ายหนี้/เดือน ≤ '+thb(inc*0.35)+'฿ (ลด ~'+thb(needTo35)+'฿/เดือน)',
         'ปรับโครงสร้าง/รีไฟแนนซ์ และหยุดหนี้ใหม่ชั่วคราว'
       ];
       return [
@@ -495,7 +495,6 @@
       '</div>';
 
     var row=$('ringRow'); var a=document.createElement('div'), b=document.createElement('div'), c=document.createElement('div'); row.appendChild(a); row.appendChild(b); row.appendChild(c);
-    var R=userData.results;
     var dtiPct=Math.max(0, 100 - Math.min(100, R.dti));
     var efPct=Math.min(100,(R.efMonths/6)*100);
     var liqPct=R.liquidity<=0?0:Math.min(100,(R.liquidity/Math.max(1,R.inc))*100);
@@ -535,9 +534,16 @@
         '</div>';
       userData.planTargets=targets; userData.planLiq=newLiq; debounce();
     }
-    var caps=document.querySelectorAll('[data-cap]'); for(var i=0;i<caps.length;i++){ caps[i].addEventListener('input', recalcPlan); }
+
+    // *** Realtime calculation: ทั้งผูกตรงกับช่อง และใช้ delegation ที่ container ***
+    var caps=document.querySelectorAll('[data-cap]');
+    for(var i=0;i<caps.length;i++){ caps[i].addEventListener('input', recalcPlan); }
+    $('finalContent').addEventListener('input', function(e){
+      if(e.target && e.target.matches('[data-cap]')) recalcPlan();
+    });
     recalcPlan();
 
+    // ===== Simulator =====
     var simCut=$('simCut'), simDebt=$('simDebt'), simEF=$('simEF');
     var simCutVal=$('simCutVal'), simDebtVal=$('simDebtVal'), simEFVal=$('simEFVal');
     var simDebtBaht=$('simDebtBaht'), simEFBaht=$('simEFBaht');
@@ -616,7 +622,7 @@
     $('btnShare').addEventListener('click', shareResult);
   }
 
-  /* ===== Init + start/resume binding ===== */
+  /* ===== Init ===== */
   document.addEventListener('DOMContentLoaded', function(){
     var has=loadState();
     var btnStart=$('btnStart'), btnResume=$('btnResume');
@@ -626,7 +632,7 @@
     }
     if(has && btnResume){
       btnResume.classList.remove('hidden');
-      btnResume.addEventListener('click', function(e){ e.preventDefault(); 
+      btnResume.addEventListener('click', function(e){ e.preventDefault();
         var hasResults = !!(userData && userData.results);
         if(hasResults){ renderFinal(); } else { start(); toast('โหลดข้อมูลครั้งก่อนแล้ว','success'); }
       });
