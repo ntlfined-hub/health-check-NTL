@@ -988,12 +988,12 @@
 
     if (state==='saving'){
       spinner.classList.remove('hidden');
-      label.textContent = text || 'กำลังบันทึกผล…';
+      label.textContent = text || 'กำลังประมวลผล…';
       chip.querySelector('div').classList.remove('border-green-200','border-red-200');
       chip.querySelector('div').classList.add('border-gray-200');
     } else if (state==='ok'){
       spinner.classList.add('hidden');
-      label.textContent = text || 'บันทึกผลเรียบร้อย';
+      label.textContent = text || 'ประมวลผลเรียบร้อย';
       chip.querySelector('div').classList.remove('border-gray-200','border-red-200');
       chip.querySelector('div').classList.add('border-green-200');
     } else if (state==='fail'){
