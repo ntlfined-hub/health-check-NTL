@@ -894,62 +894,135 @@
             };
             
             let html = `
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div>
-                        <h4 class="font-bold text-lg mb-4">รายจ่ายปัจจุบัน</h4>
-                        <div class="space-y-3">
-            `;
-            
-            Object.entries(userData.expenses).forEach(([key, value]) => {
-                if (value > 0) {
-                    html += `
-                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                            <span class="font-medium">${expenseLabels[key]}</span>
-                            <span class="text-lg font-bold">${value.toLocaleString()} บาท</span>
-                        </div>
-                    `;
-                }
-            });
-            
-            html += `
+                <!-- Income & Debt Adjustment Section -->
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-green-50 p-6 rounded-xl border-l-4 border-green-500">
+                        <h4 class="font-bold text-lg mb-4 text-green-800">💰 ปรับรายได้</h4>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">รายได้ปัจจุบัน</label>
+                                <div class="text-2xl font-bold text-green-600 mb-2">${formatNumber(userData.income)} บาท</div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">รายได้ใหม่ที่วางแผน</label>
+                                <input type="text" id="adj-income" class="input-field w-full px-3 py-2 rounded-lg" 
+                                       value="${formatNumber(userData.income)}" onchange="updateAdjustment()">
+                                <div class="text-xs text-gray-600 mt-1">เช่น รายได้เสริม, โบนัส, เลื่อนตำแหน่ง</div>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <h4 class="font-bold text-lg mb-4">ปรับรายจ่ายใหม่</h4>
-                        <div class="space-y-3">
-            `;
-            
-            Object.entries(userData.expenses).forEach(([key, value]) => {
-                if (value > 0) {
-                    html += `
-                        <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                            <span class="font-medium">${expenseLabels[key]}</span>
-                            <input type="text" id="adj-${key}" class="input-field w-32 px-2 py-1 text-right rounded" 
-                                   value="${formatNumber(value)}" min="0" onchange="updateAdjustment()">
-                        </div>
-                    `;
-                }
-            });
-            
-            html += `
+                    
+                    <div class="bg-red-50 p-6 rounded-xl border-l-4 border-red-500">
+                        <h4 class="font-bold text-lg mb-4 text-red-800">💳 ปรับการจ่ายหนี้</h4>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">จ่ายหนี้ปัจจุบัน</label>
+                                <div class="text-2xl font-bold text-red-600 mb-2">${formatNumber(userData.debtPayment)} บาท</div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">จ่ายหนี้ใหม่ที่วางแผน</label>
+                                <input type="text" id="adj-debt" class="input-field w-full px-3 py-2 rounded-lg" 
+                                       value="${formatNumber(userData.debtPayment)}" onchange="updateAdjustment()">
+                                <div class="text-xs text-gray-600 mt-1">เช่น ปรับโครงสร้างหนี้, จ่ายเพิ่ม, รวมหนี้</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
-                    <h4 class="font-bold text-lg mb-2">ผลลัพธ์หลังปรับแผน</h4>
-                    <div id="adjustment-results" class="grid md:grid-cols-3 gap-4 text-center">
+
+                <!-- Expenses Adjustment Section -->
+                <div class="bg-white border rounded-xl p-6 mb-6">
+                    <h4 class="font-bold text-lg mb-4 text-gray-800">🛒 ปรับรายจ่าย</h4>
+                    <div class="grid md:grid-cols-2 gap-6">
                         <div>
-                            <div class="text-sm text-gray-600">สภาพคล่องใหม่</div>
-                            <div id="new-liquidity" class="text-xl font-bold"></div>
+                            <h5 class="font-medium text-gray-700 mb-3">รายจ่ายปัจจุบัน</h5>
+                            <div class="space-y-2">
+            `;
+            
+            Object.entries(userData.expenses).forEach(([key, value]) => {
+                if (value > 0) {
+                    html += `
+                        <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                            <span class="text-sm">${expenseLabels[key]}</span>
+                            <span class="font-bold text-sm">${formatNumber(value)} บาท</span>
+                        </div>
+                    `;
+                }
+            });
+            
+            html += `
+                            </div>
                         </div>
                         <div>
-                            <div class="text-sm text-gray-600">เงินสำรองฉุกเฉิน</div>
-                            <div id="new-emergency" class="text-xl font-bold"></div>
+                            <h5 class="font-medium text-gray-700 mb-3">ปรับรายจ่ายใหม่</h5>
+                            <div class="space-y-2">
+            `;
+            
+            Object.entries(userData.expenses).forEach(([key, value]) => {
+                if (value > 0) {
+                    html += `
+                        <div class="flex justify-between items-center p-2 bg-blue-50 rounded">
+                            <span class="text-sm font-medium">${expenseLabels[key]}</span>
+                            <input type="text" id="adj-${key}" class="input-field w-24 px-2 py-1 text-right text-sm rounded" 
+                                   value="${formatNumber(value)}" onchange="updateAdjustment()">
                         </div>
-                        <div>
-                            <div class="text-sm text-gray-600">ประหยัดได้</div>
-                            <div id="savings-amount" class="text-xl font-bold text-green-600"></div>
+                    `;
+                }
+            });
+            
+            html += `
+                            </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Results Section -->
+                <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl border">
+                    <h4 class="font-bold text-xl mb-4 text-center">📊 ผลลัพธ์หลังปรับแผนการเงิน</h4>
+                    
+                    <!-- Key Metrics -->
+                    <div class="grid md:grid-cols-4 gap-4 mb-6">
+                        <div class="text-center p-4 bg-white rounded-lg shadow-sm">
+                            <div class="text-xs text-gray-600 mb-1">สภาพคล่องใหม่</div>
+                            <div id="new-liquidity" class="text-lg font-bold"></div>
+                            <div id="liquidity-change" class="text-xs mt-1"></div>
+                        </div>
+                        <div class="text-center p-4 bg-white rounded-lg shadow-sm">
+                            <div class="text-xs text-gray-600 mb-1">DTI ใหม่</div>
+                            <div id="new-dti" class="text-lg font-bold"></div>
+                            <div id="dti-change" class="text-xs mt-1"></div>
+                        </div>
+                        <div class="text-center p-4 bg-white rounded-lg shadow-sm">
+                            <div class="text-xs text-gray-600 mb-1">เงินสำรองฉุกเฉิน</div>
+                            <div id="new-emergency" class="text-lg font-bold"></div>
+                            <div id="emergency-change" class="text-xs mt-1"></div>
+                        </div>
+                        <div class="text-center p-4 bg-white rounded-lg shadow-sm">
+                            <div class="text-xs text-gray-600 mb-1">เปลี่ยนแปลงรวม</div>
+                            <div id="total-change" class="text-lg font-bold"></div>
+                            <div class="text-xs text-gray-600 mt-1">ต่อเดือน</div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Changes -->
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="bg-green-100 p-4 rounded-lg">
+                            <h5 class="font-bold text-green-800 mb-2">💹 การเปลี่ยนแปลงรายได้</h5>
+                            <div id="income-change-detail" class="text-sm"></div>
+                        </div>
+                        <div class="bg-red-100 p-4 rounded-lg">
+                            <h5 class="font-bold text-red-800 mb-2">💳 การเปลี่ยนแปลงหนี้</h5>
+                            <div id="debt-change-detail" class="text-sm"></div>
+                        </div>
+                        <div class="bg-blue-100 p-4 rounded-lg">
+                            <h5 class="font-bold text-blue-800 mb-2">🛒 การเปลี่ยนแปลงรายจ่าย</h5>
+                            <div id="expense-change-detail" class="text-sm"></div>
+                        </div>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div id="adjustment-recommendations" class="mt-6 p-4 bg-white rounded-lg border-l-4 border-yellow-500">
+                        <h5 class="font-bold text-yellow-800 mb-2">💡 คำแนะนำ</h5>
+                        <div id="recommendation-content" class="text-sm text-gray-700"></div>
                     </div>
                 </div>
             `;
@@ -958,6 +1031,12 @@
             
             // Setup number formatting for adjustment inputs
             setTimeout(() => {
+                const adjIncomeInput = document.getElementById('adj-income');
+                const adjDebtInput = document.getElementById('adj-debt');
+                
+                if (adjIncomeInput) setupNumberInput(adjIncomeInput);
+                if (adjDebtInput) setupNumberInput(adjDebtInput);
+                
                 Object.keys(userData.expenses).forEach(key => {
                     const adjInput = document.getElementById(`adj-${key}`);
                     if (adjInput) {
@@ -970,6 +1049,10 @@
         }
 
         function updateAdjustment() {
+            // Get new values
+            const newIncome = parseNumber(document.getElementById('adj-income')?.value || userData.income);
+            const newDebtPayment = parseNumber(document.getElementById('adj-debt')?.value || userData.debtPayment);
+            
             let newTotalExpenses = 0;
             let originalTotalExpenses = 0;
             
@@ -984,23 +1067,202 @@
                 originalTotalExpenses += originalValue;
             });
             
-            const newTotalMonthlyExpenses = userData.debtPayment + newTotalExpenses;
-            const newLiquidity = userData.income - newTotalMonthlyExpenses;
+            // Calculate new metrics
+            const newTotalMonthlyExpenses = newDebtPayment + newTotalExpenses;
+            const newLiquidity = newIncome - newTotalMonthlyExpenses;
+            const newDTI = newIncome > 0 ? (newDebtPayment / newIncome) * 100 : 0;
             const newEmergencyMonths = newTotalMonthlyExpenses > 0 ? userData.savings / newTotalMonthlyExpenses : 0;
-            const savingsAmount = originalTotalExpenses - newTotalExpenses;
             
-            // Update display
+            // Calculate changes
+            const originalTotalMonthlyExpenses = userData.debtPayment + originalTotalExpenses;
+            const originalLiquidity = userData.income - originalTotalMonthlyExpenses;
+            const originalDTI = userData.income > 0 ? (userData.debtPayment / userData.income) * 100 : 0;
+            const originalEmergencyMonths = originalTotalMonthlyExpenses > 0 ? userData.savings / originalTotalMonthlyExpenses : 0;
+            
+            const incomeChange = newIncome - userData.income;
+            const debtChange = newDebtPayment - userData.debtPayment;
+            const expenseChange = newTotalExpenses - originalTotalExpenses;
+            const liquidityChange = newLiquidity - originalLiquidity;
+            const dtiChange = newDTI - originalDTI;
+            const emergencyChange = newEmergencyMonths - originalEmergencyMonths;
+            const totalChange = incomeChange - debtChange - expenseChange;
+            
+            // Update main metrics display
             const newLiquidityEl = document.getElementById('new-liquidity');
+            const newDTIEl = document.getElementById('new-dti');
             const newEmergencyEl = document.getElementById('new-emergency');
-            const savingsAmountEl = document.getElementById('savings-amount');
+            const totalChangeEl = document.getElementById('total-change');
             
-            newLiquidityEl.textContent = `${newLiquidity.toLocaleString()} บาท`;
-            newLiquidityEl.className = `text-xl font-bold ${newLiquidity >= 0 ? 'text-green-600' : 'text-red-600'}`;
+            if (newLiquidityEl) {
+                newLiquidityEl.textContent = `${newLiquidity.toLocaleString()} บาท`;
+                newLiquidityEl.className = `text-lg font-bold ${newLiquidity >= 0 ? 'text-green-600' : 'text-red-600'}`;
+            }
             
-            newEmergencyEl.textContent = `${newEmergencyMonths.toFixed(1)} เดือน`;
-            newEmergencyEl.className = `text-xl font-bold ${newEmergencyMonths >= 3 && newEmergencyMonths <= 6 ? 'text-green-600' : 'text-orange-600'}`;
+            if (newDTIEl) {
+                newDTIEl.textContent = `${newDTI.toFixed(1)}%`;
+                newDTIEl.className = `text-lg font-bold ${newDTI <= 35 ? 'text-green-600' : newDTI <= 45 ? 'text-orange-600' : 'text-red-600'}`;
+            }
             
-            savingsAmountEl.textContent = `${savingsAmount.toLocaleString()} บาท`;
+            if (newEmergencyEl) {
+                newEmergencyEl.textContent = `${newEmergencyMonths.toFixed(1)} เดือน`;
+                newEmergencyEl.className = `text-lg font-bold ${newEmergencyMonths >= 3 && newEmergencyMonths <= 6 ? 'text-green-600' : 'text-orange-600'}`;
+            }
+            
+            if (totalChangeEl) {
+                totalChangeEl.textContent = `${totalChange >= 0 ? '+' : ''}${totalChange.toLocaleString()} บาท`;
+                totalChangeEl.className = `text-lg font-bold ${totalChange >= 0 ? 'text-green-600' : 'text-red-600'}`;
+            }
+            
+            // Update change indicators
+            const liquidityChangeEl = document.getElementById('liquidity-change');
+            const dtiChangeEl = document.getElementById('dti-change');
+            const emergencyChangeEl = document.getElementById('emergency-change');
+            
+            if (liquidityChangeEl) {
+                liquidityChangeEl.textContent = `${liquidityChange >= 0 ? '+' : ''}${liquidityChange.toLocaleString()} บาท`;
+                liquidityChangeEl.className = `text-xs mt-1 ${liquidityChange >= 0 ? 'text-green-600' : 'text-red-600'}`;
+            }
+            
+            if (dtiChangeEl) {
+                dtiChangeEl.textContent = `${dtiChange >= 0 ? '+' : ''}${dtiChange.toFixed(1)}%`;
+                dtiChangeEl.className = `text-xs mt-1 ${dtiChange <= 0 ? 'text-green-600' : 'text-red-600'}`;
+            }
+            
+            if (emergencyChangeEl) {
+                emergencyChangeEl.textContent = `${emergencyChange >= 0 ? '+' : ''}${emergencyChange.toFixed(1)} เดือน`;
+                emergencyChangeEl.className = `text-xs mt-1 ${emergencyChange >= 0 ? 'text-green-600' : 'text-red-600'}`;
+            }
+            
+            // Update detailed changes
+            const incomeChangeDetailEl = document.getElementById('income-change-detail');
+            const debtChangeDetailEl = document.getElementById('debt-change-detail');
+            const expenseChangeDetailEl = document.getElementById('expense-change-detail');
+            
+            if (incomeChangeDetailEl) {
+                if (incomeChange === 0) {
+                    incomeChangeDetailEl.innerHTML = '<div class="text-gray-600">ไม่มีการเปลี่ยนแปลง</div>';
+                } else {
+                    incomeChangeDetailEl.innerHTML = `
+                        <div class="flex justify-between mb-1">
+                            <span>เดิม:</span>
+                            <span>${formatNumber(userData.income)} บาท</span>
+                        </div>
+                        <div class="flex justify-between mb-1">
+                            <span>ใหม่:</span>
+                            <span>${formatNumber(newIncome)} บาท</span>
+                        </div>
+                        <div class="flex justify-between font-bold ${incomeChange >= 0 ? 'text-green-700' : 'text-red-700'}">
+                            <span>เปลี่ยนแปลง:</span>
+                            <span>${incomeChange >= 0 ? '+' : ''}${formatNumber(incomeChange)} บาท</span>
+                        </div>
+                    `;
+                }
+            }
+            
+            if (debtChangeDetailEl) {
+                if (debtChange === 0) {
+                    debtChangeDetailEl.innerHTML = '<div class="text-gray-600">ไม่มีการเปลี่ยนแปลง</div>';
+                } else {
+                    debtChangeDetailEl.innerHTML = `
+                        <div class="flex justify-between mb-1">
+                            <span>เดิม:</span>
+                            <span>${formatNumber(userData.debtPayment)} บาท</span>
+                        </div>
+                        <div class="flex justify-between mb-1">
+                            <span>ใหม่:</span>
+                            <span>${formatNumber(newDebtPayment)} บาท</span>
+                        </div>
+                        <div class="flex justify-between font-bold ${debtChange <= 0 ? 'text-green-700' : 'text-red-700'}">
+                            <span>เปลี่ยนแปลง:</span>
+                            <span>${debtChange >= 0 ? '+' : ''}${formatNumber(debtChange)} บาท</span>
+                        </div>
+                    `;
+                }
+            }
+            
+            if (expenseChangeDetailEl) {
+                if (expenseChange === 0) {
+                    expenseChangeDetailEl.innerHTML = '<div class="text-gray-600">ไม่มีการเปลี่ยนแปลง</div>';
+                } else {
+                    expenseChangeDetailEl.innerHTML = `
+                        <div class="flex justify-between mb-1">
+                            <span>เดิม:</span>
+                            <span>${formatNumber(originalTotalExpenses)} บาท</span>
+                        </div>
+                        <div class="flex justify-between mb-1">
+                            <span>ใหม่:</span>
+                            <span>${formatNumber(newTotalExpenses)} บาท</span>
+                        </div>
+                        <div class="flex justify-between font-bold ${expenseChange <= 0 ? 'text-green-700' : 'text-red-700'}">
+                            <span>เปลี่ยนแปลง:</span>
+                            <span>${expenseChange >= 0 ? '+' : ''}${formatNumber(expenseChange)} บาท</span>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Generate smart recommendations
+            generateAdjustmentRecommendations(newLiquidity, newDTI, newEmergencyMonths, {
+                incomeChange,
+                debtChange,
+                expenseChange,
+                liquidityChange
+            });
+        }
+        
+        function generateAdjustmentRecommendations(newLiquidity, newDTI, newEmergencyMonths, changes) {
+            const recommendationEl = document.getElementById('recommendation-content');
+            if (!recommendationEl) return;
+            
+            let recommendations = [];
+            
+            // Liquidity recommendations
+            if (newLiquidity < 0) {
+                if (changes.incomeChange > 0) {
+                    recommendations.push('💡 แม้จะเพิ่มรายได้แล้ว แต่ยังติดลบอยู่ ควรลดรายจ่ายเพิ่มเติมหรือลดการจ่ายหนี้');
+                } else {
+                    recommendations.push('🚨 สภาพคล่องยังติดลบ ควรเพิ่มรายได้หรือลดรายจ่าย/หนี้เพิ่มเติม');
+                }
+            } else if (newLiquidity > 0 && changes.liquidityChange > 0) {
+                recommendations.push('🎉 ดีมาก! สภาพคล่องดีขึ้น สามารถนำเงินส่วนเกินไปออมหรือลงทุนได้');
+            }
+            
+            // DTI recommendations
+            if (newDTI > 45) {
+                recommendations.push('⚠️ อัตราส่วนหนี้ยังสูงเกินไป ควรลดการจ่ายหนี้หรือเพิ่มรายได้เพิ่มเติม');
+            } else if (newDTI <= 35 && changes.debtChange < 0) {
+                recommendations.push('✅ อัตราส่วนหนี้อยู่ในเกณฑ์ดี การลดหนี้ช่วยให้มีเงินเหลือมากขึ้น');
+            }
+            
+            // Emergency fund recommendations
+            if (newEmergencyMonths < 3) {
+                recommendations.push('💰 เงินสำรองยังไม่เพียงพอ ควรเร่งออมเงินให้ถึง 3-6 เดือน');
+            } else if (newEmergencyMonths > 6) {
+                recommendations.push('📈 เงินสำรองเกินเป้า ควรนำส่วนเกินไปลงทุนเพื่อเติบโต');
+            }
+            
+            // Income change recommendations
+            if (changes.incomeChange > 0) {
+                recommendations.push('💹 การเพิ่มรายได้เป็นวิธีที่ดีที่สุด ควรมองหาโอกาสรายได้เสริมเพิ่มเติม');
+            }
+            
+            // Expense change recommendations
+            if (changes.expenseChange < 0) {
+                recommendations.push('🛒 การลดรายจ่ายช่วยปรับปรุงสถานะการเงินได้ดี ควรรักษาระดับนี้ไว้');
+            }
+            
+            // Overall recommendations
+            if (changes.liquidityChange > 5000) {
+                recommendations.push('🎯 การปรับแผนนี้ช่วยปรับปรุงสถานะการเงินได้มาก ควรนำไปปฏิบัติจริง');
+            } else if (changes.liquidityChange < -1000) {
+                recommendations.push('🔄 การปรับแผนนี้อาจทำให้สถานะการเงินแย่ลง ควรพิจารณาใหม่');
+            }
+            
+            if (recommendations.length === 0) {
+                recommendations.push('📊 การปรับแผนนี้ไม่ได้เปลี่ยนแปลงสถานะการเงินมาก ลองปรับค่าต่างๆ เพิ่มเติม');
+            }
+            
+            recommendationEl.innerHTML = recommendations.map(rec => `<div class="mb-2">• ${rec}</div>`).join('');
         }
 
         function restart() {
@@ -1079,5 +1341,5 @@
         // Initialize app when DOM is ready
         document.addEventListener('DOMContentLoaded', init);
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99e3637543b5f305',t:'MTc2MzA5MDU4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99e383cb633cf305',t:'MTc2MzA5MTkxMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
