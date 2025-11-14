@@ -1,1345 +1,1034 @@
 <!doctype html>
 <html lang="th">
- <head>
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Financial Health Checker</title>
   <script src="/_sdk/element_sdk.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-        body {
-            box-sizing: border-box;
-        }
-        
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .card-shadow {
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        
-        .progress-bar {
-            transition: width 0.3s ease-in-out;
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    body { box-sizing: border-box; }
+    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .card-shadow { box-shadow: 0 20px 25px -5px rgba(0,0,0,.1), 0 10px 10px -5px rgba(0,0,0,.04); }
+    .progress-bar { transition: width .3s ease-in-out; }
+    .fade-in { animation: fadeIn .5s ease-in-out; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:translateY(0) } }
 
-        /* Mobile optimizations */
-        @media (max-width: 768px) {
-            .max-w-4xl {
-                max-width: 100%;
-            }
-            
-            .px-6 {
-                padding-left: 1rem;
-                padding-right: 1rem;
-            }
-            
-            .text-4xl {
-                font-size: 2rem;
-            }
-            
-            .text-3xl {
-                font-size: 1.75rem;
-            }
-            
-            .text-2xl {
-                font-size: 1.5rem;
-            }
-            
-            .grid.md\\:grid-cols-2 {
-                grid-template-columns: 1fr;
-            }
-            
-            .grid.md\\:grid-cols-3 {
-                grid-template-columns: 1fr;
-            }
-            
-            .card-shadow {
-                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            }
-            
-            .p-8 {
-                padding: 1.5rem;
-            }
-            
-            .py-8 {
-                padding-top: 2rem;
-                padding-bottom: 2rem;
-            }
-        }
+    /* Mobile */
+    @media (max-width:768px){
+      .max-w-4xl{max-width:100%}
+      .px-6{padding-left:1rem;padding-right:1rem}
+      .text-4xl{font-size:2rem}
+      .text-3xl{font-size:1.75rem}
+      .text-2xl{font-size:1.5rem}
+      .grid.md\:grid-cols-2{grid-template-columns:1fr}
+      .grid.md\:grid-cols-3{grid-template-columns:1fr}
+      .card-shadow{box-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -2px rgba(0,0,0,.05)}
+      .p-8{padding:1.5rem}
+      .py-8{padding-top:2rem;padding-bottom:2rem}
+    }
+    @media (max-width:480px){
+      .text-lg{font-size:1rem}
+      .px-8{padding-left:1rem;padding-right:1rem}
+      .py-4{padding-top:.75rem;padding-bottom:.75rem}
+    }
 
-        @media (max-width: 480px) {
-            .text-lg {
-                font-size: 1rem;
-            }
-            
-            .px-8 {
-                padding-left: 1rem;
-                padding-right: 1rem;
-            }
-            
-            .py-4 {
-                padding-top: 0.75rem;
-                padding-bottom: 0.75rem;
-            }
-        }
-        
-        .result-card {
-            border-left: 4px solid;
-            transition: all 0.3s ease;
-        }
-        
-        .result-card:hover {
-            transform: translateY(-2px);
-        }
-        
-        .good { border-color: #10b981; background: linear-gradient(135deg, #ecfdf5, #f0fdf4); }
-        .warning { border-color: #f59e0b; background: linear-gradient(135deg, #fffbeb, #fefce8); }
-        .danger { border-color: #ef4444; background: linear-gradient(135deg, #fef2f2, #fef2f2); }
-        
-        .input-field {
-            transition: all 0.3s ease;
-            border: 2px solid #e5e7eb;
-        }
-        
-        .input-field:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            transition: all 0.3s ease;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-        
-        .org-btn {
-            padding: 8px 16px;
-            border: 2px solid #e5e7eb;
-            background: white;
-            color: #374151;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-        
-        .org-btn:hover {
-            border-color: #667eea;
-            background: #f8faff;
-            transform: translateY(-1px);
-        }
-        
-        .org-btn.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border-color: #667eea;
-        }
-        
-        .org-btn.selected {
-            background: #dbeafe;
-            border-color: #3b82f6;
-            color: #1e40af;
-        }
-    </style>
+    .result-card{ border-left:4px solid; transition:all .3s ease; }
+    .result-card:hover{ transform: translateY(-2px); }
+    .good{ border-color:#10b981; background:linear-gradient(135deg,#ecfdf5,#f0fdf4); }
+    .warning{ border-color:#f59e0b; background:linear-gradient(135deg,#fffbeb,#fefce8); }
+    .danger{ border-color:#ef4444; background:linear-gradient(135deg,#fef2f2,#fef2f2); }
+
+    .input-field{ transition:all .3s ease; border:2px solid #e5e7eb; }
+    .input-field:focus{ border-color:#667eea; box-shadow:0 0 0 3px rgba(102,126,234,.1); }
+    .btn-primary{ background:linear-gradient(135deg,#667eea,#764ba2); transition:all .3s ease; }
+    .btn-primary:hover{ transform:translateY(-1px); box-shadow:0 10px 20px rgba(102,126,234,.3); }
+
+    .org-btn{ padding:8px 16px; border:2px solid #e5e7eb; background:#fff; color:#374151; border-radius:8px; font-weight:500; font-size:14px; transition:all .2s ease; cursor:pointer; }
+    .org-btn:hover{ border-color:#667eea; background:#f8faff; transform:translateY(-1px); }
+    .org-btn.active{ background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; border-color:#667eea; }
+    .org-btn.selected{ background:#dbeafe; border-color:#3b82f6; color:#1e40af; }
+  </style>
   <style>@view-transition { navigation: auto; }</style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
- </head>
- <body class="min-h-full bg-gray-50">
-  <div class="min-h-full"><!-- Header -->
-   <header class="gradient-bg text-white py-8">
+</head>
+<body class="min-h-full bg-gray-50">
+<div class="min-h-full">
+  <!-- Header -->
+  <header class="gradient-bg text-white py-8">
     <div class="max-w-4xl mx-auto px-6 text-center">
-     <h1 id="main-title" class="text-4xl font-bold mb-2">ตรวจสุขภาพการเงิน</h1>
-     <p id="subtitle" class="text-xl opacity-90">วิเคราะห์สถานะการเงินของคุณอย่างครอบคลุม</p>
+      <h1 id="main-title" class="text-4xl font-bold mb-2">ตรวจสุขภาพการเงิน</h1>
+      <p id="subtitle" class="text-xl opacity-90">วิเคราะห์สถานะการเงินของคุณอย่างครอบคลุม</p>
     </div>
-   </header><!-- Progress Bar -->
-   <div class="bg-white shadow-sm">
+  </header>
+
+  <!-- Progress Bar -->
+  <div class="bg-white shadow-sm">
     <div class="max-w-4xl mx-auto px-6 py-4">
-     <div class="flex items-center justify-between mb-2"><span class="text-sm font-medium text-gray-700">ความคืบหน้า</span> <span id="progress-text" class="text-sm font-medium text-gray-700">0/5</span>
-     </div>
-     <div class="w-full bg-gray-200 rounded-full h-2">
-      <div id="progress-bar" class="progress-bar bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full" style="width: 0%"></div>
-     </div>
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-medium text-gray-700">ความคืบหน้า</span>
+        <span id="progress-text" class="text-sm font-medium text-gray-700">0/5</span>
+      </div>
+      <div class="w-full bg-gray-200 rounded-full h-2">
+        <div id="progress-bar" class="progress-bar bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full" style="width:0%"></div>
+      </div>
     </div>
-   </div><!-- Main Content -->
-   <main class="max-w-4xl mx-auto px-6 py-8"><!-- Welcome Screen -->
-    <div id="welcome-screen" class="text-center fade-in">
-     <div class="bg-white rounded-2xl card-shadow p-8 mb-8">
-      <div class="text-6xl mb-6">
-       💰
-      </div>
-      <h2 class="text-3xl font-bold text-gray-800 mb-4">ยินดีต้อนรับสู่การตรวจสุขภาพการเงิน</h2>
-      <p class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">เครื่องมือนี้จะช่วยวิเคราะห์สถานะการเงินของคุณใน 3 มิติหลัก: อัตราส่วนหนี้ต่อรายได้ (DTI), เงินสำรองฉุกเฉิน และสภาพคล่องทางการเงิน</p><!-- Organization Selection -->
-      <div class="max-w-md mx-auto mb-8 space-y-4">
-       <h3 class="text-xl font-semibold text-gray-800 mb-4">เลือกหน่วยงานของคุณ</h3>
-       <div class="flex flex-wrap gap-2 bg-slate-950/20 border border-slate-50/5 rounded-xl p-2"><button id="chooseBranch" class="org-btn active">สาขา</button> <button id="chooseHQ" class="org-btn">สำนักงานใหญ่</button>
-       </div><!-- กลุ่มสาขา -->
-       <div id="branchGroup" class="space-y-2">
-        <p class="text-sm text-gray-600">เลือกภาคของสาขา</p>
-        <div class="flex flex-wrap gap-2 justify-center"><button class="org-btn" data-org="BW">BW</button> <button class="org-btn" data-org="BK">BK</button> <button class="org-btn" data-org="ES">ES</button> <button class="org-btn" data-org="EN">EN</button> <button class="org-btn" data-org="CE">CE</button> <button class="org-btn" data-org="CN">CN</button> <button class="org-btn" data-org="NO">NO</button> <button class="org-btn" data-org="SO">SO</button>
-        </div>
-       </div><!-- กลุ่ม HQ -->
-       <div id="hqGroup" class="space-y-2 hidden">
-        <p class="text-sm text-gray-600">เลือกหน่วยงาน (สำนักงานใหญ่)</p>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2"><button class="org-btn" data-org="BDSM">BDSM</button> <button class="org-btn" data-org="CLD">CLD</button> <button class="org-btn" data-org="ACC">ACC</button> <button class="org-btn" data-org="CRD">CRD</button> <button class="org-btn" data-org="OPS">OPS</button> <button class="org-btn" data-org="Risk">Risk</button> <button class="org-btn" data-org="HP">HP</button> <button class="org-btn" data-org="Tidlor Academy">Tidlor Academy</button> <button class="org-btn" data-org="BSCS">BSCS</button> <button class="org-btn" data-org="A&amp;D">A&amp;D</button> <button class="org-btn" data-org="IT">IT</button> <button class="org-btn" data-org="INS-Broker">INS-Broker</button> <button class="org-btn" data-org="MKT">MKT</button> <button class="org-btn" data-org="Loan TLS">Loan TLS</button> <button class="org-btn" data-org="Fraud">Fraud</button> <button class="org-btn" data-org="INS-TLS">INS-TLS</button> <button class="org-btn" data-org="Legal">Legal</button> <button class="org-btn" data-org="Compliance">Compliance</button> <button class="org-btn" data-org="IA">IA</button>
-        </div>
-       </div>
-       <div id="selected-org" class="text-sm text-blue-600 font-medium hidden"></div>
-      </div><button id="start-btn" class="btn-primary text-white px-8 py-4 rounded-xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled> เริ่มตรวจสุขภาพการเงิน </button>
-     </div>
-    </div><!-- Question Screens -->
-    <div id="question-screen" class="hidden">
-     <div class="bg-white rounded-2xl card-shadow p-8 fade-in">
-      <h2 id="question-title" class="text-2xl font-bold text-gray-800 mb-6"></h2>
-      <div id="question-content"></div>
-      <div class="flex justify-between mt-8"><button id="prev-btn" class="px-6 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors hidden"> ← ย้อนกลับ </button> <button id="next-btn" class="btn-primary text-white px-8 py-3 rounded-lg font-semibold ml-auto"> ถัดไป → </button>
-      </div>
-     </div>
-    </div><!-- Results Screen -->
-    <div id="results-screen" class="hidden">
-     <div class="space-y-6"><!-- Summary Cards -->
-      <div class="grid md:grid-cols-3 gap-6">
-       <div id="dti-card" class="result-card rounded-xl p-6">
-        <h3 class="font-bold text-lg mb-2">อัตราส่วนหนี้ต่อรายได้ (DTI)</h3>
-        <div id="dti-value" class="text-3xl font-bold mb-2"></div>
-        <p id="dti-status" class="text-sm"></p>
-       </div>
-       <div id="emergency-card" class="result-card rounded-xl p-6">
-        <h3 class="font-bold text-lg mb-2">เงินสำรองฉุกเฉิน</h3>
-        <div id="emergency-value" class="text-3xl font-bold mb-2"></div>
-        <p id="emergency-status" class="text-sm"></p>
-       </div>
-       <div id="liquidity-card" class="result-card rounded-xl p-6">
-        <h3 class="font-bold text-lg mb-2">สภาพคล่อง</h3>
-        <div id="liquidity-value" class="text-3xl font-bold mb-2"></div>
-        <p id="liquidity-status" class="text-sm"></p>
-       </div>
-      </div><!-- Detailed Analysis -->
-      <div class="bg-white rounded-2xl card-shadow p-8">
-       <h3 class="text-2xl font-bold text-gray-800 mb-6">การวิเคราะห์และคำแนะนำ</h3>
-       <div id="recommendations" class="space-y-6"></div>
-      </div><!-- Interactive Adjustment -->
-      <div id="adjustment-section" class="bg-white rounded-2xl card-shadow p-8">
-       <h3 class="text-2xl font-bold text-gray-800 mb-6">📊 ปรับแผนการเงิน</h3>
-       <p class="text-gray-600 mb-6">ลองปรับรายจ่ายของคุณเพื่อดูผลกระทบต่อสุขภาพการเงิน</p>
-       <div id="adjustment-content"></div>
-      </div><!-- Emergency Fund Simulator -->
-      <div id="emergency-simulator" class="bg-white rounded-2xl card-shadow p-8 hidden">
-       <h3 class="text-2xl font-bold text-gray-800 mb-6">💰 จำลองการออมเงินฉุกเฉิน</h3>
-       <p class="text-gray-600 mb-6">คำนวณระยะเวลาที่ต้องใช้ในการสร้างเงินสำรองฉุกเฉินให้ถึงเป้าหมาย</p>
-       <div class="grid md:grid-cols-2 gap-6">
-        <div class="space-y-4">
-         <div><label class="block text-sm font-medium text-gray-700 mb-2">เงินออมต่อเดือนที่วางแผนไว้ (บาท)</label> <input type="text" id="monthly-saving-input" class="input-field w-full px-4 py-3 rounded-lg text-lg" placeholder="เช่น 5,000">
-         </div>
-         <div class="bg-blue-50 p-4 rounded-lg">
-          <h4 class="font-bold text-lg mb-2">เป้าหมายเงินสำรองฉุกเฉิน</h4>
-          <div class="space-y-2 text-sm">
-           <div class="flex justify-between"><span>3 เดือน:</span> <span id="target-3-months" class="font-bold"></span>
-           </div>
-           <div class="flex justify-between"><span>6 เดือน:</span> <span id="target-6-months" class="font-bold"></span>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="space-y-4">
-         <div class="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg">
-          <h4 class="font-bold text-lg mb-3">ระยะเวลาที่ต้องใช้</h4>
-          <div class="space-y-3">
-           <div class="flex justify-between items-center"><span class="text-sm">ถึงเป้า 3 เดือน:</span>
-            <div class="text-right">
-             <div id="time-to-3-months" class="font-bold text-lg text-green-600"></div>
-             <div id="date-to-3-months" class="text-xs text-gray-600"></div>
-            </div>
-           </div>
-           <div class="flex justify-between items-center"><span class="text-sm">ถึงเป้า 6 เดือน:</span>
-            <div class="text-right">
-             <div id="time-to-6-months" class="font-bold text-lg text-blue-600"></div>
-             <div id="date-to-6-months" class="text-xs text-gray-600"></div>
-            </div>
-           </div>
-          </div>
-         </div>
-         <div class="bg-yellow-50 p-4 rounded-lg">
-          <h5 class="font-bold text-sm mb-2">💡 เคล็ดลับการออม</h5>
-          <ul class="text-xs space-y-1 text-gray-700">
-           <li>• ตั้งเป้าออมอย่างน้อย 10-20% ของรายได้</li>
-           <li>• ใช้วิธี "จ่ายตัวเองก่อน" โดยโอนเงินออมทันทีที่ได้เงินเดือน</li>
-           <li>• เปิดบัญชีออมทรัพย์แยกสำหรับเงินฉุกเฉิน</li>
-          </ul>
-         </div>
-        </div>
-       </div>
-      </div><!-- Action Buttons -->
-      <div class="text-center"><button id="restart-btn" class="btn-primary text-white px-8 py-3 rounded-lg font-semibold"> 🔄 ตรวจสุขภาพการเงินใหม่ </button>
-      </div>
-     </div>
-    </div>
-   </main>
   </div>
-  <script>
-        // Configuration
-        const defaultConfig = {
-            main_title: "ตรวจสุขภาพการเงิน",
-            subtitle: "วิเคราะห์สถานะการเงินของคุณอย่างครอบคลุญ",
-            start_button_text: "เริ่มตรวจสุขภาพการเงิน"
-        };
 
-        // Application state
-        let currentStep = 0;
-        let selectedOrganization = '';
-        let userData = {
-            income: 0,
-            debtPayment: 0,
-            expenses: {
-                food: 0,
-                transport: 0,
-                household: 0,
-                utilities: 0,
-                entertainment: 0,
-                clothing: 0,
-                communication: 0,
-                other: 0
-            },
-            savings: 0
-        };
+  <!-- Main -->
+  <main class="max-w-4xl mx-auto px-6 py-8">
+    <!-- Welcome -->
+    <div id="welcome-screen" class="text-center fade-in">
+      <div class="bg-white rounded-2xl card-shadow p-8 mb-8">
+        <div class="text-6xl mb-6">💰</div>
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">ยินดีต้อนรับสู่การตรวจสุขภาพการเงิน</h2>
+        <p class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+          เครื่องมือนี้จะช่วยวิเคราะห์สถานะการเงินของคุณใน 3 มิติหลัก: อัตราส่วนหนี้ต่อรายได้ (DTI), เงินสำรองฉุกเฉิน และสภาพคล่องทางการเงิน
+        </p>
 
-        // Number formatting functions
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
+        <!-- Organization -->
+        <div class="max-w-md mx-auto mb-8 space-y-4">
+          <h3 class="text-xl font-semibold text-gray-800 mb-4">เลือกหน่วยงานของคุณ</h3>
+          <div class="flex flex-wrap gap-2 bg-slate-950/20 border border-slate-50/5 rounded-xl p-2">
+            <button id="chooseBranch" class="org-btn active">สาขา</button>
+            <button id="chooseHQ" class="org-btn">สำนักงานใหญ่</button>
+          </div>
 
-        function parseNumber(str) {
-            return parseFloat(str.replace(/,/g, '')) || 0;
-        }
+          <!-- Branch -->
+          <div id="branchGroup" class="space-y-2">
+            <p class="text-sm text-gray-600">เลือกภาคของสาขา</p>
+            <div class="flex flex-wrap gap-2 justify-center">
+              <button class="org-btn" data-org="BW">BW</button>
+              <button class="org-btn" data-org="BK">BK</button>
+              <button class="org-btn" data-org="ES">ES</button>
+              <button class="org-btn" data-org="EN">EN</button>
+              <button class="org-btn" data-org="CE">CE</button>
+              <button class="org-btn" data-org="CN">CN</button>
+              <button class="org-btn" data-org="NO">NO</button>
+              <button class="org-btn" data-org="SO">SO</button>
+            </div>
+          </div>
 
-        function formatMonthsToYears(months) {
-            if (months <= 0) return 'ถึงแล้ว!';
-            
-            const years = Math.floor(months / 12);
-            const remainingMonths = months % 12;
-            
-            if (years === 0) {
-                return `${months} เดือน`;
-            } else if (remainingMonths === 0) {
-                return `${years} ปี`;
-            } else {
-                return `${years} ปี ${remainingMonths} เดือน`;
-            }
-        }
+          <!-- HQ -->
+          <div id="hqGroup" class="space-y-2 hidden">
+            <p class="text-sm text-gray-600">เลือกหน่วยงาน (สำนักงานใหญ่)</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <button class="org-btn" data-org="BDSM">BDSM</button>
+              <button class="org-btn" data-org="CLD">CLD</button>
+              <button class="org-btn" data-org="ACC">ACC</button>
+              <button class="org-btn" data-org="CRD">CRD</button>
+              <button class="org-btn" data-org="OPS">OPS</button>
+              <button class="org-btn" data-org="Risk">Risk</button>
+              <button class="org-btn" data-org="HP">HP</button>
+              <button class="org-btn" data-org="Tidlor Academy">Tidlor Academy</button>
+              <button class="org-btn" data-org="BSCS">BSCS</button>
+              <button class="org-btn" data-org="A&amp;D">A&amp;D</button>
+              <button class="org-btn" data-org="IT">IT</button>
+              <button class="org-btn" data-org="INS-Broker">INS-Broker</button>
+              <button class="org-btn" data-org="MKT">MKT</button>
+              <button class="org-btn" data-org="Loan TLS">Loan TLS</button>
+              <button class="org-btn" data-org="Fraud">Fraud</button>
+              <button class="org-btn" data-org="INS-TLS">INS-TLS</button>
+              <button class="org-btn" data-org="Legal">Legal</button>
+              <button class="org-btn" data-org="Compliance">Compliance</button>
+              <button class="org-btn" data-org="IA">IA</button>
+            </div>
+          </div>
 
-        function setupNumberInput(input) {
-            // Change input type to text to allow formatting
-            input.type = 'text';
-            
-            input.addEventListener('input', function(e) {
-                // Get cursor position before formatting
-                const cursorPosition = e.target.selectionStart;
-                const oldValue = e.target.value;
-                const oldLength = oldValue.length;
-                
-                // Remove all commas and non-numeric characters except digits
-                let value = e.target.value.replace(/[^0-9]/g, '');
-                
-                if (value) {
-                    // Format with commas
-                    const formattedValue = formatNumber(value);
-                    e.target.value = formattedValue;
-                    
-                    // Calculate new cursor position
-                    const newLength = formattedValue.length;
-                    const lengthDiff = newLength - oldLength;
-                    const newCursorPosition = Math.max(0, cursorPosition + lengthDiff);
-                    
-                    // Set cursor position
-                    setTimeout(() => {
-                        e.target.setSelectionRange(newCursorPosition, newCursorPosition);
-                    }, 0);
-                } else {
-                    e.target.value = '';
-                }
-            });
-            
-            // Handle paste events
-            input.addEventListener('paste', function(e) {
-                e.preventDefault();
-                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-                let value = pastedText.replace(/[^0-9]/g, '');
-                if (value) {
-                    e.target.value = formatNumber(value);
-                }
-            });
-            
-            // Handle focus to show formatted value
-            input.addEventListener('focus', function(e) {
-                if (e.target.value) {
-                    const value = e.target.value.replace(/[^0-9]/g, '');
-                    if (value) {
-                        e.target.value = formatNumber(value);
-                    }
-                }
-            });
-        }
+          <div id="selected-org" class="text-sm text-blue-600 font-medium hidden"></div>
+        </div>
 
-        // Questions configuration
-        const questions = [
-            {
-                title: "รายได้รวมต่อเดือน",
-                content: `
-                    <div class="space-y-4">
-                        <p class="text-gray-600">กรุณากรอกรายได้รวมของคุณต่อเดือน (บาท)</p>
-                        <input type="text" id="income-input" class="input-field w-full px-4 py-3 rounded-lg text-lg" placeholder="เช่น 50,000" inputmode="numeric">
-                    </div>
-                `,
-                field: 'income'
-            },
-            {
-                title: "รายจ่ายหนี้รวมต่อเดือน",
-                content: `
-                    <div class="space-y-4">
-                        <p class="text-gray-600">กรุณากรอกยอดรวมที่คุณต้องจ่ายหนี้ทุกประเภทต่อเดือน (บาท)</p>
-                        <input type="text" id="debt-input" class="input-field w-full px-4 py-3 rounded-lg text-lg" placeholder="เช่น 15,000" inputmode="numeric">
-                    </div>
-                `,
-                field: 'debtPayment'
-            },
-            {
-                title: "รายจ่ายในชีวิตประจำวัน",
-                content: `
-                    <div class="space-y-4">
-                        <p class="text-gray-600 mb-6">กรุณากรอกรายจ่ายแต่ละหมวดหมู่ต่อเดือน (บาท)</p>
-                        <div class="grid md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">ค่าอาหาร</label>
-                                <input type="text" id="food-input" class="input-field w-full px-3 py-2 rounded-lg" placeholder="0" inputmode="numeric">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">ค่าเดินทาง/น้ำมัน</label>
-                                <input type="text" id="transport-input" class="input-field w-full px-3 py-2 rounded-lg" placeholder="0" inputmode="numeric">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">ค่าของใช้ในบ้าน</label>
-                                <input type="text" id="household-input" class="input-field w-full px-3 py-2 rounded-lg" placeholder="0" inputmode="numeric">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">ค่าน้ำ/ค่าไฟ</label>
-                                <input type="text" id="utilities-input" class="input-field w-full px-3 py-2 rounded-lg" placeholder="0" inputmode="numeric">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">ค่านันทนาการ/สังสรรค์</label>
-                                <input type="text" id="entertainment-input" class="input-field w-full px-3 py-2 rounded-lg" placeholder="0" inputmode="numeric">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">ค่าเสื้อผ้า/เครื่องประดับ</label>
-                                <input type="text" id="clothing-input" class="input-field w-full px-3 py-2 rounded-lg" placeholder="0" inputmode="numeric">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">ค่าเน็ต/โทรศัพท์</label>
-                                <input type="text" id="communication-input" class="input-field w-full px-3 py-2 rounded-lg" placeholder="0" inputmode="numeric">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">อื่นๆ</label>
-                                <input type="text" id="other-input" class="input-field w-full px-3 py-2 rounded-lg" placeholder="0" inputmode="numeric">
-                            </div>
-                        </div>
-                    </div>
-                `,
-                field: 'expenses'
-            },
-            {
-                title: "เงินออมรวมในปัจจุบัน",
-                content: `
-                    <div class="space-y-4">
-                        <p class="text-gray-600">กรุณากรอกยอดเงินออมรวมที่คุณมีในปัจจุบัน (บาท)</p>
-                        <input type="text" id="savings-input" class="input-field w-full px-4 py-3 rounded-lg text-lg" placeholder="เช่น 100,000" inputmode="numeric">
-                    </div>
-                `,
-                field: 'savings'
-            }
-        ];
+        <button id="start-btn" class="btn-primary text-white px-8 py-4 rounded-xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+          เริ่มตรวจสุขภาพการเงิน
+        </button>
+      </div>
+    </div>
 
-        // Initialize app
-        function init() {
-            setupEventListeners();
-            updateProgress();
-        }
+    <!-- Question -->
+    <div id="question-screen" class="hidden">
+      <div class="bg-white rounded-2xl card-shadow p-8 fade-in">
+        <h2 id="question-title" class="text-2xl font-bold text-gray-800 mb-6"></h2>
+        <div id="question-content"></div>
+        <div class="flex justify-between mt-8">
+          <button id="prev-btn" class="px-6 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors hidden">← ย้อนกลับ</button>
+          <button id="next-btn" class="btn-primary text-white px-8 py-3 rounded-lg font-semibold ml-auto">ถัดไป →</button>
+        </div>
+      </div>
+    </div>
 
-        function setupEventListeners() {
-            document.getElementById('start-btn').addEventListener('click', startQuestionnaire);
-            document.getElementById('next-btn').addEventListener('click', nextQuestion);
-            document.getElementById('prev-btn').addEventListener('click', prevQuestion);
-            document.getElementById('restart-btn').addEventListener('click', restart);
-            
-            // Organization selection listeners
-            document.getElementById('chooseBranch').addEventListener('click', () => switchOrgType('branch'));
-            document.getElementById('chooseHQ').addEventListener('click', () => switchOrgType('hq'));
-            
-            // Organization buttons listeners
-            document.querySelectorAll('[data-org]').forEach(btn => {
-                btn.addEventListener('click', (e) => selectOrganization(e.target.dataset.org));
-            });
-        }
-        
-        function switchOrgType(type) {
-            const chooseBranchBtn = document.getElementById('chooseBranch');
-            const chooseHQBtn = document.getElementById('chooseHQ');
-            const branchGroup = document.getElementById('branchGroup');
-            const hqGroup = document.getElementById('hqGroup');
-            
-            if (type === 'branch') {
-                chooseBranchBtn.classList.add('active');
-                chooseHQBtn.classList.remove('active');
-                branchGroup.classList.remove('hidden');
-                hqGroup.classList.add('hidden');
-            } else {
-                chooseHQBtn.classList.add('active');
-                chooseBranchBtn.classList.remove('active');
-                hqGroup.classList.remove('hidden');
-                branchGroup.classList.add('hidden');
-            }
-            
-            // Clear previous selection
-            clearOrgSelection();
-        }
-        
-        function selectOrganization(org) {
-            selectedOrganization = org;
-            
-            // Clear all selected states
-            document.querySelectorAll('[data-org]').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-            
-            // Add selected state to clicked button
-            document.querySelector(`[data-org="${org}"]`).classList.add('selected');
-            
-            // Show selected organization
-            const selectedOrgDiv = document.getElementById('selected-org');
-            selectedOrgDiv.textContent = `เลือกแล้ว: ${org}`;
-            selectedOrgDiv.classList.remove('hidden');
-            
-            // Enable start button
-            document.getElementById('start-btn').disabled = false;
-        }
-        
-        function clearOrgSelection() {
-            selectedOrganization = '';
-            document.querySelectorAll('[data-org]').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-            document.getElementById('selected-org').classList.add('hidden');
-            document.getElementById('start-btn').disabled = true;
-        }
+    <!-- Results -->
+    <div id="results-screen" class="hidden">
+      <!-- Save chip -->
+      <div id="save-chip" class="hidden mb-4">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gray-200 bg-white shadow-sm text-xs text-gray-700">
+          <svg id="save-chip-spinner" class="hidden animate-spin" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity=".25" stroke-width="4"></circle>
+            <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" stroke-width="4"></path>
+          </svg>
+          <span id="save-chip-text">กำลังบันทึกผล…</span>
+        </div>
+      </div>
 
-        function startQuestionnaire() {
-            document.getElementById('welcome-screen').classList.add('hidden');
-            document.getElementById('question-screen').classList.remove('hidden');
-            showQuestion(0);
-        }
+      <div class="space-y-6">
+        <!-- Summary Cards -->
+        <div class="grid md:grid-cols-3 gap-6">
+          <div id="dti-card" class="result-card rounded-xl p-6">
+            <h3 class="font-bold text-lg mb-2">อัตราส่วนหนี้ต่อรายได้ (DTI)</h3>
+            <div id="dti-value" class="text-3xl font-bold mb-2"></div>
+            <p id="dti-status" class="text-sm"></p>
+          </div>
+          <div id="emergency-card" class="result-card rounded-xl p-6">
+            <h3 class="font-bold text-lg mb-2">เงินสำรองฉุกเฉิน</h3>
+            <div id="emergency-value" class="text-3xl font-bold mb-2"></div>
+            <p id="emergency-status" class="text-sm"></p>
+          </div>
+          <div id="liquidity-card" class="result-card rounded-xl p-6">
+            <h3 class="font-bold text-lg mb-2">สภาพคล่อง</h3>
+            <div id="liquidity-value" class="text-3xl font-bold mb-2"></div>
+            <p id="liquidity-status" class="text-sm"></p>
+          </div>
+        </div>
 
-        function showQuestion(step) {
-            currentStep = step;
-            const question = questions[step];
-            
-            document.getElementById('question-title').textContent = question.title;
-            document.getElementById('question-content').innerHTML = question.content;
-            
-            // Show/hide navigation buttons
-            const prevBtn = document.getElementById('prev-btn');
-            const nextBtn = document.getElementById('next-btn');
-            
-            if (step === 0) {
-                prevBtn.classList.add('hidden');
-            } else {
-                prevBtn.classList.remove('hidden');
-            }
-            
-            if (step === questions.length - 1) {
-                nextBtn.textContent = 'ดูผลลัพธ์';
-            } else {
-                nextBtn.textContent = 'ถัดไป →';
-            }
-            
-            // Load existing data
-            loadQuestionData(step);
-            updateProgress();
-        }
+        <!-- Detailed Analysis -->
+        <div class="bg-white rounded-2xl card-shadow p-8">
+          <h3 class="text-2xl font-bold text-gray-800 mb-6">การวิเคราะห์และคำแนะนำ</h3>
+          <div id="recommendations" class="space-y-6"></div>
+        </div>
 
-        function loadQuestionData(step) {
-            const question = questions[step];
-            
-            // Setup number formatting for all inputs after DOM is ready
-            setTimeout(() => {
-                const inputs = document.querySelectorAll('input[type="number"], input[type="text"]');
-                inputs.forEach(input => {
-                    if (input.id.includes('-input')) {
-                        setupNumberInput(input);
-                    }
-                });
-            }, 100);
-            
-            if (question.field === 'income') {
-                const input = document.getElementById('income-input');
-                if (userData.income > 0) input.value = formatNumber(userData.income);
-            } else if (question.field === 'debtPayment') {
-                const input = document.getElementById('debt-input');
-                if (userData.debtPayment > 0) input.value = formatNumber(userData.debtPayment);
-            } else if (question.field === 'expenses') {
-                Object.keys(userData.expenses).forEach(key => {
-                    const input = document.getElementById(`${key}-input`);
-                    if (input && userData.expenses[key] > 0) {
-                        input.value = formatNumber(userData.expenses[key]);
-                    }
-                });
-            } else if (question.field === 'savings') {
-                const input = document.getElementById('savings-input');
-                if (userData.savings > 0) input.value = formatNumber(userData.savings);
-            }
-        }
+        <!-- Adjustment -->
+        <div id="adjustment-section" class="bg-white rounded-2xl card-shadow p-8">
+          <h3 class="text-2xl font-bold text-gray-800 mb-6">📊 ปรับแผนการเงิน</h3>
+          <p class="text-gray-600 mb-6">ลองปรับรายจ่ายของคุณเพื่อดูผลกระทบต่อสุขภาพการเงิน</p>
+          <div id="adjustment-content"></div>
+        </div>
 
-        function saveQuestionData(step) {
-            const question = questions[step];
-            
-            if (question.field === 'income') {
-                const value = parseNumber(document.getElementById('income-input').value);
-                userData.income = value;
-            } else if (question.field === 'debtPayment') {
-                const value = parseNumber(document.getElementById('debt-input').value);
-                userData.debtPayment = value;
-            } else if (question.field === 'expenses') {
-                Object.keys(userData.expenses).forEach(key => {
-                    const input = document.getElementById(`${key}-input`);
-                    if (input) {
-                        userData.expenses[key] = parseNumber(input.value);
-                    }
-                });
-            } else if (question.field === 'savings') {
-                const value = parseNumber(document.getElementById('savings-input').value);
-                userData.savings = value;
-            }
-        }
-
-        function nextQuestion() {
-            saveQuestionData(currentStep);
-            
-            if (currentStep < questions.length - 1) {
-                showQuestion(currentStep + 1);
-            } else {
-                showResults();
-            }
-        }
-
-        function prevQuestion() {
-            saveQuestionData(currentStep);
-            if (currentStep > 0) {
-                showQuestion(currentStep - 1);
-            }
-        }
-
-        function updateProgress() {
-            const progress = ((currentStep + 1) / (questions.length + 1)) * 100;
-            document.getElementById('progress-bar').style.width = `${progress}%`;
-            document.getElementById('progress-text').textContent = `${currentStep + 1}/${questions.length + 1}`;
-        }
-
-        function showResults() {
-            document.getElementById('question-screen').classList.add('hidden');
-            document.getElementById('results-screen').classList.remove('hidden');
-            
-            const results = calculateResults();
-            displayResults(results);
-            
-            // Always show emergency simulator
-            document.getElementById('emergency-simulator').classList.remove('hidden');
-            setupEmergencySimulator(results);
-            
-            createAdjustmentSection();
-            
-            // Update progress to show completion (5/5)
-            currentStep = questions.length;
-            updateProgress();
-        }
-
-        function calculateResults() {
-            const totalExpenses = Object.values(userData.expenses).reduce((sum, val) => sum + val, 0);
-            const totalMonthlyExpenses = userData.debtPayment + totalExpenses;
-            
-            // DTI Calculation
-            const dti = userData.income > 0 ? (userData.debtPayment / userData.income) * 100 : 0;
-            
-            // Emergency Fund Calculation (months of coverage)
-            const emergencyMonths = totalMonthlyExpenses > 0 ? userData.savings / totalMonthlyExpenses : 0;
-            
-            // Liquidity Calculation
-            const liquidity = userData.income - totalMonthlyExpenses;
-            
-            return {
-                dti,
-                emergencyMonths,
-                liquidity,
-                totalExpenses,
-                totalMonthlyExpenses
-            };
-        }
-
-        function displayResults(results) {
-            // DTI Card
-            const dtiCard = document.getElementById('dti-card');
-            const dtiValue = document.getElementById('dti-value');
-            const dtiStatus = document.getElementById('dti-status');
-            
-            dtiValue.textContent = `${results.dti.toFixed(1)}%`;
-            
-            if (results.dti <= 35) {
-                dtiCard.className = 'result-card rounded-xl p-6 good';
-                dtiStatus.textContent = 'ดีมาก! อัตราส่วนหนี้อยู่ในเกณฑ์ที่ปลอดภัย';
-            } else if (results.dti <= 45) {
-                dtiCard.className = 'result-card rounded-xl p-6 warning';
-                dtiStatus.textContent = 'ระมัดระวัง! ควรหยุดสร้างหนี้เพิ่มและเร่งชำระหนี้';
-            } else {
-                dtiCard.className = 'result-card rounded-xl p-6 danger';
-                dtiStatus.textContent = 'อันตราย! ต้องหยุดสร้างหนี้และพิจารณาปรับโครงสร้างหนี้';
-            }
-            
-            // Emergency Fund Card
-            const emergencyCard = document.getElementById('emergency-card');
-            const emergencyValue = document.getElementById('emergency-value');
-            const emergencyStatus = document.getElementById('emergency-status');
-            
-            emergencyValue.textContent = `${results.emergencyMonths.toFixed(1)} เดือน`;
-            
-            if (results.emergencyMonths >= 3 && results.emergencyMonths <= 6) {
-                emergencyCard.className = 'result-card rounded-xl p-6 good';
-                emergencyStatus.textContent = 'ดีมาก! เงินสำรองอยู่ในเกณฑ์ที่เหมาะสม';
-            } else if (results.emergencyMonths < 3) {
-                emergencyCard.className = 'result-card rounded-xl p-6 warning';
-                emergencyStatus.textContent = 'ควรเก็บเงินเพิ่มเพื่อให้ถึงเป้าหมาย 3-6 เดือน';
-            } else {
-                emergencyCard.className = 'result-card rounded-xl p-6 warning';
-                emergencyStatus.textContent = 'เงินสำรองเกินเป้า ควรนำส่วนเกินไปลงทุน';
-            }
-            
-            // Liquidity Card
-            const liquidityCard = document.getElementById('liquidity-card');
-            const liquidityValue = document.getElementById('liquidity-value');
-            const liquidityStatus = document.getElementById('liquidity-status');
-            
-            liquidityValue.textContent = `${results.liquidity.toLocaleString()} บาท`;
-            
-            if (results.liquidity >= 0) {
-                liquidityCard.className = 'result-card rounded-xl p-6 good';
-                liquidityStatus.textContent = 'ดีมาก! สภาพคล่องเป็นบวก';
-            } else {
-                liquidityCard.className = 'result-card rounded-xl p-6 danger';
-                liquidityStatus.textContent = 'ติดลบ! ต้องลดรายจ่ายหรือเพิ่มรายได้';
-            }
-            
-            // Recommendations
-            generateRecommendations(results);
-        }
-
-        function generateRecommendations(results) {
-            const recommendationsDiv = document.getElementById('recommendations');
-            let recommendations = [];
-            
-            // DTI Recommendations
-            if (results.dti <= 35) {
-                recommendations.push({
-                    title: '🎉 อัตราส่วนหนี้ดีมาก',
-                    content: 'อัตราส่วนหนี้ต่อรายได้ของคุณอยู่ในเกณฑ์ที่ปลอดภัย คุณสามารถบริหารหนี้ได้ดีและยังมีพื้นที่สำหรับการออมและลงทุน',
-                    type: 'good'
-                });
-            } else if (results.dti <= 45) {
-                recommendations.push({
-                    title: '⚠️ ควรระมัดระวังเรื่องหนี้',
-                    content: 'อัตราส่วนหนี้ของคุณเริ่มสูง ควรหยุดสร้างหนี้เพิ่มและเร่งชำระหนี้ให้หมด เพื่อลดภาระทางการเงิน',
-                    type: 'warning'
-                });
-            } else {
-                recommendations.push({
-                    title: '🚨 หนี้สูงเกินไป',
-                    content: 'อัตราส่วนหนี้ของคุณสูงมาก ต้องหยุดสร้างหนี้ทันที เร่งชำระหนี้ และพิจารณาเจรจาปรับโครงสร้างหนี้หากจ่ายไม่ไหว',
-                    type: 'danger'
-                });
-            }
-            
-            // Emergency Fund Recommendations
-            if (results.emergencyMonths < 3) {
-                recommendations.push({
-                    title: '💰 เพิ่มเงินสำรองฉุกเฉิน',
-                    content: `เงินสำรองของคุณครอบคลุมค่าใช้จ่ายได้เพียง ${results.emergencyMonths.toFixed(1)} เดือน ควรเก็บเงินเพิ่มให้ถึง 3-6 เดือน`,
-                    type: 'warning'
-                });
-            } else if (results.emergencyMonths > 6) {
-                recommendations.push({
-                    title: '📈 ลงทุนเงินส่วนเกิน',
-                    content: 'เงินสำรองของคุณเกินเป้าหมาย ควรนำส่วนที่เกิน 6 เดือนไปลงทุนเพื่อให้เงินเติบโต',
-                    type: 'good'
-                });
-            }
-            
-            // Liquidity Recommendations
-            if (results.liquidity < 0) {
-                const topExpenses = getTopExpenses();
-                recommendations.push({
-                    title: '📉 ปรับปรุงสภาพคล่อง',
-                    content: `สภาพคล่องของคุณติดลบ ${Math.abs(results.liquidity).toLocaleString()} บาท ควรลดรายจ่ายในหมวด: ${topExpenses.join(', ')}`,
-                    type: 'danger'
-                });
-            }
-            
-            // Display recommendations
-            recommendationsDiv.innerHTML = recommendations.map(rec => `
-                <div class="result-card rounded-lg p-6 ${rec.type}">
-                    <h4 class="font-bold text-lg mb-2">${rec.title}</h4>
-                    <p class="text-gray-700">${rec.content}</p>
+        <!-- Emergency Simulator -->
+        <div id="emergency-simulator" class="bg-white rounded-2xl card-shadow p-8 hidden">
+          <h3 class="text-2xl font-bold text-gray-800 mb-6">💰 จำลองการออมเงินฉุกเฉิน</h3>
+          <p class="text-gray-600 mb-6">คำนวณระยะเวลาที่ต้องใช้ในการสร้างเงินสำรองฉุกเฉินให้ถึงเป้าหมาย</p>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">เงินออมต่อเดือนที่วางแผนไว้ (บาท)</label>
+                <input type="text" id="monthly-saving-input" class="input-field w-full px-4 py-3 rounded-lg text-lg" placeholder="เช่น 5,000">
+              </div>
+              <div class="bg-blue-50 p-4 rounded-lg">
+                <h4 class="font-bold text-lg mb-2">เป้าหมายเงินสำรองฉุกเฉิน</h4>
+                <div class="space-y-2 text-sm">
+                  <div class="flex justify-between"><span>3 เดือน:</span> <span id="target-3-months" class="font-bold"></span></div>
+                  <div class="flex justify-between"><span>6 เดือน:</span> <span id="target-6-months" class="font-bold"></span></div>
                 </div>
-            `).join('');
-        }
-
-        function getTopExpenses() {
-            const expenseLabels = {
-                food: 'ค่าอาหาร',
-                transport: 'ค่าเดินทาง',
-                household: 'ค่าของใช้ในบ้าน',
-                utilities: 'ค่าน้ำ/ไฟ',
-                entertainment: 'ค่านันทนาการ',
-                clothing: 'ค่าเสื้อผ้า',
-                communication: 'ค่าเน็ต/โทรศัพท์',
-                other: 'อื่นๆ'
-            };
-            
-            return Object.entries(userData.expenses)
-                .sort(([,a], [,b]) => b - a)
-                .slice(0, 3)
-                .filter(([,value]) => value > 0)
-                .map(([key]) => expenseLabels[key]);
-        }
-
-        function setupEmergencySimulator(results) {
-            const monthlyInput = document.getElementById('monthly-saving-input');
-            const target3El = document.getElementById('target-3-months');
-            const target6El = document.getElementById('target-6-months');
-            
-            const target3Months = results.totalMonthlyExpenses * 3;
-            const target6Months = results.totalMonthlyExpenses * 6;
-            
-            target3El.textContent = formatNumber(target3Months) + ' บาท';
-            target6El.textContent = formatNumber(target6Months) + ' บาท';
-            
-            setupNumberInput(monthlyInput);
-            
-            function updateSimulation() {
-                const monthlySaving = parseNumber(monthlyInput.value);
-                if (monthlySaving <= 0) return;
-                
-                const currentSavings = userData.savings;
-                const needed3Months = Math.max(0, target3Months - currentSavings);
-                const needed6Months = Math.max(0, target6Months - currentSavings);
-                
-                const months3 = Math.ceil(needed3Months / monthlySaving);
-                const months6 = Math.ceil(needed6Months / monthlySaving);
-                
-                // Update time displays
-                document.getElementById('time-to-3-months').textContent = formatMonthsToYears(months3);
-                document.getElementById('time-to-6-months').textContent = formatMonthsToYears(months6);
-                
-                // Calculate target dates
-                const today = new Date();
-                const date3Months = new Date(today);
-                const date6Months = new Date(today);
-                date3Months.setMonth(date3Months.getMonth() + months3);
-                date6Months.setMonth(date6Months.getMonth() + months6);
-                
-                document.getElementById('date-to-3-months').textContent = 
-                    months3 <= 0 ? '' : date3Months.toLocaleDateString('th-TH');
-                document.getElementById('date-to-6-months').textContent = 
-                    months6 <= 0 ? '' : date6Months.toLocaleDateString('th-TH');
-            }
-            
-            monthlyInput.addEventListener('input', updateSimulation);
-            
-            // Set default value (10% of income)
-            const suggestedSaving = Math.round(userData.income * 0.1);
-            monthlyInput.value = formatNumber(suggestedSaving);
-            updateSimulation();
-        }
-
-
-
-        function createAdjustmentSection() {
-            const adjustmentContent = document.getElementById('adjustment-content');
-            const expenseLabels = {
-                food: 'ค่าอาหาร',
-                transport: 'ค่าเดินทาง/น้ำมัน',
-                household: 'ค่าของใช้ในบ้าน',
-                utilities: 'ค่าน้ำ/ค่าไฟ',
-                entertainment: 'ค่านันทนาการ/สังสรรค์',
-                clothing: 'ค่าเสื้อผ้า/เครื่องประดับ',
-                communication: 'ค่าเน็ต/โทรศัพท์',
-                other: 'อื่นๆ'
-            };
-            
-            let html = `
-                <!-- Income & Debt Adjustment Section -->
-                <div class="grid md:grid-cols-2 gap-6 mb-8">
-                    <div class="bg-green-50 p-6 rounded-xl border-l-4 border-green-500">
-                        <h4 class="font-bold text-lg mb-4 text-green-800">💰 ปรับรายได้</h4>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">รายได้ปัจจุบัน</label>
-                                <div class="text-2xl font-bold text-green-600 mb-2">${formatNumber(userData.income)} บาท</div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">รายได้ใหม่ที่วางแผน</label>
-                                <input type="text" id="adj-income" class="input-field w-full px-3 py-2 rounded-lg" 
-                                       value="${formatNumber(userData.income)}" onchange="updateAdjustment()">
-                                <div class="text-xs text-gray-600 mt-1">เช่น รายได้เสริม, โบนัส, เลื่อนตำแหน่ง</div>
-                            </div>
-                        </div>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div class="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg">
+                <h4 class="font-bold text-lg mb-3">ระยะเวลาที่ต้องใช้</h4>
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center"><span class="text-sm">ถึงเป้า 3 เดือน:</span>
+                    <div class="text-right">
+                      <div id="time-to-3-months" class="font-bold text-lg text-green-600"></div>
+                      <div id="date-to-3-months" class="text-xs text-gray-600"></div>
                     </div>
-                    
-                    <div class="bg-red-50 p-6 rounded-xl border-l-4 border-red-500">
-                        <h4 class="font-bold text-lg mb-4 text-red-800">💳 ปรับการจ่ายหนี้</h4>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">จ่ายหนี้ปัจจุบัน</label>
-                                <div class="text-2xl font-bold text-red-600 mb-2">${formatNumber(userData.debtPayment)} บาท</div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">จ่ายหนี้ใหม่ที่วางแผน</label>
-                                <input type="text" id="adj-debt" class="input-field w-full px-3 py-2 rounded-lg" 
-                                       value="${formatNumber(userData.debtPayment)}" onchange="updateAdjustment()">
-                                <div class="text-xs text-gray-600 mt-1">เช่น ปรับโครงสร้างหนี้, จ่ายเพิ่ม, รวมหนี้</div>
-                            </div>
-                        </div>
+                  </div>
+                  <div class="flex justify-between items-center"><span class="text-sm">ถึงเป้า 6 เดือน:</span>
+                    <div class="text-right">
+                      <div id="time-to-6-months" class="font-bold text-lg text-blue-600"></div>
+                      <div id="date-to-6-months" class="text-xs text-gray-600"></div>
                     </div>
+                  </div>
                 </div>
+              </div>
+              <div class="bg-yellow-50 p-4 rounded-lg">
+                <h5 class="font-bold text-sm mb-2">💡 เคล็ดลับการออม</h5>
+                <ul class="text-xs space-y-1 text-gray-700">
+                  <li>• ตั้งเป้าออมอย่างน้อย 10-20% ของรายได้</li>
+                  <li>• ใช้วิธี "จ่ายตัวเองก่อน" โดยโอนเงินออมทันทีที่ได้เงินเดือน</li>
+                  <li>• เปิดบัญชีออมทรัพย์แยกสำหรับเงินฉุกเฉิน</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
 
-                <!-- Expenses Adjustment Section -->
-                <div class="bg-white border rounded-xl p-6 mb-6">
-                    <h4 class="font-bold text-lg mb-4 text-gray-800">🛒 ปรับรายจ่าย</h4>
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <h5 class="font-medium text-gray-700 mb-3">รายจ่ายปัจจุบัน</h5>
-                            <div class="space-y-2">
-            `;
-            
-            Object.entries(userData.expenses).forEach(([key, value]) => {
-                if (value > 0) {
-                    html += `
-                        <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-                            <span class="text-sm">${expenseLabels[key]}</span>
-                            <span class="font-bold text-sm">${formatNumber(value)} บาท</span>
-                        </div>
-                    `;
-                }
-            });
-            
-            html += `
-                            </div>
-                        </div>
-                        <div>
-                            <h5 class="font-medium text-gray-700 mb-3">ปรับรายจ่ายใหม่</h5>
-                            <div class="space-y-2">
-            `;
-            
-            Object.entries(userData.expenses).forEach(([key, value]) => {
-                if (value > 0) {
-                    html += `
-                        <div class="flex justify-between items-center p-2 bg-blue-50 rounded">
-                            <span class="text-sm font-medium">${expenseLabels[key]}</span>
-                            <input type="text" id="adj-${key}" class="input-field w-24 px-2 py-1 text-right text-sm rounded" 
-                                   value="${formatNumber(value)}" onchange="updateAdjustment()">
-                        </div>
-                    `;
-                }
-            });
-            
-            html += `
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <!-- Action -->
+        <div class="text-center">
+          <button id="restart-btn" class="btn-primary text-white px-8 py-3 rounded-lg font-semibold">🔄 ตรวจสุขภาพการเงินใหม่</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
 
-                <!-- Results Section -->
-                <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl border">
-                    <h4 class="font-bold text-xl mb-4 text-center">📊 ผลลัพธ์หลังปรับแผนการเงิน</h4>
-                    
-                    <!-- Key Metrics -->
-                    <div class="grid md:grid-cols-4 gap-4 mb-6">
-                        <div class="text-center p-4 bg-white rounded-lg shadow-sm">
-                            <div class="text-xs text-gray-600 mb-1">สภาพคล่องใหม่</div>
-                            <div id="new-liquidity" class="text-lg font-bold"></div>
-                            <div id="liquidity-change" class="text-xs mt-1"></div>
-                        </div>
-                        <div class="text-center p-4 bg-white rounded-lg shadow-sm">
-                            <div class="text-xs text-gray-600 mb-1">DTI ใหม่</div>
-                            <div id="new-dti" class="text-lg font-bold"></div>
-                            <div id="dti-change" class="text-xs mt-1"></div>
-                        </div>
-                        <div class="text-center p-4 bg-white rounded-lg shadow-sm">
-                            <div class="text-xs text-gray-600 mb-1">เงินสำรองฉุกเฉิน</div>
-                            <div id="new-emergency" class="text-lg font-bold"></div>
-                            <div id="emergency-change" class="text-xs mt-1"></div>
-                        </div>
-                        <div class="text-center p-4 bg-white rounded-lg shadow-sm">
-                            <div class="text-xs text-gray-600 mb-1">เปลี่ยนแปลงรวม</div>
-                            <div id="total-change" class="text-lg font-bold"></div>
-                            <div class="text-xs text-gray-600 mt-1">ต่อเดือน</div>
-                        </div>
-                    </div>
+<script>
+  /* ================= CONFIG ================= */
+  const defaultConfig = {
+    main_title: "ตรวจสุขภาพการเงิน",
+    subtitle: "วิเคราะห์สถานะการเงินของคุณอย่างครอบคลุญ",
+    start_button_text: "เริ่มตรวจสุขภาพการเงิน"
+  };
 
-                    <!-- Detailed Changes -->
-                    <div class="grid md:grid-cols-3 gap-4">
-                        <div class="bg-green-100 p-4 rounded-lg">
-                            <h5 class="font-bold text-green-800 mb-2">💹 การเปลี่ยนแปลงรายได้</h5>
-                            <div id="income-change-detail" class="text-sm"></div>
-                        </div>
-                        <div class="bg-red-100 p-4 rounded-lg">
-                            <h5 class="font-bold text-red-800 mb-2">💳 การเปลี่ยนแปลงหนี้</h5>
-                            <div id="debt-change-detail" class="text-sm"></div>
-                        </div>
-                        <div class="bg-blue-100 p-4 rounded-lg">
-                            <h5 class="font-bold text-blue-800 mb-2">🛒 การเปลี่ยนแปลงรายจ่าย</h5>
-                            <div id="expense-change-detail" class="text-sm"></div>
-                        </div>
-                    </div>
+  /* ========= ใส่ URL เว็บแอป Apps Script ตรงนี้ ========= */
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbye_Ecv3ii6U86dk5IluCmtAseB-Ii9_e1kB7hxVfsbRfFuAQAYA6qAHMMyVt5gStM/exec"; // เช่น https://script.google.com/macros/s/AKfycb.../exec
+  let hasSavedToGAS = false;
 
-                    <!-- Recommendations -->
-                    <div id="adjustment-recommendations" class="mt-6 p-4 bg-white rounded-lg border-l-4 border-yellow-500">
-                        <h5 class="font-bold text-yellow-800 mb-2">💡 คำแนะนำ</h5>
-                        <div id="recommendation-content" class="text-sm text-gray-700"></div>
-                    </div>
-                </div>
-            `;
-            
-            adjustmentContent.innerHTML = html;
-            
-            // Setup number formatting for adjustment inputs
-            setTimeout(() => {
-                const adjIncomeInput = document.getElementById('adj-income');
-                const adjDebtInput = document.getElementById('adj-debt');
-                
-                if (adjIncomeInput) setupNumberInput(adjIncomeInput);
-                if (adjDebtInput) setupNumberInput(adjDebtInput);
-                
-                Object.keys(userData.expenses).forEach(key => {
-                    const adjInput = document.getElementById(`adj-${key}`);
-                    if (adjInput) {
-                        setupNumberInput(adjInput);
-                    }
-                });
-            }, 100);
-            
-            updateAdjustment();
-        }
+  /* ================= STATE ================= */
+  let currentStep = 0;
+  let selectedOrganization = '';
+  let userData = {
+    income: 0,
+    debtPayment: 0,
+    expenses: {
+      food: 0, transport: 0, household: 0, utilities: 0,
+      entertainment: 0, clothing: 0, communication: 0, other: 0
+    },
+    savings: 0
+  };
 
-        function updateAdjustment() {
-            // Get new values
-            const newIncome = parseNumber(document.getElementById('adj-income')?.value || userData.income);
-            const newDebtPayment = parseNumber(document.getElementById('adj-debt')?.value || userData.debtPayment);
-            
-            let newTotalExpenses = 0;
-            let originalTotalExpenses = 0;
-            
-            Object.keys(userData.expenses).forEach(key => {
-                const originalValue = userData.expenses[key];
-                const adjInput = document.getElementById(`adj-${key}`);
-                
-                if (adjInput) {
-                    const newValue = parseNumber(adjInput.value);
-                    newTotalExpenses += newValue;
-                }
-                originalTotalExpenses += originalValue;
-            });
-            
-            // Calculate new metrics
-            const newTotalMonthlyExpenses = newDebtPayment + newTotalExpenses;
-            const newLiquidity = newIncome - newTotalMonthlyExpenses;
-            const newDTI = newIncome > 0 ? (newDebtPayment / newIncome) * 100 : 0;
-            const newEmergencyMonths = newTotalMonthlyExpenses > 0 ? userData.savings / newTotalMonthlyExpenses : 0;
-            
-            // Calculate changes
-            const originalTotalMonthlyExpenses = userData.debtPayment + originalTotalExpenses;
-            const originalLiquidity = userData.income - originalTotalMonthlyExpenses;
-            const originalDTI = userData.income > 0 ? (userData.debtPayment / userData.income) * 100 : 0;
-            const originalEmergencyMonths = originalTotalMonthlyExpenses > 0 ? userData.savings / originalTotalMonthlyExpenses : 0;
-            
-            const incomeChange = newIncome - userData.income;
-            const debtChange = newDebtPayment - userData.debtPayment;
-            const expenseChange = newTotalExpenses - originalTotalExpenses;
-            const liquidityChange = newLiquidity - originalLiquidity;
-            const dtiChange = newDTI - originalDTI;
-            const emergencyChange = newEmergencyMonths - originalEmergencyMonths;
-            const totalChange = incomeChange - debtChange - expenseChange;
-            
-            // Update main metrics display
-            const newLiquidityEl = document.getElementById('new-liquidity');
-            const newDTIEl = document.getElementById('new-dti');
-            const newEmergencyEl = document.getElementById('new-emergency');
-            const totalChangeEl = document.getElementById('total-change');
-            
-            if (newLiquidityEl) {
-                newLiquidityEl.textContent = `${newLiquidity.toLocaleString()} บาท`;
-                newLiquidityEl.className = `text-lg font-bold ${newLiquidity >= 0 ? 'text-green-600' : 'text-red-600'}`;
-            }
-            
-            if (newDTIEl) {
-                newDTIEl.textContent = `${newDTI.toFixed(1)}%`;
-                newDTIEl.className = `text-lg font-bold ${newDTI <= 35 ? 'text-green-600' : newDTI <= 45 ? 'text-orange-600' : 'text-red-600'}`;
-            }
-            
-            if (newEmergencyEl) {
-                newEmergencyEl.textContent = `${newEmergencyMonths.toFixed(1)} เดือน`;
-                newEmergencyEl.className = `text-lg font-bold ${newEmergencyMonths >= 3 && newEmergencyMonths <= 6 ? 'text-green-600' : 'text-orange-600'}`;
-            }
-            
-            if (totalChangeEl) {
-                totalChangeEl.textContent = `${totalChange >= 0 ? '+' : ''}${totalChange.toLocaleString()} บาท`;
-                totalChangeEl.className = `text-lg font-bold ${totalChange >= 0 ? 'text-green-600' : 'text-red-600'}`;
-            }
-            
-            // Update change indicators
-            const liquidityChangeEl = document.getElementById('liquidity-change');
-            const dtiChangeEl = document.getElementById('dti-change');
-            const emergencyChangeEl = document.getElementById('emergency-change');
-            
-            if (liquidityChangeEl) {
-                liquidityChangeEl.textContent = `${liquidityChange >= 0 ? '+' : ''}${liquidityChange.toLocaleString()} บาท`;
-                liquidityChangeEl.className = `text-xs mt-1 ${liquidityChange >= 0 ? 'text-green-600' : 'text-red-600'}`;
-            }
-            
-            if (dtiChangeEl) {
-                dtiChangeEl.textContent = `${dtiChange >= 0 ? '+' : ''}${dtiChange.toFixed(1)}%`;
-                dtiChangeEl.className = `text-xs mt-1 ${dtiChange <= 0 ? 'text-green-600' : 'text-red-600'}`;
-            }
-            
-            if (emergencyChangeEl) {
-                emergencyChangeEl.textContent = `${emergencyChange >= 0 ? '+' : ''}${emergencyChange.toFixed(1)} เดือน`;
-                emergencyChangeEl.className = `text-xs mt-1 ${emergencyChange >= 0 ? 'text-green-600' : 'text-red-600'}`;
-            }
-            
-            // Update detailed changes
-            const incomeChangeDetailEl = document.getElementById('income-change-detail');
-            const debtChangeDetailEl = document.getElementById('debt-change-detail');
-            const expenseChangeDetailEl = document.getElementById('expense-change-detail');
-            
-            if (incomeChangeDetailEl) {
-                if (incomeChange === 0) {
-                    incomeChangeDetailEl.innerHTML = '<div class="text-gray-600">ไม่มีการเปลี่ยนแปลง</div>';
-                } else {
-                    incomeChangeDetailEl.innerHTML = `
-                        <div class="flex justify-between mb-1">
-                            <span>เดิม:</span>
-                            <span>${formatNumber(userData.income)} บาท</span>
-                        </div>
-                        <div class="flex justify-between mb-1">
-                            <span>ใหม่:</span>
-                            <span>${formatNumber(newIncome)} บาท</span>
-                        </div>
-                        <div class="flex justify-between font-bold ${incomeChange >= 0 ? 'text-green-700' : 'text-red-700'}">
-                            <span>เปลี่ยนแปลง:</span>
-                            <span>${incomeChange >= 0 ? '+' : ''}${formatNumber(incomeChange)} บาท</span>
-                        </div>
-                    `;
-                }
-            }
-            
-            if (debtChangeDetailEl) {
-                if (debtChange === 0) {
-                    debtChangeDetailEl.innerHTML = '<div class="text-gray-600">ไม่มีการเปลี่ยนแปลง</div>';
-                } else {
-                    debtChangeDetailEl.innerHTML = `
-                        <div class="flex justify-between mb-1">
-                            <span>เดิม:</span>
-                            <span>${formatNumber(userData.debtPayment)} บาท</span>
-                        </div>
-                        <div class="flex justify-between mb-1">
-                            <span>ใหม่:</span>
-                            <span>${formatNumber(newDebtPayment)} บาท</span>
-                        </div>
-                        <div class="flex justify-between font-bold ${debtChange <= 0 ? 'text-green-700' : 'text-red-700'}">
-                            <span>เปลี่ยนแปลง:</span>
-                            <span>${debtChange >= 0 ? '+' : ''}${formatNumber(debtChange)} บาท</span>
-                        </div>
-                    `;
-                }
-            }
-            
-            if (expenseChangeDetailEl) {
-                if (expenseChange === 0) {
-                    expenseChangeDetailEl.innerHTML = '<div class="text-gray-600">ไม่มีการเปลี่ยนแปลง</div>';
-                } else {
-                    expenseChangeDetailEl.innerHTML = `
-                        <div class="flex justify-between mb-1">
-                            <span>เดิม:</span>
-                            <span>${formatNumber(originalTotalExpenses)} บาท</span>
-                        </div>
-                        <div class="flex justify-between mb-1">
-                            <span>ใหม่:</span>
-                            <span>${formatNumber(newTotalExpenses)} บาท</span>
-                        </div>
-                        <div class="flex justify-between font-bold ${expenseChange <= 0 ? 'text-green-700' : 'text-red-700'}">
-                            <span>เปลี่ยนแปลง:</span>
-                            <span>${expenseChange >= 0 ? '+' : ''}${formatNumber(expenseChange)} บาท</span>
-                        </div>
-                    `;
-                }
-            }
-            
-            // Generate smart recommendations
-            generateAdjustmentRecommendations(newLiquidity, newDTI, newEmergencyMonths, {
-                incomeChange,
-                debtChange,
-                expenseChange,
-                liquidityChange
-            });
-        }
-        
-        function generateAdjustmentRecommendations(newLiquidity, newDTI, newEmergencyMonths, changes) {
-            const recommendationEl = document.getElementById('recommendation-content');
-            if (!recommendationEl) return;
-            
-            let recommendations = [];
-            
-            // Liquidity recommendations
-            if (newLiquidity < 0) {
-                if (changes.incomeChange > 0) {
-                    recommendations.push('💡 แม้จะเพิ่มรายได้แล้ว แต่ยังติดลบอยู่ ควรลดรายจ่ายเพิ่มเติมหรือลดการจ่ายหนี้');
-                } else {
-                    recommendations.push('🚨 สภาพคล่องยังติดลบ ควรเพิ่มรายได้หรือลดรายจ่าย/หนี้เพิ่มเติม');
-                }
-            } else if (newLiquidity > 0 && changes.liquidityChange > 0) {
-                recommendations.push('🎉 ดีมาก! สภาพคล่องดีขึ้น สามารถนำเงินส่วนเกินไปออมหรือลงทุนได้');
-            }
-            
-            // DTI recommendations
-            if (newDTI > 45) {
-                recommendations.push('⚠️ อัตราส่วนหนี้ยังสูงเกินไป ควรลดการจ่ายหนี้หรือเพิ่มรายได้เพิ่มเติม');
-            } else if (newDTI <= 35 && changes.debtChange < 0) {
-                recommendations.push('✅ อัตราส่วนหนี้อยู่ในเกณฑ์ดี การลดหนี้ช่วยให้มีเงินเหลือมากขึ้น');
-            }
-            
-            // Emergency fund recommendations
-            if (newEmergencyMonths < 3) {
-                recommendations.push('💰 เงินสำรองยังไม่เพียงพอ ควรเร่งออมเงินให้ถึง 3-6 เดือน');
-            } else if (newEmergencyMonths > 6) {
-                recommendations.push('📈 เงินสำรองเกินเป้า ควรนำส่วนเกินไปลงทุนเพื่อเติบโต');
-            }
-            
-            // Income change recommendations
-            if (changes.incomeChange > 0) {
-                recommendations.push('💹 การเพิ่มรายได้เป็นวิธีที่ดีที่สุด ควรมองหาโอกาสรายได้เสริมเพิ่มเติม');
-            }
-            
-            // Expense change recommendations
-            if (changes.expenseChange < 0) {
-                recommendations.push('🛒 การลดรายจ่ายช่วยปรับปรุงสถานะการเงินได้ดี ควรรักษาระดับนี้ไว้');
-            }
-            
-            // Overall recommendations
-            if (changes.liquidityChange > 5000) {
-                recommendations.push('🎯 การปรับแผนนี้ช่วยปรับปรุงสถานะการเงินได้มาก ควรนำไปปฏิบัติจริง');
-            } else if (changes.liquidityChange < -1000) {
-                recommendations.push('🔄 การปรับแผนนี้อาจทำให้สถานะการเงินแย่ลง ควรพิจารณาใหม่');
-            }
-            
-            if (recommendations.length === 0) {
-                recommendations.push('📊 การปรับแผนนี้ไม่ได้เปลี่ยนแปลงสถานะการเงินมาก ลองปรับค่าต่างๆ เพิ่มเติม');
-            }
-            
-            recommendationEl.innerHTML = recommendations.map(rec => `<div class="mb-2">• ${rec}</div>`).join('');
-        }
+  /* ================= Utils ================= */
+  function formatNumber(num){ return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+  function parseNumber(str){ return parseFloat(str.replace(/,/g, '')) || 0; }
+  function formatMonthsToYears(months){
+    if (months <= 0) return 'ถึงแล้ว!';
+    const years = Math.floor(months/12), remaining = months % 12;
+    if (!years) return `${months} เดือน`;
+    if (!remaining) return `${years} ปี`;
+    return `${years} ปี ${remaining} เดือน`;
+  }
+  function setupNumberInput(input){
+    input.type='text';
+    input.addEventListener('input', e=>{
+      const pos=e.target.selectionStart, old=e.target.value, oldLen=old.length;
+      let value=e.target.value.replace(/[^0-9]/g,'');
+      if(value){
+        const formatted=formatNumber(value); e.target.value=formatted;
+        const newLen=formatted.length, diff=newLen-oldLen, newPos=Math.max(0,pos+diff);
+        setTimeout(()=>e.target.setSelectionRange(newPos,newPos),0);
+      }else e.target.value='';
+    });
+    input.addEventListener('paste', e=>{
+      e.preventDefault();
+      const pasted=(e.clipboardData||window.clipboardData).getData('text').replace(/[^0-9]/g,'');
+      if(pasted) e.target.value=formatNumber(pasted);
+    });
+    input.addEventListener('focus', e=>{
+      if(e.target.value){
+        const v=e.target.value.replace(/[^0-9]/g,'');
+        if(v) e.target.value=formatNumber(v);
+      }
+    });
+  }
 
-        function restart() {
-            currentStep = 0;
-            selectedOrganization = '';
-            userData = {
-                income: 0,
-                debtPayment: 0,
-                expenses: {
-                    food: 0,
-                    transport: 0,
-                    household: 0,
-                    utilities: 0,
-                    entertainment: 0,
-                    clothing: 0,
-                    communication: 0,
-                    other: 0
-                },
-                savings: 0
-            };
-            
-            // Reset organization selection
-            clearOrgSelection();
-            switchOrgType('branch'); // Default to branch
-            
-            document.getElementById('results-screen').classList.add('hidden');
-            document.getElementById('emergency-simulator').classList.add('hidden');
-            document.getElementById('welcome-screen').classList.remove('hidden');
-            updateProgress();
-        }
+  /* ================= Questions ================= */
+  const questions = [
+    {
+      title: "รายได้รวมต่อเดือน",
+      content: `
+        <div class="space-y-4">
+          <p class="text-gray-600">กรุณากรอกรายได้รวมของคุณต่อเดือน (บาท)</p>
+          <input type="text" id="income-input" class="input-field w-full px-4 py-3 rounded-lg text-lg" placeholder="เช่น 50,000" inputmode="numeric">
+        </div>
+      `,
+      field: 'income'
+    },
+    {
+      title: "รายจ่ายหนี้รวมต่อเดือน",
+      content: `
+        <div class="space-y-4">
+          <p class="text-gray-600">กรุณากรอกยอดรวมที่คุณต้องจ่ายหนี้ทุกประเภทต่อเดือน (บาท)</p>
+          <input type="text" id="debt-input" class="input-field w-full px-4 py-3 rounded-lg text-lg" placeholder="เช่น 15,000" inputmode="numeric">
+        </div>
+      `,
+      field: 'debtPayment'
+    },
+    {
+      title: "รายจ่ายในชีวิตประจำวัน",
+      content: `
+        <div class="space-y-4">
+          <p class="text-gray-600 mb-6">กรุณากรอกรายจ่ายแต่ละหมวดหมู่ต่อเดือน (บาท)</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">ค่าอาหาร</label>
+              <input type="text" id="food-input" class="input-field w-full px-3 py-2 rounded-lg" placeholder="0" inputmode="numeric">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">ค่าเดินทาง/น้ำมัน</label>
+              <input type="text" id="transport-input" class="input-field w-full px-3 py-2 rounded-lg" placeholder="0" inputmode="numeric">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">ค่าของใช้ในบ้าน</label>
+              <input type="text" id="household-input" class="input-field w-full px-3 py-2 rounded-lg" placeholder="0" inputmode="numeric">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">ค่าน้ำ/ค่าไฟ</label>
+              <input type="text" id="utilities-input" class="input-field w-full px-3 py-2 rounded-lg" placeholder="0" inputmode="numeric">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">ค่านันทนาการ/สังสรรค์</label>
+              <input type="text" id="entertainment-input" class="input-field w-full px-3 py-2 rounded-lg" placeholder="0" inputmode="numeric">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">ค่าเสื้อผ้า/เครื่องประดับ</label>
+              <input type="text" id="clothing-input" class="input-field w-full px-3 py-2 rounded-lg" placeholder="0" inputmode="numeric">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">ค่าเน็ต/โทรศัพท์</label>
+              <input type="text" id="communication-input" class="input-field w-full px-3 py-2 rounded-lg" placeholder="0" inputmode="numeric">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">อื่นๆ</label>
+              <input type="text" id="other-input" class="input-field w-full px-3 py-2 rounded-lg" placeholder="0" inputmode="numeric">
+            </div>
+          </div>
+        </div>
+      `,
+      field: 'expenses'
+    },
+    {
+      title: "เงินออมรวมในปัจจุบัน",
+      content: `
+        <div class="space-y-4">
+          <p class="text-gray-600">กรุณากรอกยอดเงินออมรวมที่คุณมีในปัจจุบัน (บาท)</p>
+          <input type="text" id="savings-input" class="input-field w-full px-4 py-3 rounded-lg text-lg" placeholder="เช่น 100,000" inputmode="numeric">
+        </div>
+      `,
+      field: 'savings'
+    }
+  ];
 
-        // Element SDK Integration
-        async function onConfigChange(config) {
-            const mainTitle = document.getElementById('main-title');
-            const subtitle = document.getElementById('subtitle');
-            const startBtn = document.getElementById('start-btn');
-            
-            if (mainTitle) {
-                mainTitle.textContent = config.main_title || defaultConfig.main_title;
-            }
-            if (subtitle) {
-                subtitle.textContent = config.subtitle || defaultConfig.subtitle;
-            }
-            if (startBtn) {
-                startBtn.textContent = config.start_button_text || defaultConfig.start_button_text;
-            }
-        }
+  /* ================= App Init & Events ================= */
+  function init(){
+    setupEventListeners();
+    updateProgress();
+  }
+  function setupEventListeners(){
+    document.getElementById('start-btn').addEventListener('click', startQuestionnaire);
+    document.getElementById('next-btn').addEventListener('click', nextQuestion);
+    document.getElementById('prev-btn').addEventListener('click', prevQuestion);
+    document.getElementById('restart-btn').addEventListener('click', ()=>{ hasSavedToGAS=false; restart(); });
 
-        function mapToCapabilities(config) {
-            return {
-                recolorables: [],
-                borderables: [],
-                fontEditable: undefined,
-                fontSizeable: undefined
-            };
-        }
+    document.getElementById('chooseBranch').addEventListener('click',()=>switchOrgType('branch'));
+    document.getElementById('chooseHQ').addEventListener('click',()=>switchOrgType('hq'));
 
-        function mapToEditPanelValues(config) {
-            return new Map([
-                ["main_title", config.main_title || defaultConfig.main_title],
-                ["subtitle", config.subtitle || defaultConfig.subtitle],
-                ["start_button_text", config.start_button_text || defaultConfig.start_button_text]
-            ]);
-        }
+    document.querySelectorAll('[data-org]').forEach(btn=>{
+      btn.addEventListener('click', e=>selectOrganization(e.target.dataset.org));
+    });
+  }
 
-        // Initialize Element SDK
-        if (window.elementSdk) {
-            window.elementSdk.init({
-                defaultConfig,
-                onConfigChange,
-                mapToCapabilities,
-                mapToEditPanelValues
-            });
-        }
+  function switchOrgType(type){
+    const chooseBranchBtn=document.getElementById('chooseBranch');
+    const chooseHQBtn=document.getElementById('chooseHQ');
+    const branchGroup=document.getElementById('branchGroup');
+    const hqGroup=document.getElementById('hqGroup');
+    if (type==='branch'){
+      chooseBranchBtn.classList.add('active'); chooseHQBtn.classList.remove('active');
+      branchGroup.classList.remove('hidden');   hqGroup.classList.add('hidden');
+    } else {
+      chooseHQBtn.classList.add('active'); chooseBranchBtn.classList.remove('active');
+      hqGroup.classList.remove('hidden');   branchGroup.classList.add('hidden');
+    }
+    clearOrgSelection();
+  }
+  function selectOrganization(org){
+    selectedOrganization = org;
+    document.querySelectorAll('[data-org]').forEach(b=>b.classList.remove('selected'));
+    const el = document.querySelector(`[data-org="${org}"]`); if (el) el.classList.add('selected');
+    const d = document.getElementById('selected-org'); d.textContent = `เลือกแล้ว: ${org}`; d.classList.remove('hidden');
+    document.getElementById('start-btn').disabled = false;
+  }
+  function clearOrgSelection(){
+    selectedOrganization=''; document.querySelectorAll('[data-org]').forEach(b=>b.classList.remove('selected'));
+    document.getElementById('selected-org').classList.add('hidden'); document.getElementById('start-btn').disabled = true;
+  }
 
-        // Initialize app when DOM is ready
-        document.addEventListener('DOMContentLoaded', init);
-    </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99e383cb633cf305',t:'MTc2MzA5MTkxMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+  function startQuestionnaire(){
+    document.getElementById('welcome-screen').classList.add('hidden');
+    document.getElementById('question-screen').classList.remove('hidden');
+    showQuestion(0);
+  }
+
+  function showQuestion(step){
+    currentStep = step;
+    const question = questions[step];
+    document.getElementById('question-title').textContent = question.title;
+    document.getElementById('question-content').innerHTML = question.content;
+
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    if (step === 0) prevBtn.classList.add('hidden'); else prevBtn.classList.remove('hidden');
+    nextBtn.textContent = (step === questions.length - 1) ? 'ดูผลลัพธ์' : 'ถัดไป →';
+
+    loadQuestionData(step);
+    updateProgress();
+  }
+
+  function loadQuestionData(step){
+    const question = questions[step];
+
+    setTimeout(()=>{
+      const inputs = document.querySelectorAll('input[type="number"], input[type="text"]');
+      inputs.forEach(input=>{
+        if (input.id.includes('-input')) setupNumberInput(input);
+      });
+    }, 100);
+
+    if (question.field === 'income'){
+      const input = document.getElementById('income-input');
+      if (userData.income > 0) input.value = formatNumber(userData.income);
+    } else if (question.field === 'debtPayment'){
+      const input = document.getElementById('debt-input');
+      if (userData.debtPayment > 0) input.value = formatNumber(userData.debtPayment);
+    } else if (question.field === 'expenses'){
+      Object.keys(userData.expenses).forEach(key=>{
+        const input = document.getElementById(`${key}-input`);
+        if (input && userData.expenses[key] > 0) input.value = formatNumber(userData.expenses[key]);
+      });
+    } else if (question.field === 'savings'){
+      const input = document.getElementById('savings-input');
+      if (userData.savings > 0) input.value = formatNumber(userData.savings);
+    }
+  }
+
+  function saveQuestionData(step){
+    const question = questions[step];
+    if (question.field === 'income'){
+      userData.income = parseNumber(document.getElementById('income-input').value);
+    } else if (question.field === 'debtPayment'){
+      userData.debtPayment = parseNumber(document.getElementById('debt-input').value);
+    } else if (question.field === 'expenses'){
+      Object.keys(userData.expenses).forEach(key=>{
+        const input = document.getElementById(`${key}-input`);
+        if (input) userData.expenses[key] = parseNumber(input.value);
+      });
+    } else if (question.field === 'savings'){
+      userData.savings = parseNumber(document.getElementById('savings-input').value);
+    }
+  }
+
+  function nextQuestion(){
+    saveQuestionData(currentStep);
+    if (currentStep < questions.length - 1) showQuestion(currentStep + 1);
+    else showResults();
+  }
+
+  function prevQuestion(){
+    saveQuestionData(currentStep);
+    if (currentStep > 0) showQuestion(currentStep - 1);
+  }
+
+  function updateProgress(){
+    const progress = ((currentStep + 1) / (questions.length + 1)) * 100;
+    document.getElementById('progress-bar').style.width = `${progress}%`;
+    document.getElementById('progress-text').textContent = `${currentStep + 1}/${questions.length + 1}`;
+  }
+
+  /* ================= Results ================= */
+  function showResults(){
+    document.getElementById('question-screen').classList.add('hidden');
+    document.getElementById('results-screen').classList.remove('hidden');
+
+    const results = calculateResults();
+
+    // บันทึกไป Google Sheet (ครั้งเดียว)
+    if (!hasSavedToGAS){
+      hasSavedToGAS = true;
+      const payload = buildPayload(results);
+      saveToGoogleSheet(payload).catch(()=>{});
+    }
+
+    displayResults(results);
+    document.getElementById('emergency-simulator').classList.remove('hidden');
+    setupEmergencySimulator(results);
+    createAdjustmentSection();
+
+    currentStep = questions.length;
+    updateProgress();
+  }
+
+  function calculateResults(){
+    const totalExpenses = Object.values(userData.expenses).reduce((s,v)=>s+v,0);
+    const totalMonthlyExpenses = userData.debtPayment + totalExpenses;
+
+    const dti = userData.income > 0 ? (userData.debtPayment / userData.income) * 100 : 0;
+    const emergencyMonths = totalMonthlyExpenses > 0 ? userData.savings / totalMonthlyExpenses : 0;
+    const liquidity = userData.income - totalMonthlyExpenses;
+
+    return { dti, emergencyMonths, liquidity, totalExpenses, totalMonthlyExpenses };
+  }
+
+  function displayResults(results){
+    // DTI
+    const dtiCard = document.getElementById('dti-card');
+    const dtiValue = document.getElementById('dti-value');
+    const dtiStatus = document.getElementById('dti-status');
+    dtiValue.textContent = `${results.dti.toFixed(1)}%`;
+    if (results.dti <= 35){ dtiCard.className='result-card rounded-xl p-6 good'; dtiStatus.textContent='ดีมาก! อัตราส่วนหนี้อยู่ในเกณฑ์ที่ปลอดภัย'; }
+    else if (results.dti <= 45){ dtiCard.className='result-card rounded-xl p-6 warning'; dtiStatus.textContent='ระมัดระวัง! ควรหยุดสร้างหนี้เพิ่มและเร่งชำระหนี้'; }
+    else { dtiCard.className='result-card rounded-xl p-6 danger'; dtiStatus.textContent='อันตราย! ต้องหยุดสร้างหนี้และพิจารณาปรับโครงสร้างหนี้'; }
+
+    // Emergency
+    const emergencyCard = document.getElementById('emergency-card');
+    const emergencyValue = document.getElementById('emergency-value');
+    const emergencyStatus = document.getElementById('emergency-status');
+    emergencyValue.textContent = `${results.emergencyMonths.toFixed(1)} เดือน`;
+    if (results.emergencyMonths >= 3 && results.emergencyMonths <= 6){
+      emergencyCard.className='result-card rounded-xl p-6 good'; emergencyStatus.textContent='ดีมาก! เงินสำรองอยู่ในเกณฑ์ที่เหมาะสม';
+    } else if (results.emergencyMonths < 3){
+      emergencyCard.className='result-card rounded-xl p-6 warning'; emergencyStatus.textContent='ควรเก็บเงินเพิ่มเพื่อให้ถึงเป้าหมาย 3-6 เดือน';
+    } else {
+      emergencyCard.className='result-card rounded-xl p-6 warning'; emergencyStatus.textContent='เงินสำรองเกินเป้า ควรนำส่วนเกินไปลงทุน';
+    }
+
+    // Liquidity
+    const liquidityCard = document.getElementById('liquidity-card');
+    const liquidityValue = document.getElementById('liquidity-value');
+    const liquidityStatus = document.getElementById('liquidity-status');
+    liquidityValue.textContent = `${results.liquidity.toLocaleString()} บาท`;
+    if (results.liquidity >= 0){
+      liquidityCard.className='result-card rounded-xl p-6 good'; liquidityStatus.textContent='ดีมาก! สภาพคล่องเป็นบวก';
+    } else {
+      liquidityCard.className='result-card rounded-xl p-6 danger'; liquidityStatus.textContent='ติดลบ! ต้องลดรายจ่ายหรือเพิ่มรายได้';
+    }
+
+    generateRecommendations(results);
+  }
+
+  function generateRecommendations(results){
+    const recommendationsDiv = document.getElementById('recommendations');
+    let recommendations = [];
+
+    if (results.dti <= 35){
+      recommendations.push({ title:'🎉 อัตราส่วนหนี้ดีมาก', content:'อัตราส่วนหนี้ต่อรายได้ของคุณอยู่ในเกณฑ์ที่ปลอดภัย คุณสามารถบริหารหนี้ได้ดีและยังมีพื้นที่สำหรับการออมและลงทุน', type:'good' });
+    } else if (results.dti <= 45){
+      recommendations.push({ title:'⚠️ ควรระมัดระวังเรื่องหนี้', content:'อัตราส่วนหนี้ของคุณเริ่มสูง ควรหยุดสร้างหนี้เพิ่มและเร่งชำระหนี้ให้หมด เพื่อลดภาระทางการเงิน', type:'warning' });
+    } else {
+      recommendations.push({ title:'🚨 หนี้สูงเกินไป', content:'อัตราส่วนหนี้ของคุณสูงมาก ต้องหยุดสร้างหนี้ทันที เร่งชำระหนี้ และพิจารณาเจรจาปรับโครงสร้างหนี้หากจ่ายไม่ไหว', type:'danger' });
+    }
+
+    if (results.emergencyMonths < 3){
+      recommendations.push({ title:'💰 เพิ่มเงินสำรองฉุกเฉิน', content:`เงินสำรองของคุณครอบคลุมค่าใช้จ่ายได้เพียง ${results.emergencyMonths.toFixed(1)} เดือน ควรเก็บเงินเพิ่มให้ถึง 3-6 เดือน`, type:'warning' });
+    } else if (results.emergencyMonths > 6){
+      recommendations.push({ title:'📈 ลงทุนเงินส่วนเกิน', content:'เงินสำรองของคุณเกินเป้าหมาย ควรนำส่วนที่เกิน 6 เดือนไปลงทุนเพื่อให้เงินเติบโต', type:'good' });
+    }
+
+    if (results.liquidity < 0){
+      const topExpenses = getTopExpenses();
+      recommendations.push({ title:'📉 ปรับปรุงสภาพคล่อง', content:`สภาพคล่องของคุณติดลบ ${Math.abs(results.liquidity).toLocaleString()} บาท ควรลดรายจ่ายในหมวด: ${topExpenses.join(', ')}`, type:'danger' });
+    }
+
+    recommendationsDiv.innerHTML = recommendations.map(rec=>`
+      <div class="result-card rounded-lg p-6 ${rec.type}">
+        <h4 class="font-bold text-lg mb-2">${rec.title}</h4>
+        <p class="text-gray-700">${rec.content}</p>
+      </div>
+    `).join('');
+  }
+
+  function getTopExpenses(){
+    const labels = {
+      food:'ค่าอาหาร', transport:'ค่าเดินทาง', household:'ค่าของใช้ในบ้าน', utilities:'ค่าน้ำ/ไฟ',
+      entertainment:'ค่านันทนาการ', clothing:'ค่าเสื้อผ้า', communication:'ค่าเน็ต/โทรศัพท์', other:'อื่นๆ'
+    };
+    return Object.entries(userData.expenses)
+      .sort(([,a],[,b])=>b-a)
+      .slice(0,3)
+      .filter(([,v])=>v>0)
+      .map(([k])=>labels[k]);
+  }
+
+  function setupEmergencySimulator(results){
+    const monthlyInput = document.getElementById('monthly-saving-input');
+    const target3El = document.getElementById('target-3-months');
+    const target6El = document.getElementById('target-6-months');
+
+    const target3 = results.totalMonthlyExpenses * 3;
+    const target6 = results.totalMonthlyExpenses * 6;
+
+    target3El.textContent = formatNumber(target3) + ' บาท';
+    target6El.textContent = formatNumber(target6) + ' บาท';
+
+    setupNumberInput(monthlyInput);
+
+    function updateSim(){
+      const monthlySaving = parseNumber(monthlyInput.value);
+      if (monthlySaving <= 0) return;
+
+      const currentSavings = userData.savings;
+      const need3 = Math.max(0, target3 - currentSavings);
+      const need6 = Math.max(0, target6 - currentSavings);
+      const m3 = Math.ceil(need3 / monthlySaving);
+      const m6 = Math.ceil(need6 / monthlySaving);
+
+      document.getElementById('time-to-3-months').textContent = formatMonthsToYears(m3);
+      document.getElementById('time-to-6-months').textContent = formatMonthsToYears(m6);
+
+      const today = new Date();
+      const d3 = new Date(today); d3.setMonth(d3.getMonth() + m3);
+      const d6 = new Date(today); d6.setMonth(d6.getMonth() + m6);
+      document.getElementById('date-to-3-months').textContent = m3<=0 ? '' : d3.toLocaleDateString('th-TH');
+      document.getElementById('date-to-6-months').textContent = m6<=0 ? '' : d6.toLocaleDateString('th-TH');
+    }
+
+    monthlyInput.addEventListener('input', updateSim);
+    const suggested = Math.round(userData.income * 0.1);
+    monthlyInput.value = formatNumber(suggested);
+    updateSim();
+  }
+
+  function createAdjustmentSection(){
+    const el = document.getElementById('adjustment-content');
+    const labels = {
+      food:'ค่าอาหาร', transport:'ค่าเดินทาง/น้ำมัน', household:'ค่าของใช้ในบ้าน', utilities:'ค่าน้ำ/ค่าไฟ',
+      entertainment:'ค่านันทนาการ/สังสรรค์', clothing:'ค่าเสื้อผ้า/เครื่องประดับ', communication:'ค่าเน็ต/โทรศัพท์', other:'อื่นๆ'
+    };
+
+    let html = `
+      <div class="grid md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-green-50 p-6 rounded-xl border-l-4 border-green-500">
+          <h4 class="font-bold text-lg mb-4 text-green-800">💰 ปรับรายได้</h4>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">รายได้ปัจจุบัน</label>
+              <div class="text-2xl font-bold text-green-600 mb-2">${formatNumber(userData.income)} บาท</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">รายได้ใหม่ที่วางแผน</label>
+              <input type="text" id="adj-income" class="input-field w-full px-3 py-2 rounded-lg" value="${formatNumber(userData.income)}" onchange="updateAdjustment()">
+              <div class="text-xs text-gray-600 mt-1">เช่น รายได้เสริม, โบนัส, เลื่อนตำแหน่ง</div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-red-50 p-6 rounded-xl border-l-4 border-red-500">
+          <h4 class="font-bold text-lg mb-4 text-red-800">💳 ปรับการจ่ายหนี้</h4>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">จ่ายหนี้ปัจจุบัน</label>
+              <div class="text-2xl font-bold text-red-600 mb-2">${formatNumber(userData.debtPayment)} บาท</div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">จ่ายหนี้ใหม่ที่วางแผน</label>
+              <input type="text" id="adj-debt" class="input-field w-full px-3 py-2 rounded-lg" value="${formatNumber(userData.debtPayment)}" onchange="updateAdjustment()">
+              <div class="text-xs text-gray-600 mt-1">เช่น ปรับโครงสร้างหนี้, จ่ายเพิ่ม, รวมหนี้</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white border rounded-xl p-6 mb-6">
+        <h4 class="font-bold text-lg mb-4 text-gray-800">🛒 ปรับรายจ่าย</h4>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <h5 class="font-medium text-gray-700 mb-3">รายจ่ายปัจจุบัน</h5>
+            <div class="space-y-2">
+    `;
+    Object.entries(userData.expenses).forEach(([k,v])=>{
+      if (v>0){
+        html += `
+          <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+            <span class="text-sm">${labels[k]}</span>
+            <span class="font-bold text-sm">${formatNumber(v)} บาท</span>
+          </div>
+        `;
+      }
+    });
+    html += `
+            </div>
+          </div>
+          <div>
+            <h5 class="font-medium text-gray-700 mb-3">ปรับรายจ่ายใหม่</h5>
+            <div class="space-y-2">
+    `;
+    Object.entries(userData.expenses).forEach(([k,v])=>{
+      if (v>0){
+        html += `
+          <div class="flex justify-between items-center p-2 bg-blue-50 rounded">
+            <span class="text-sm font-medium">${labels[k]}</span>
+            <input type="text" id="adj-${k}" class="input-field w-24 px-2 py-1 text-right text-sm rounded" value="${formatNumber(v)}" onchange="updateAdjustment()">
+          </div>
+        `;
+      }
+    });
+    html += `
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl border">
+        <h4 class="font-bold text-xl mb-4 text-center">📊 ผลลัพธ์หลังปรับแผนการเงิน</h4>
+        <div class="grid md:grid-cols-4 gap-4 mb-6">
+          <div class="text-center p-4 bg-white rounded-lg shadow-sm">
+            <div class="text-xs text-gray-600 mb-1">สภาพคล่องใหม่</div>
+            <div id="new-liquidity" class="text-lg font-bold"></div>
+            <div id="liquidity-change" class="text-xs mt-1"></div>
+          </div>
+          <div class="text-center p-4 bg-white rounded-lg shadow-sm">
+            <div class="text-xs text-gray-600 mb-1">DTI ใหม่</div>
+            <div id="new-dti" class="text-lg font-bold"></div>
+            <div id="dti-change" class="text-xs mt-1"></div>
+          </div>
+          <div class="text-center p-4 bg-white rounded-lg shadow-sm">
+            <div class="text-xs text-gray-600 mb-1">เงินสำรองฉุกเฉิน</div>
+            <div id="new-emergency" class="text-lg font-bold"></div>
+            <div id="emergency-change" class="text-xs mt-1"></div>
+          </div>
+          <div class="text-center p-4 bg-white rounded-lg shadow-sm">
+            <div class="text-xs text-gray-600 mb-1">เปลี่ยนแปลงรวม</div>
+            <div id="total-change" class="text-lg font-bold"></div>
+            <div class="text-xs text-gray-600 mt-1">ต่อเดือน</div>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-3 gap-4">
+          <div class="bg-green-100 p-4 rounded-lg">
+            <h5 class="font-bold text-green-800 mb-2">💹 การเปลี่ยนแปลงรายได้</h5>
+            <div id="income-change-detail" class="text-sm"></div>
+          </div>
+          <div class="bg-red-100 p-4 rounded-lg">
+            <h5 class="font-bold text-red-800 mb-2">💳 การเปลี่ยนแปลงหนี้</h5>
+            <div id="debt-change-detail" class="text-sm"></div>
+          </div>
+          <div class="bg-blue-100 p-4 rounded-lg">
+            <h5 class="font-bold text-blue-800 mb-2">🛒 การเปลี่ยนแปลงรายจ่าย</h5>
+            <div id="expense-change-detail" class="text-sm"></div>
+          </div>
+        </div>
+        <div id="adjustment-recommendations" class="mt-6 p-4 bg-white rounded-lg border-l-4 border-yellow-500">
+          <h5 class="font-bold text-yellow-800 mb-2">💡 คำแนะนำ</h5>
+          <div id="recommendation-content" class="text-sm text-gray-700"></div>
+        </div>
+      </div>
+    `;
+    el.innerHTML = html;
+
+    setTimeout(()=>{
+      const adjIncome = document.getElementById('adj-income');
+      const adjDebt = document.getElementById('adj-debt');
+      if (adjIncome) setupNumberInput(adjIncome);
+      if (adjDebt) setupNumberInput(adjDebt);
+      Object.keys(userData.expenses).forEach(key=>{
+        const adj = document.getElementById(`adj-${key}`);
+        if (adj) setupNumberInput(adj);
+      });
+    }, 100);
+
+    updateAdjustment();
+  }
+
+  function updateAdjustment(){
+    const newIncome = parseNumber(document.getElementById('adj-income')?.value || userData.income);
+    const newDebt = parseNumber(document.getElementById('adj-debt')?.value || userData.debtPayment);
+
+    let newTotalExp = 0, originalTotalExp = 0;
+    Object.keys(userData.expenses).forEach(key=>{
+      const original = userData.expenses[key];
+      const adjEl = document.getElementById(`adj-${key}`);
+      if (adjEl) newTotalExp += parseNumber(adjEl.value);
+      originalTotalExp += original;
+    });
+
+    const newTotalMonthly = newDebt + newTotalExp;
+    const newLiquidity = newIncome - newTotalMonthly;
+    const newDTI = newIncome > 0 ? (newDebt / newIncome) * 100 : 0;
+    const newEmergency = newTotalMonthly > 0 ? userData.savings / newTotalMonthly : 0;
+
+    const originalTotalMonthly = userData.debtPayment + originalTotalExp;
+    const originalLiquidity = userData.income - originalTotalMonthly;
+    const originalDTI = userData.income > 0 ? (userData.debtPayment / userData.income) * 100 : 0;
+    const originalEmergency = originalTotalMonthly > 0 ? userData.savings / originalTotalMonthly : 0;
+
+    const incomeChange = newIncome - userData.income;
+    const debtChange = newDebt - userData.debtPayment;
+    const expenseChange = newTotalExp - originalTotalExp;
+    const liquidityChange = newLiquidity - originalLiquidity;
+    const dtiChange = newDTI - originalDTI;
+    const emergencyChange = newEmergency - originalEmergency;
+    const totalChange = incomeChange - debtChange - expenseChange;
+
+    const newLiquidityEl = document.getElementById('new-liquidity');
+    const newDTIEl = document.getElementById('new-dti');
+    const newEmergencyEl = document.getElementById('new-emergency');
+    const totalChangeEl = document.getElementById('total-change');
+    if (newLiquidityEl){ newLiquidityEl.textContent = `${newLiquidity.toLocaleString()} บาท`; newLiquidityEl.className = `text-lg font-bold ${newLiquidity>=0?'text-green-600':'text-red-600'}`; }
+    if (newDTIEl){ newDTIEl.textContent = `${newDTI.toFixed(1)}%`; newDTIEl.className = `text-lg font-bold ${newDTI<=35?'text-green-600':(newDTI<=45?'text-orange-600':'text-red-600')}`; }
+    if (newEmergencyEl){ newEmergencyEl.textContent = `${newEmergency.toFixed(1)} เดือน`; newEmergencyEl.className = `text-lg font-bold ${(newEmergency>=3 && newEmergency<=6)?'text-green-600':'text-orange-600'}`; }
+    if (totalChangeEl){ totalChangeEl.textContent = `${totalChange>=0?'+':''}${totalChange.toLocaleString()} บาท`; totalChangeEl.className = `text-lg font-bold ${totalChange>=0?'text-green-600':'text-red-600'}`; }
+
+    const liquidityChangeEl = document.getElementById('liquidity-change');
+    const dtiChangeEl = document.getElementById('dti-change');
+    const emergencyChangeEl = document.getElementById('emergency-change');
+    if (liquidityChangeEl){ liquidityChangeEl.textContent = `${liquidityChange>=0?'+':''}${liquidityChange.toLocaleString()} บาท`; liquidityChangeEl.className = `text-xs mt-1 ${liquidityChange>=0?'text-green-600':'text-red-600'}`; }
+    if (dtiChangeEl){ dtiChangeEl.textContent = `${dtiChange>=0?'+':''}${dtiChange.toFixed(1)}%`; dtiChangeEl.className = `text-xs mt-1 ${dtiChange<=0?'text-green-600':'text-red-600'}`; }
+    if (emergencyChangeEl){ emergencyChangeEl.textContent = `${emergencyChange>=0?'+':''}${emergencyChange.toFixed(1)} เดือน`; emergencyChangeEl.className = `text-xs mt-1 ${emergencyChange>=0?'text-green-600':'text-red-600'}`; }
+
+    const incomeDetail = document.getElementById('income-change-detail');
+    const debtDetail = document.getElementById('debt-change-detail');
+    const expDetail = document.getElementById('expense-change-detail');
+    if (incomeDetail){
+      incomeDetail.innerHTML = incomeChange===0 ? '<div class="text-gray-600">ไม่มีการเปลี่ยนแปลง</div>' : `
+        <div class="flex justify-between mb-1"><span>เดิม:</span><span>${formatNumber(userData.income)} บาท</span></div>
+        <div class="flex justify-between mb-1"><span>ใหม่:</span><span>${formatNumber(newIncome)} บาท</span></div>
+        <div class="flex justify-between font-bold ${incomeChange>=0?'text-green-700':'text-red-700'}"><span>เปลี่ยนแปลง:</span><span>${incomeChange>=0?'+':''}${formatNumber(incomeChange)} บาท</span></div>
+      `;
+    }
+    if (debtDetail){
+      debtDetail.innerHTML = debtChange===0 ? '<div class="text-gray-600">ไม่มีการเปลี่ยนแปลง</div>' : `
+        <div class="flex justify-between mb-1"><span>เดิม:</span><span>${formatNumber(userData.debtPayment)} บาท</span></div>
+        <div class="flex justify-between mb-1"><span>ใหม่:</span><span>${formatNumber(newDebt)} บาท</span></div>
+        <div class="flex justify-between font-bold ${debtChange<=0?'text-green-700':'text-red-700'}"><span>เปลี่ยนแปลง:</span><span>${debtChange>=0?'+':''}${formatNumber(debtChange)} บาท</span></div>
+      `;
+    }
+    if (expDetail){
+      expDetail.innerHTML = expenseChange===0 ? '<div class="text-gray-600">ไม่มีการเปลี่ยนแปลง</div>' : `
+        <div class="flex justify-between mb-1"><span>เดิม:</span><span>${formatNumber(originalTotalExp)} บาท</span></div>
+        <div class="flex justify-between mb-1"><span>ใหม่:</span><span>${formatNumber(newTotalExp)} บาท</span></div>
+        <div class="flex justify-between font-bold ${expenseChange<=0?'text-green-700':'text-red-700'}"><span>เปลี่ยนแปลง:</span><span>${expenseChange>=0?'+':''}${formatNumber(expenseChange)} บาท</span></div>
+      `;
+    }
+
+    generateAdjustmentRecommendations(newLiquidity, newDTI, newEmergency, { incomeChange, debtChange, expenseChange, liquidityChange });
+  }
+
+  function generateAdjustmentRecommendations(newLiquidity, newDTI, newEmergency, changes){
+    const el = document.getElementById('recommendation-content');
+    if (!el) return;
+    let recs = [];
+
+    if (newLiquidity < 0){
+      if (changes.incomeChange > 0) recs.push('💡 แม้จะเพิ่มรายได้แล้ว แต่ยังติดลบอยู่ ควรลดรายจ่ายเพิ่มเติมหรือลดการจ่ายหนี้');
+      else recs.push('🚨 สภาพคล่องยังติดลบ ควรเพิ่มรายได้หรือลดรายจ่าย/หนี้เพิ่มเติม');
+    } else if (newLiquidity > 0 && changes.liquidityChange > 0){
+      recs.push('🎉 ดีมาก! สภาพคล่องดีขึ้น สามารถนำเงินส่วนเกินไปออมหรือลงทุนได้');
+    }
+
+    if (newDTI > 45) recs.push('⚠️ อัตราส่วนหนี้ยังสูงเกินไป ควรลดการจ่ายหนี้หรือเพิ่มรายได้เพิ่มเติม');
+    else if (newDTI <= 35 && changes.debtChange < 0) recs.push('✅ อัตราส่วนหนี้อยู่ในเกณฑ์ดี การลดหนี้ช่วยให้มีเงินเหลือมากขึ้น');
+
+    if (newEmergency < 3) recs.push('💰 เงินสำรองยังไม่เพียงพอ ควรเร่งออมเงินให้ถึง 3-6 เดือน');
+    else if (newEmergency > 6) recs.push('📈 เงินสำรองเกินเป้า ควรนำส่วนเกินไปลงทุนเพื่อเติบโต');
+
+    if (changes.incomeChange > 0) recs.push('💹 การเพิ่มรายได้เป็นวิธีที่ดีที่สุด ควรมองหาโอกาสรายได้เสริมเพิ่มเติม');
+    if (changes.expenseChange < 0) recs.push('🛒 การลดรายจ่ายช่วยปรับปรุงสถานะการเงินได้ดี ควรรักษาระดับนี้ไว้');
+
+    if (changes.liquidityChange > 5000) recs.push('🎯 การปรับแผนนี้ช่วยปรับปรุงสถานะการเงินได้มาก ควรนำไปปฏิบัติจริง');
+    else if (changes.liquidityChange < -1000) recs.push('🔄 การปรับแผนนี้อาจทำให้สถานะการเงินแย่ลง ควรพิจารณาใหม่');
+
+    if (recs.length===0) recs.push('📊 การปรับแผนนี้ไม่ได้เปลี่ยนแปลงสถานะการเงินมาก ลองปรับค่าต่างๆ เพิ่มเติม');
+
+    el.innerHTML = recs.map(r=>`<div class="mb-2">• ${r}</div>`).join('');
+  }
+
+  function restart(){
+    currentStep = 0;
+    selectedOrganization = '';
+    userData = {
+      income:0, debtPayment:0,
+      expenses:{ food:0, transport:0, household:0, utilities:0, entertainment:0, clothing:0, communication:0, other:0 },
+      savings:0
+    };
+    clearOrgSelection(); switchOrgType('branch');
+    document.getElementById('results-screen').classList.add('hidden');
+    document.getElementById('emergency-simulator').classList.add('hidden');
+    document.getElementById('welcome-screen').classList.remove('hidden');
+    setSaveChip('hide');
+    updateProgress();
+  }
+
+  /* ================= Element SDK ================= */
+  async function onConfigChange(config){
+    const mainTitle = document.getElementById('main-title');
+    const subtitle = document.getElementById('subtitle');
+    const startBtn = document.getElementById('start-btn');
+    if (mainTitle) mainTitle.textContent = config.main_title || defaultConfig.main_title;
+    if (subtitle)  subtitle.textContent  = config.subtitle || defaultConfig.subtitle;
+    if (startBtn)  startBtn.textContent  = config.start_button_text || defaultConfig.start_button_text;
+  }
+  function mapToCapabilities(config){ return { recolorables:[], borderables:[], fontEditable:undefined, fontSizeable:undefined }; }
+  function mapToEditPanelValues(config){
+    return new Map([
+      ["main_title", config.main_title || defaultConfig.main_title],
+      ["subtitle", config.subtitle || defaultConfig.subtitle],
+      ["start_button_text", config.start_button_text || defaultConfig.start_button_text]
+    ]);
+  }
+  if (window.elementSdk){
+    window.elementSdk.init({ defaultConfig, onConfigChange, mapToCapabilities, mapToEditPanelValues });
+  }
+
+  /* ================= Save to GAS ================= */
+  function buildPayload(results){
+    const now = new Date();
+    return {
+      timestamp_iso: now.toISOString(),
+      timestamp_local: now.toLocaleString('th-TH'),
+      org: selectedOrganization || '',
+      inputs: {
+        income: userData.income,
+        debtPayment: userData.debtPayment,
+        expenses: userData.expenses,
+        savings: userData.savings
+      },
+      results: {
+        dti_pct: Number(results.dti.toFixed(4)),
+        emergency_months: Number(results.emergencyMonths.toFixed(4)),
+        liquidity: results.liquidity,
+        totalExpenses: results.totalExpenses,
+        totalMonthlyExpenses: results.totalMonthlyExpenses
+      },
+      meta: { ua: navigator.userAgent, ref: document.referrer || '', page: location.href }
+    };
+  }
+
+  function setSaveChip(state, text){
+    const chip = document.getElementById('save-chip');
+    const spinner = document.getElementById('save-chip-spinner');
+    const label = document.getElementById('save-chip-text');
+    if (!chip || !spinner || !label) return;
+
+    if (state==='hide'){ chip.classList.add('hidden'); return; }
+    chip.classList.remove('hidden');
+
+    if (state==='saving'){
+      spinner.classList.remove('hidden');
+      label.textContent = text || 'กำลังบันทึกผล…';
+      chip.querySelector('div').classList.remove('border-green-200','border-red-200');
+      chip.querySelector('div').classList.add('border-gray-200');
+    } else if (state==='ok'){
+      spinner.classList.add('hidden');
+      label.textContent = text || 'บันทึกผลเรียบร้อย';
+      chip.querySelector('div').classList.remove('border-gray-200','border-red-200');
+      chip.querySelector('div').classList.add('border-green-200');
+    } else if (state==='fail'){
+      spinner.classList.add('hidden');
+      label.textContent = text || 'บันทึกผลไม่สำเร็จ (ยังใช้งานต่อได้)';
+      chip.querySelector('div').classList.remove('border-gray-200','border-green-200');
+      chip.querySelector('div').classList.add('border-red-200');
+    }
+  }
+
+  async function saveToGoogleSheet(payload){
+    try{
+      if (!GAS_URL || GAS_URL.startsWith('PASTE_')) { console.warn('GAS_URL is not set'); return; }
+      setSaveChip('saving');
+      const controller = new AbortController();
+      const t = setTimeout(()=>controller.abort(), 9000);
+      await fetch(GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',           // fire-and-forget เพื่อลด CORS ปัญหา
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      }).catch(()=>{ /* opaque ok */ });
+      clearTimeout(t);
+      setSaveChip('ok');
+    }catch(e){
+      setSaveChip('fail');
+      console.warn('Save to GAS failed:', e);
+    }
+  }
+
+  /* ================= DOM Ready ================= */
+  document.addEventListener('DOMContentLoaded', init);
+</script>
+
+<!-- สคริปต์ Cloudflare เดิม -->
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99e383cb633cf305',t:'MTc2MzA5MTkxMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
 </html>
